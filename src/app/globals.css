@@ -1,26 +1,116 @@
 @import "tailwindcss";
 
+@theme {
+  /* Brand core */
+  --color-cream: #fff4e4;
+  --color-cream-deep: #f9e9d2;
+  --color-charcoal: #241713;
+  --color-charcoal-soft: #3a2a24;
+  --color-red: #a92a1d;
+  --color-red-deep: #8a2015;
+  --color-gold: #e6a62f;
+  --color-leaf: #31533b;
+  --color-clay: #c65b32;
+
+  /* Product identities */
+  --color-chicken: #a92a1d;
+  --color-mutton: #5c1220;
+  --color-fish: #1f5f63;
+  --color-shrimp: #e8603c;
+
+  --font-display: var(--font-bricolage);
+  --font-sans: var(--font-manrope);
+  --font-telugu: var(--font-noto-telugu);
+
+  --shadow-jar: 0 24px 48px -16px rgba(36, 23, 19, 0.28);
+  --shadow-card: 0 8px 24px -8px rgba(36, 23, 19, 0.16);
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: light;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-cream);
+  color: var(--color-charcoal);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.font-display {
+  font-family: var(--font-display), var(--font-sans), sans-serif;
+}
+
+.font-telugu {
+  font-family: var(--font-telugu), var(--font-sans), sans-serif;
+}
+
+/* Subtle paper grain over cream sections */
+.grain {
+  position: relative;
+}
+.grain::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.6'/%3E%3C/svg%3E");
+}
+
+/* Marquee strip */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.animate-marquee {
+  animation: marquee 28s linear infinite;
+}
+
+/* Gentle oil shimmer inside jars */
+@keyframes oil-sway {
+  0%, 100% { transform: translateX(0) scaleY(1); }
+  50% { transform: translateX(3px) scaleY(1.02); }
+}
+.animate-oil {
+  animation: oil-sway 5s ease-in-out infinite;
+  transform-origin: bottom center;
+}
+
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-10px) rotate(6deg); }
+}
+.animate-float {
+  animation: float-slow 6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .animate-marquee,
+  .animate-oil,
+  .animate-float {
+    animation: none;
+  }
+}
+
+/* Focus visibility */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid var(--color-gold);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: var(--color-gold);
+  color: var(--color-charcoal);
 }

@@ -1,0 +1,2851 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mamayya Pickles — Bold Non-Veg Pickles, Delivered India-wide</title>
+    <meta name="description"
+        content="Handmade chicken, mutton, fish and shrimp pickles. Bold spices, big pieces, proper non-veg pickle. Delivered across India." />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Manrope:wght@300;400;500;600;700;800&family=Noto+Sans+Telugu:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&display=swap"
+        rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        mamayya: {
+                            red: '#A92A1D',
+                            'red-dark': '#7A1E14',
+                            'red-light': '#C13A2B',
+                            charcoal: '#241713',
+                            'charcoal-soft': '#3A2A22',
+                            cream: '#FFF4E4',
+                            'cream-dark': '#F5E6CB',
+                            gold: '#E6A62F',
+                            green: '#31533B',
+                            orange: '#C65B32',
+                            chicken: '#A92A1D',
+                            mutton: '#6B1818',
+                            fish: '#2D5F5D',
+                            shrimp: '#D26943',
+                        }
+                    },
+                    fontFamily: {
+                        display: ['"Bricolage Grotesque"', 'serif'],
+                        body: ['"Manrope"', 'sans-serif'],
+                        telugu: ['"Noto Sans Telugu"', 'sans-serif'],
+                        serif: ['"Fraunces"', 'serif'],
+                    },
+                }
+            }
+        }
+    </script>
+
+    <style>
+        :root {
+            --red: #A92A1D;
+            --charcoal: #241713;
+            --cream: #FFF4E4;
+            --gold: #E6A62F;
+        }
+
+        * {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Manrope', sans-serif;
+            background: var(--cream);
+            color: var(--charcoal);
+            overflow-x: hidden;
+        }
+
+        ::selection {
+            background: var(--red);
+            color: var(--cream);
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #F5E6CB;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--red);
+            border-radius: 0;
+        }
+
+        /* Grain overlay */
+        .grain::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+            opacity: 0.08;
+            pointer-events: none;
+            z-index: 9999;
+            mix-blend-mode: multiply;
+        }
+
+        /* Preloader */
+        .preloader {
+            position: fixed;
+            inset: 0;
+            background: var(--charcoal);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.6s ease, visibility 0.6s;
+        }
+
+        .preloader.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .preloader-text {
+            font-family: 'Bricolage Grotesque', serif;
+            font-size: clamp(3rem, 10vw, 8rem);
+            font-weight: 800;
+            color: var(--cream);
+            overflow: hidden;
+        }
+
+        .preloader-text span {
+            display: inline-block;
+            transform: translateY(110%);
+            animation: preloaderUp 0.8s forwards;
+        }
+
+        .preloader-text span:nth-child(1) {
+            animation-delay: 0.1s;
+        }
+
+        .preloader-text span:nth-child(2) {
+            animation-delay: 0.18s;
+        }
+
+        .preloader-text span:nth-child(3) {
+            animation-delay: 0.26s;
+        }
+
+        .preloader-text span:nth-child(4) {
+            animation-delay: 0.34s;
+        }
+
+        .preloader-text span:nth-child(5) {
+            animation-delay: 0.42s;
+        }
+
+        .preloader-text span:nth-child(6) {
+            animation-delay: 0.5s;
+        }
+
+        .preloader-text span:nth-child(7) {
+            animation-delay: 0.58s;
+        }
+
+        @keyframes preloaderUp {
+            to {
+                transform: translateY(0);
+            }
+        }
+
+        /* Headlines */
+        .h-display {
+            font-family: 'Bricolage Grotesque', serif;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            line-height: 0.95;
+        }
+
+        .h-serif {
+            font-family: 'Fraunces', serif;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+        }
+
+        /* Marquee */
+        .marquee {
+            display: flex;
+            overflow: hidden;
+            gap: 3rem;
+        }
+
+        .marquee-track {
+            display: flex;
+            gap: 3rem;
+            flex-shrink: 0;
+            animation: marquee 30s linear infinite;
+        }
+
+        @keyframes marquee {
+            to {
+                transform: translateX(-100%);
+            }
+        }
+
+        /* Buttons */
+        .btn-primary {
+            background: var(--red);
+            color: var(--cream);
+            padding: 1rem 2rem;
+            font-weight: 600;
+            border: 2px solid var(--red);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary:hover {
+            background: var(--charcoal);
+            border-color: var(--charcoal);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--charcoal);
+            padding: 1rem 2rem;
+            font-weight: 600;
+            border: 2px solid var(--charcoal);
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-secondary:hover {
+            background: var(--charcoal);
+            color: var(--cream);
+        }
+
+        .btn-ghost {
+            color: var(--cream);
+            border-bottom: 2px solid var(--cream);
+            padding: 0.5rem 0;
+            transition: all 0.3s;
+        }
+
+        .btn-ghost:hover {
+            color: var(--gold);
+            border-color: var(--gold);
+        }
+
+        /* Jar animations */
+        .jar-hero {
+            transition: transform 0.1s linear;
+        }
+
+        .jar-float {
+            animation: jarFloat 6s ease-in-out infinite;
+        }
+
+        @keyframes jarFloat {
+
+            0%,
+            100% {
+                transform: translateY(0px) rotate(-1deg);
+            }
+
+            50% {
+                transform: translateY(-15px) rotate(1deg);
+            }
+        }
+
+        /* Spice particles */
+        .spice-particle {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: var(--red);
+            border-radius: 50%;
+            opacity: 0;
+        }
+
+        /* Mood card */
+        .mood-card {
+            background: var(--cream);
+            border: 2px solid var(--charcoal);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .mood-card:hover {
+            transform: translateY(-8px) rotate(-1deg);
+        }
+
+        .mood-card .jar-mini {
+            transition: transform 0.5s;
+        }
+
+        .mood-card:hover .jar-mini {
+            transform: translateY(-10px) rotate(5deg);
+        }
+
+        /* Product section */
+        .product-section {
+            min-height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .product-section .bg-pattern {
+            position: absolute;
+            inset: 0;
+            opacity: 0.05;
+            pointer-events: none;
+        }
+
+        /* Weight selector */
+        .weight-pill {
+            padding: 0.75rem 1.25rem;
+            border: 2px solid var(--charcoal);
+            background: transparent;
+            transition: all 0.3s;
+            cursor: pointer;
+            text-align: left;
+        }
+
+        .weight-pill:hover {
+            background: var(--cream-dark);
+        }
+
+        .weight-pill.active {
+            background: var(--red);
+            color: var(--cream);
+            border-color: var(--red);
+        }
+
+        /* Spice meter */
+        .spice-bar {
+            height: 6px;
+            background: var(--charcoal);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .spice-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--gold), var(--red), var(--charcoal));
+            transition: width 0.6s;
+        }
+
+        /* FAQ */
+        .faq-item {
+            border-bottom: 1px solid rgba(36, 23, 19, 0.15);
+        }
+
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease;
+        }
+
+        .faq-item.open .faq-answer {
+            max-height: 500px;
+        }
+
+        .faq-item.open .faq-icon {
+            transform: rotate(45deg);
+        }
+
+        .faq-icon {
+            transition: transform 0.3s;
+        }
+
+        /* Cart drawer */
+        .drawer-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(36, 23, 19, 0.5);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+            z-index: 200;
+        }
+
+        .drawer-overlay.open {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .cart-drawer {
+            position: fixed;
+            top: 0;
+            right: 0;
+            height: 100vh;
+            width: 100%;
+            max-width: 460px;
+            background: var(--cream);
+            z-index: 201;
+            transform: translateX(100%);
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .cart-drawer.open {
+            transform: translateX(0);
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 6rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(150%);
+            background: var(--charcoal);
+            color: var(--cream);
+            padding: 0.875rem 1.5rem;
+            z-index: 300;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* Pincode modal */
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(36, 23, 19, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 250;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+            padding: 1rem;
+        }
+
+        .modal.open {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: var(--cream);
+            max-width: 480px;
+            width: 100%;
+            padding: 2rem;
+            transform: scale(0.9);
+            transition: transform 0.3s;
+            position: relative;
+        }
+
+        .modal.open .modal-content {
+            transform: scale(1);
+        }
+
+        /* Flavour finder steps */
+        .finder-step {
+            display: none;
+        }
+
+        .finder-step.active {
+            display: block;
+            animation: stepIn 0.5s;
+        }
+
+        @keyframes stepIn {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Build a box */
+        .box-slot {
+            width: 100%;
+            aspect-ratio: 1;
+            border: 2px dashed var(--charcoal);
+            background: var(--cream-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .box-slot:hover {
+            background: rgba(169, 42, 29, 0.1);
+            border-color: var(--red);
+        }
+
+        .box-slot.filled {
+            border-style: solid;
+            background: var(--cream);
+        }
+
+        /* Nav */
+        .nav-link {
+            position: relative;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--red);
+            transition: width 0.3s;
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        /* Sticky mobile bar */
+        @media (max-width: 768px) {
+            body {
+                padding-bottom: 70px;
+            }
+        }
+
+        /* Reveal animations initial states */
+        .reveal {
+            opacity: 0;
+            transform: translateY(40px);
+        }
+
+        .reveal-word {
+            display: inline-block;
+            overflow: hidden;
+        }
+
+        .reveal-word span {
+            display: inline-block;
+            transform: translateY(110%);
+        }
+
+        /* Testimonial */
+        .testimonial-card {
+            background: var(--cream);
+            border: 1px solid rgba(36, 23, 19, 0.1);
+            transition: all 0.3s;
+        }
+
+        .testimonial-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+        }
+
+        /* Sticky purchase bar */
+        .sticky-buy {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--charcoal);
+            color: var(--cream);
+            padding: 1rem;
+            z-index: 100;
+            transform: translateY(100%);
+            transition: transform 0.4s;
+            display: none;
+        }
+
+        .sticky-buy.show {
+            transform: translateY(0);
+        }
+
+        @media (min-width: 769px) {
+            .sticky-buy {
+                display: none !important;
+            }
+        }
+
+        /* Big text effects */
+        .text-stroke {
+            -webkit-text-stroke: 2px var(--charcoal);
+            color: transparent;
+        }
+
+        .text-stroke-cream {
+            -webkit-text-stroke: 2px var(--cream);
+            color: transparent;
+        }
+
+        /* Decorative shapes */
+        .blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(60px);
+            opacity: 0.4;
+            pointer-events: none;
+        }
+
+        /* Hover lift for cards */
+        .hover-lift {
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .hover-lift:hover {
+            transform: translateY(-6px);
+        }
+
+        /* Star rating */
+        .star {
+            color: var(--gold);
+        }
+
+        /* Filter pills */
+        .filter-pill {
+            padding: 0.5rem 1.25rem;
+            border: 1.5px solid var(--charcoal);
+            background: transparent;
+            font-weight: 500;
+            font-size: 0.875rem;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .filter-pill.active,
+        .filter-pill:hover {
+            background: var(--charcoal);
+            color: var(--cream);
+        }
+
+        /* Tilt effect */
+        .tilt {
+            transition: transform 0.3s;
+            transform-style: preserve-3d;
+        }
+
+        /* Hero parallax layers */
+        .hero-layer {
+            will-change: transform;
+        }
+    </style>
+</head>
+
+<body class="grain">
+
+    <!-- ============= PRELOADER ============= -->
+    <div class="preloader" id="preloader">
+        <div class="preloader-text">
+            <span>M</span><span>a</span><span>m</span><span>a</span><span>y</span><span>y</span><span>a</span>
+        </div>
+    </div>
+
+    <!-- ============= HEADER ============= -->
+    <header class="fixed top-0 left-0 right-0 z-50 transition-all duration-300" id="header">
+        <div class="bg-mamayya-cream/90 backdrop-blur-md border-b border-mamayya-charcoal/10">
+            <div class="max-w-7xl mx-auto px-4 md:px-8 py-4 flex items-center justify-between">
+                <!-- Logo -->
+                <a href="#home" class="flex items-center gap-2 group">
+                    <svg width="40" height="40" viewBox="0 0 40 40" class="transition-transform group-hover:rotate-12">
+                        <circle cx="20" cy="20" r="19" fill="#A92A1D" />
+                        <path d="M12 14 L12 26 Q12 28 14 28 L26 28 Q28 28 28 26 L28 14 Z" fill="#FFF4E4" />
+                        <rect x="12" y="11" width="16" height="4" fill="#E6A62F" />
+                        <circle cx="17" cy="20" r="1.5" fill="#A92A1D" />
+                        <circle cx="23" cy="22" r="1.5" fill="#C65B32" />
+                    </svg>
+                    <div class="leading-none">
+                        <div class="font-display font-extrabold text-xl tracking-tight">Mamayya</div>
+                        <div class="text-[10px] tracking-[0.3em] font-semibold text-mamayya-red uppercase">Pickles</div>
+                    </div>
+                </a>
+
+                <!-- Desktop Nav -->
+                <nav class="hidden lg:flex items-center gap-8 font-medium text-sm">
+                    <a href="#shop" class="nav-link">Shop</a>
+                    <a href="#finder" class="nav-link">Find your pickle</a>
+                    <a href="#build" class="nav-link">Build a box</a>
+                    <a href="#story" class="nav-link">Our story</a>
+                    <a href="#faq" class="nav-link">FAQs</a>
+                </nav>
+
+                <!-- Right side -->
+                <div class="flex items-center gap-3">
+                    <button
+                        class="hidden md:flex items-center gap-2 text-sm font-medium hover:text-mamayya-red transition"
+                        onclick="document.getElementById('pincodeModal').classList.add('open')">
+                        <i data-lucide="map-pin" class="w-4 h-4"></i>
+                        <span id="pincodeDisplay">Check delivery</span>
+                    </button>
+                    <button class="relative p-2 hover:bg-mamayya-cream-dark rounded-full transition"
+                        onclick="toggleCart()">
+                        <i data-lucide="shopping-bag" class="w-5 h-5"></i>
+                        <span id="cartCount"
+                            class="absolute -top-1 -right-1 bg-mamayya-red text-mamayya-cream text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center hidden">0</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- ============= HERO ============= -->
+    <section id="home" class="relative min-h-screen pt-24 pb-12 overflow-hidden bg-mamayya-cream">
+        <!-- Decorative blobs -->
+        <div class="blob bg-mamayya-red w-96 h-96 -top-20 -right-20"></div>
+        <div class="blob bg-mamayya-gold w-72 h-72 top-1/2 -left-20"></div>
+
+        <div class="max-w-7xl mx-auto px-4 md:px-8 relative">
+            <div class="grid lg:grid-cols-2 gap-8 items-center min-h-[80vh]">
+                <!-- Left content -->
+                <div class="relative z-10">
+                    <div
+                        class="inline-flex items-center gap-2 bg-mamayya-charcoal text-mamayya-cream px-3 py-1.5 text-xs font-semibold tracking-wider mb-6">
+                        <span class="w-1.5 h-1.5 bg-mamayya-gold rounded-full animate-pulse"></span>
+                        FRESH BATCH · PREPARING NOW
+                    </div>
+
+                    <h1 class="h-display text-5xl md:text-7xl xl:text-8xl text-mamayya-charcoal mb-6">
+                        <span class="block reveal-word"><span>Mamayya</span></span>
+                        <span class="block reveal-word"><span>jar</span></span>
+                        <span class="block reveal-word"><span><span class="text-mamayya-red">open</span>
+                                ayithe…</span></span>
+                    </h1>
+
+                    <p class="font-serif text-xl md:text-2xl text-mamayya-charcoal-soft mb-4 italic">
+                        meal simple ga undadu.
+                    </p>
+
+                    <p class="text-base md:text-lg text-mamayya-charcoal-soft mb-8 max-w-md">
+                        Bold non-veg pickles made with proper spices, big meat pieces and zero shortcuts. Hand-packed.
+                        Online payment only. Delivered India-wide.
+                    </p>
+
+                    <div class="flex flex-wrap gap-3 mb-8">
+                        <a href="#shop" class="btn-primary">
+                            Taste the pickles
+                            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                        </a>
+                        <a href="#build" class="btn-secondary">
+                            Build a box
+                        </a>
+                    </div>
+
+                    <div
+                        class="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs font-medium text-mamayya-charcoal-soft">
+                        <div class="flex items-center gap-1.5"><i data-lucide="clock" class="w-3.5 h-3.5"></i> 7-day
+                            delivery</div>
+                        <div class="flex items-center gap-1.5"><i data-lucide="credit-card" class="w-3.5 h-3.5"></i>
+                            Online payment only</div>
+                        <div class="flex items-center gap-1.5"><i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
+                            FSSAI registered</div>
+                    </div>
+                </div>
+
+                <!-- Right hero jar -->
+                <div class="relative h-[500px] md:h-[600px]" id="heroJarWrap">
+                    <div class="jar-hero absolute inset-0 flex items-center justify-center">
+                        <svg viewBox="0 0 400 500" class="w-full max-w-md jar-float" id="heroJar">
+                            <!-- Jar shadow -->
+                            <ellipse cx="200" cy="470" rx="120" ry="12" fill="#241713" opacity="0.2" />
+
+                            <!-- Jar body -->
+                            <defs>
+                                <linearGradient id="glassGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                                    <stop offset="0%" stop-color="#FFF4E4" stop-opacity="0.3" />
+                                    <stop offset="50%" stop-color="#FFF4E4" stop-opacity="0.1" />
+                                    <stop offset="100%" stop-color="#241713" stop-opacity="0.1" />
+                                </linearGradient>
+                                <linearGradient id="masalaGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                    <stop offset="0%" stop-color="#C13A2B" />
+                                    <stop offset="50%" stop-color="#A92A1D" />
+                                    <stop offset="100%" stop-color="#7A1E14" />
+                                </linearGradient>
+                            </defs>
+
+                            <!-- Jar glass background -->
+                            <path
+                                d="M 100 130 Q 100 110 120 110 L 280 110 Q 300 110 300 130 L 300 440 Q 300 460 280 460 L 120 460 Q 100 460 100 440 Z"
+                                fill="url(#glassGrad)" stroke="#241713" stroke-width="3" />
+
+                            <!-- Pickle content -->
+                            <clipPath id="jarClip">
+                                <path d="M 105 135 L 295 135 L 295 455 L 105 455 Z" />
+                            </clipPath>
+                            <g clip-path="url(#jarClip)">
+                                <rect x="100" y="200" width="200" height="260" fill="url(#masalaGrad)" />
+                                <!-- Oil shine -->
+                                <ellipse cx="200" cy="220" rx="100" ry="20" fill="#E6A62F" opacity="0.4" />
+                                <!-- Chicken pieces -->
+                                <ellipse cx="160" cy="280" rx="22" ry="18" fill="#7A1E14" />
+                                <ellipse cx="230" cy="320" rx="25" ry="20" fill="#5A1408" />
+                                <ellipse cx="180" cy="370" rx="20" ry="16" fill="#6B1818" />
+                                <ellipse cx="240" cy="400" rx="22" ry="18" fill="#7A1E14" />
+                                <ellipse cx="155" cy="420" rx="18" ry="14" fill="#5A1408" />
+                                <!-- Spices -->
+                                <circle cx="140" cy="250" r="4" fill="#E6A62F" />
+                                <circle cx="260" cy="270" r="3" fill="#C65B32" />
+                                <circle cx="200" cy="350" r="4" fill="#E6A62F" />
+                                <circle cx="270" cy="380" r="3" fill="#FFF4E4" />
+                                <circle cx="135" cy="390" r="3" fill="#E6A62F" />
+                                <!-- Curry leaves -->
+                                <ellipse cx="175" cy="240" rx="6" ry="3" fill="#31533B"
+                                    transform="rotate(30 175 240)" />
+                                <ellipse cx="245" cy="295" rx="6" ry="3" fill="#31533B"
+                                    transform="rotate(-20 245 295)" />
+                                <ellipse cx="190" cy="410" rx="6" ry="3" fill="#31533B"
+                                    transform="rotate(45 190 410)" />
+                                <!-- Chilli -->
+                                <path d="M 145 320 Q 148 330 145 340 Q 142 330 145 320" fill="#C13A2B" />
+                                <path d="M 255 360 Q 258 370 255 380 Q 252 370 255 360" fill="#C13A2B" />
+                            </g>
+
+                            <!-- Jar highlight -->
+                            <path d="M 115 140 L 115 440" stroke="#FFF4E4" stroke-width="6" opacity="0.4"
+                                stroke-linecap="round" />
+                            <path d="M 285 140 L 285 440" stroke="#241713" stroke-width="2" opacity="0.2"
+                                stroke-linecap="round" />
+
+                            <!-- Jar neck -->
+                            <rect x="115" y="95" width="170" height="20" fill="#241713" />
+                            <rect x="115" y="95" width="170" height="4" fill="#3A2A22" />
+
+                            <!-- Lid -->
+                            <g id="heroLid">
+                                <rect x="105" y="55" width="190" height="45" fill="#E6A62F" rx="2" />
+                                <rect x="105" y="55" width="190" height="45" fill="none" stroke="#241713"
+                                    stroke-width="2" rx="2" />
+                                <rect x="105" y="55" width="190" height="8" fill="#241713" opacity="0.3" />
+                                <text x="200" y="83" text-anchor="middle" fill="#241713"
+                                    font-family="Bricolage Grotesque" font-weight="800" font-size="20">MAMAYYA</text>
+                                <!-- Lid shine -->
+                                <rect x="110" y="60" width="40" height="3" fill="#FFF4E4" opacity="0.5" />
+                            </g>
+
+                            <!-- Label -->
+                            <rect x="115" y="220" width="170" height="120" fill="#FFF4E4" stroke="#241713"
+                                stroke-width="2" />
+                            <text x="200" y="250" text-anchor="middle" fill="#A92A1D" font-family="Fraunces"
+                                font-weight="700" font-size="14" font-style="italic">Est. taste</text>
+                            <text x="200" y="280" text-anchor="middle" fill="#241713" font-family="Bricolage Grotesque"
+                                font-weight="800" font-size="22">CHICKEN</text>
+                            <text x="200" y="305" text-anchor="middle" fill="#241713" font-family="Bricolage Grotesque"
+                                font-weight="800" font-size="22">PICKLE</text>
+                            <line x1="140" y1="320" x2="260" y2="320" stroke="#A92A1D" stroke-width="1" />
+                            <text x="200" y="335" text-anchor="middle" fill="#241713" font-family="Manrope"
+                                font-size="9" letter-spacing="2">HANDMADE · BOLD</text>
+                        </svg>
+                    </div>
+
+                    <!-- Floating labels -->
+                    <div
+                        class="absolute top-10 right-0 bg-mamayya-charcoal text-mamayya-cream px-4 py-2 font-display font-bold text-sm rotate-3 hidden md:block">
+                        🔥 Bestseller
+                    </div>
+                    <div
+                        class="absolute bottom-20 left-0 bg-mamayya-gold text-mamayya-charcoal px-4 py-2 font-display font-bold text-sm -rotate-3 hidden md:block">
+                        Big pieces inside
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scroll indicator -->
+        <div
+            class="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-xs font-medium text-mamayya-charcoal-soft">
+            <span>SCROLL</span>
+            <div class="w-px h-12 bg-mamayya-charcoal relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-1/2 bg-mamayya-red animate-bounce"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============= MARQUEE ============= -->
+    <section class="bg-mamayya-red text-mamayya-cream py-4 overflow-hidden border-y-2 border-mamayya-charcoal">
+        <div class="marquee">
+            <div class="marquee-track">
+                <span class="font-display font-extrabold text-2xl md:text-4xl whitespace-nowrap">BIG PIECES ✦ BOLD SPICE
+                    ✦ NO SHORTCUTS ✦ HANDMADE ✦ DELIVERED INDIA-WIDE ✦</span>
+                <span class="font-display font-extrabold text-2xl md:text-4xl whitespace-nowrap">BIG PIECES ✦ BOLD SPICE
+                    ✦ NO SHORTCUTS ✦ HANDMADE ✦ DELIVERED INDIA-WIDE ✦</span>
+            </div>
+            <div class="marquee-track" aria-hidden="true">
+                <span class="font-display font-extrabold text-2xl md:text-4xl whitespace-nowrap">BIG PIECES ✦ BOLD SPICE
+                    ✦ NO SHORTCUTS ✦ HANDMADE ✦ DELIVERED INDIA-WIDE ✦</span>
+                <span class="font-display font-extrabold text-2xl md:text-4xl whitespace-nowrap">BIG PIECES ✦ BOLD SPICE
+                    ✦ NO SHORTCUTS ✦ HANDMADE ✦ DELIVERED INDIA-WIDE ✦</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============= MOOD SELECTOR ============= -->
+    <section id="shop" class="py-20 md:py-32 bg-mamayya-cream relative">
+        <div class="max-w-7xl mx-auto px-4 md:px-8">
+            <div class="text-center mb-16 reveal">
+                <div class="inline-block text-xs font-bold tracking-[0.3em] text-mamayya-red mb-4">CHOOSE YOUR MOOD
+                </div>
+                <h2 class="h-display text-4xl md:text-6xl text-mamayya-charcoal mb-4">Which Mamayya<br />are you eating
+                    with today?</h2>
+                <p class="text-mamayya-charcoal-soft max-w-xl mx-auto">Four pickles. Four personalities. Pick the one
+                    that matches your plate.</p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                <!-- Chicken -->
+                <div class="mood-card p-6 flex flex-col" data-product="chicken">
+                    <div class="text-xs font-bold tracking-widest text-mamayya-red mb-2">CLASSIC CRAVING</div>
+                    <h3 class="font-display font-extrabold text-3xl mb-1">Chicken</h3>
+                    <p class="text-sm text-mamayya-charcoal-soft mb-4">The crowd favourite. Juicy, masala-coated pieces
+                        that disappear faster than you cooked them.</p>
+                    <div class="relative h-44 mb-4 flex items-end justify-center">
+                        <svg viewBox="0 0 120 160" class="jar-mini w-24 h-44">
+                            <rect x="25" y="35" width="70" height="20" fill="#E6A62F" stroke="#241713"
+                                stroke-width="2" />
+                            <path d="M 25 55 L 95 55 L 95 145 Q 95 155 85 155 L 35 155 Q 25 155 25 145 Z" fill="#FFF4E4"
+                                stroke="#241713" stroke-width="2" />
+                            <clipPath id="m1">
+                                <path d="M 27 57 L 93 57 L 93 153 L 27 153 Z" />
+                            </clipPath>
+                            <g clip-path="url(#m1)">
+                                <rect x="25" y="80" width="70" height="80" fill="#A92A1D" />
+                                <ellipse cx="50" cy="100" rx="8" ry="6" fill="#7A1E14" />
+                                <ellipse cx="70" cy="120" rx="9" ry="7" fill="#6B1818" />
+                                <ellipse cx="55" cy="135" rx="7" ry="5" fill="#7A1E14" />
+                            </g>
+                            <text x="60" y="35" text-anchor="middle" fill="#241713" font-size="6"
+                                font-weight="800">MAMAYYA</text>
+                        </svg>
+                    </div>
+                    <div class="mt-auto">
+                        <div class="flex items-center gap-1 mb-2">
+                            <span class="text-xs font-semibold">HEAT</span>
+                            <div class="flex-1 spice-bar">
+                                <div class="spice-fill" style="width:80%"></div>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="text-xs text-mamayya-charcoal-soft">From</div>
+                                <div class="font-display font-extrabold text-xl">₹349</div>
+                            </div>
+                            <button
+                                class="bg-mamayya-charcoal text-mamayya-cream w-10 h-10 flex items-center justify-center hover:bg-mamayya-red transition"
+                                onclick="addToCart('chicken', 250)">
+                                <i data-lucide="plus" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mutton -->
+                <div class="mood-card p-6 flex flex-col" data-product="mutton">
+                    <div class="text-xs font-bold tracking-widest text-mamayya-red mb-2">FULL POWER MEAL</div>
+                    <h3 class="font-display font-extrabold text-3xl mb-1">Mutton</h3>
+                    <p class="text-sm text-mamayya-charcoal-soft mb-4">Slow cooked, deeply spiced, seriously addictive.
+                        For the days when mild isn't an option.</p>
+                    <div class="relative h-44 mb-4 flex items-end justify-center">
+                        <svg viewBox="0 0 120 160" class="jar-mini w-24 h-44">
+                            <rect x="25" y="35" width="70" height="20" fill="#241713" stroke="#241713"
+                                stroke-width="2" />
+                            <path d="M 25 55 L 95 55 L 95 145 Q 95 155 85 155 L 35 155 Q 25 155 25 145 Z" fill="#FFF4E4"
+                                stroke="#241713" stroke-width="2" />
+                            <clipPath id="m2">
+                                <path d="M 27 57 L 93 57 L 93 153 L 27 153 Z" />
+                            </clipPath>
+                            <g clip-path="url(#m2)">
+                                <rect x="25" y="80" width="70" height="80" fill="#6B1818" />
+                                <ellipse cx="50" cy="100" rx="10" ry="8" fill="#4A0E0E" />
+                                <ellipse cx="70" cy="125" rx="11" ry="9" fill="#3A0808" />
+                                <ellipse cx="55" cy="140" rx="9" ry="7" fill="#4A0E0E" />
+                            </g>
+                            <text x="60" y="35" text-anchor="middle" fill="#E6A62F" font-size="6"
+                                font-weight="800">MAMAYYA</text>
+                        </svg>
+                    </div>
+                    <div class="mt-auto">
+                        <div class="flex items-center gap-1 mb-2">
+                            <span class="text-xs font-semibold">HEAT</span>
+                            <div class="flex-1 spice-bar">
+                                <div class="spice-fill" style="width:90%"></div>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="text-xs text-mamayya-charcoal-soft">From</div>
+                                <div class="font-display font-extrabold text-xl">₹549</div>
+                            </div>
+                            <button
+                                class="bg-mamayya-charcoal text-mamayya-cream w-10 h-10 flex items-center justify-center hover:bg-mamayya-red transition"
+                                onclick="addToCart('mutton', 250)">
+                                <i data-lucide="plus" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fish -->
+                <div class="mood-card p-6 flex flex-col" data-product="fish">
+                    <div class="text-xs font-bold tracking-widest text-mamayya-red mb-2">COASTAL KICK</div>
+                    <h3 class="font-display font-extrabold text-3xl mb-1">Fish</h3>
+                    <p class="text-sm text-mamayya-charcoal-soft mb-4">Tangy, sharp, coastal. Pairs with curd rice like
+                        it was always meant to be.</p>
+                    <div class="relative h-44 mb-4 flex items-end justify-center">
+                        <svg viewBox="0 0 120 160" class="jar-mini w-24 h-44">
+                            <rect x="25" y="35" width="70" height="20" fill="#E6A62F" stroke="#241713"
+                                stroke-width="2" />
+                            <path d="M 25 55 L 95 55 L 95 145 Q 95 155 85 155 L 35 155 Q 25 155 25 145 Z" fill="#FFF4E4"
+                                stroke="#241713" stroke-width="2" />
+                            <clipPath id="m3">
+                                <path d="M 27 57 L 93 57 L 93 153 L 27 153 Z" />
+                            </clipPath>
+                            <g clip-path="url(#m3)">
+                                <rect x="25" y="80" width="70" height="80" fill="#2D5F5D" />
+                                <ellipse cx="50" cy="100" rx="12" ry="5" fill="#1A3D3B"
+                                    transform="rotate(-15 50 100)" />
+                                <ellipse cx="68" cy="120" rx="11" ry="5" fill="#1A3D3B" transform="rotate(10 68 120)" />
+                                <ellipse cx="55" cy="140" rx="10" ry="4" fill="#1A3D3B" transform="rotate(-8 55 140)" />
+                            </g>
+                            <text x="60" y="35" text-anchor="middle" fill="#241713" font-size="6"
+                                font-weight="800">MAMAYYA</text>
+                        </svg>
+                    </div>
+                    <div class="mt-auto">
+                        <div class="flex items-center gap-1 mb-2">
+                            <span class="text-xs font-semibold">HEAT</span>
+                            <div class="flex-1 spice-bar">
+                                <div class="spice-fill" style="width:70%"></div>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="text-xs text-mamayya-charcoal-soft">From</div>
+                                <div class="font-display font-extrabold text-xl">₹399</div>
+                            </div>
+                            <button
+                                class="bg-mamayya-charcoal text-mamayya-cream w-10 h-10 flex items-center justify-center hover:bg-mamayya-red transition"
+                                onclick="addToCart('fish', 250)">
+                                <i data-lucide="plus" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Shrimp -->
+                <div class="mood-card p-6 flex flex-col" data-product="shrimp">
+                    <div class="text-xs font-bold tracking-widest text-mamayya-red mb-2">SPICY SURPRISE</div>
+                    <h3 class="font-display font-extrabold text-3xl mb-1">Shrimp</h3>
+                    <p class="text-sm text-mamayya-charcoal-soft mb-4">Small pieces. Massive flavour. The pickle that
+                        makes you call your mom to ask for the recipe.</p>
+                    <div class="relative h-44 mb-4 flex items-end justify-center">
+                        <svg viewBox="0 0 120 160" class="jar-mini w-24 h-44">
+                            <rect x="25" y="35" width="70" height="20" fill="#C65B32" stroke="#241713"
+                                stroke-width="2" />
+                            <path d="M 25 55 L 95 55 L 95 145 Q 95 155 85 155 L 35 155 Q 25 155 25 145 Z" fill="#FFF4E4"
+                                stroke="#241713" stroke-width="2" />
+                            <clipPath id="m4">
+                                <path d="M 27 57 L 93 57 L 93 153 L 27 153 Z" />
+                            </clipPath>
+                            <g clip-path="url(#m4)">
+                                <rect x="25" y="80" width="70" height="80" fill="#D26943" />
+                                <path d="M 40 100 Q 50 95 60 100 Q 55 105 50 100" fill="#A04020" />
+                                <path d="M 60 120 Q 70 115 80 120 Q 75 125 70 120" fill="#A04020" />
+                                <path d="M 45 140 Q 55 135 65 140 Q 60 145 55 140" fill="#A04020" />
+                            </g>
+                            <text x="60" y="35" text-anchor="middle" fill="#FFF4E4" font-size="6"
+                                font-weight="800">MAMAYYA</text>
+                        </svg>
+                    </div>
+                    <div class="mt-auto">
+                        <div class="flex items-center gap-1 mb-2">
+                            <span class="text-xs font-semibold">HEAT</span>
+                            <div class="flex-1 spice-bar">
+                                <div class="spice-fill" style="width:75%"></div>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="text-xs text-mamayya-charcoal-soft">From</div>
+                                <div class="font-display font-extrabold text-xl">₹449</div>
+                            </div>
+                            <button
+                                class="bg-mamayya-charcoal text-mamayya-cream w-10 h-10 flex items-center justify-center hover:bg-mamayya-red transition"
+                                onclick="addToCart('shrimp', 250)">
+                                <i data-lucide="plus" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============= FLAVOUR FINDER ============= -->
+    <section id="finder" class="py-20 md:py-32 bg-mamayya-charcoal text-mamayya-cream relative overflow-hidden">
+        <div class="blob bg-mamayya-red w-96 h-96 -top-40 -right-20 opacity-30"></div>
+        <div class="max-w-4xl mx-auto px-4 md:px-8 relative">
+            <div class="text-center mb-12">
+                <div class="inline-block text-xs font-bold tracking-[0.3em] text-mamayya-gold mb-4">FLAVOUR FINDER</div>
+                <h2 class="h-display text-4xl md:text-6xl mb-4">Find your Mamayya<br />match in 3 questions</h2>
+                <p class="text-mamayya-cream/70 max-w-xl mx-auto">Tell us how you eat. We'll pick the pickle for you.
+                </p>
+            </div>
+
+            <div class="bg-mamayya-cream/5 backdrop-blur-sm border border-mamayya-cream/10 p-6 md:p-10">
+                <!-- Progress -->
+                <div class="flex items-center gap-2 mb-8">
+                    <div class="flex-1 h-1 bg-mamayya-cream/20 overflow-hidden">
+                        <div id="progressBar" class="h-full bg-mamayya-red transition-all duration-500"
+                            style="width:33%"></div>
+                    </div>
+                    <span class="text-xs font-bold text-mamayya-gold" id="stepIndicator">1/3</span>
+                </div>
+
+                <!-- Step 1: What eating with -->
+                <div class="finder-step active" data-step="1">
+                    <h3 class="font-display font-extrabold text-2xl mb-2">What are you eating it with?</h3>
+                    <p class="text-mamayya-cream/60 text-sm mb-6">Pick your plate base.</p>
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        <button
+                            class="finder-opt border border-mamayya-cream/20 p-4 hover:bg-mamayya-red hover:border-mamayya-red transition text-left"
+                            data-key="rice">
+                            <div class="text-2xl mb-1">🍚</div>
+                            <div class="font-semibold">Rice</div>
+                        </button>
+                        <button
+                            class="finder-opt border border-mamayya-cream/20 p-4 hover:bg-mamayya-red hover:border-mamayya-red transition text-left"
+                            data-key="roti">
+                            <div class="text-2xl mb-1">🫓</div>
+                            <div class="font-semibold">Roti</div>
+                        </button>
+                        <button
+                            class="finder-opt border border-mamayya-cream/20 p-4 hover:bg-mamayya-red hover:border-mamayya-red transition text-left"
+                            data-key="curd">
+                            <div class="text-2xl mb-1">🥣</div>
+                            <div class="font-semibold">Curd rice</div>
+                        </button>
+                        <button
+                            class="finder-opt border border-mamayya-cream/20 p-4 hover:bg-mamayya-red hover:border-mamayya-red transition text-left"
+                            data-key="dosa">
+                            <div class="text-2xl mb-1">🥞</div>
+                            <div class="font-semibold">Dosa</div>
+                        </button>
+                        <button
+                            class="finder-opt border border-mamayya-cream/20 p-4 hover:bg-mamayya-red hover:border-mamayya-red transition text-left"
+                            data-key="paratha">
+                            <div class="text-2xl mb-1">🫓</div>
+                            <div class="font-semibold">Paratha</div>
+                        </button>
+                        <button
+                            class="finder-opt border border-mamayya-cream/20 p-4 hover:bg-mamayya-red hover:border-mamayya-red transition text-left"
+                            data-key="jar">
+                            <div class="text-2xl mb-1">🫙</div>
+                            <div class="font-semibold">Straight from jar</div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 2: Spice level -->
+                <div class="finder-step" data-step="2">
+                    <h3 class="font-display font-extrabold text-2xl mb-2">How spicy do you like it?</h3>
+                    <p class="text-mamayya-cream/60 text-sm mb-6">Be honest, we can take it.</p>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <button
+                            class="finder-opt border border-mamayya-cream/20 p-6 hover:bg-mamayya-red hover:border-mamayya-red transition text-left"
+                            data-key="medium">
+                            <div class="text-3xl mb-2">🌶️</div>
+                            <div class="font-semibold text-lg">Medium</div>
+                            <div class="text-xs text-mamayya-cream/60">Comfortable warmth</div>
+                        </button>
+                        <button
+                            class="finder-opt border border-mamayya-cream/20 p-6 hover:bg-mamayya-red hover:border-mamayya-red transition text-left"
+                            data-key="spicy">
+                            <div class="text-3xl mb-2">🌶️🌶️</div>
+                            <div class="font-semibold text-lg">Proper spicy</div>
+                            <div class="text-xs text-mamayya-cream/60">Noticeable kick</div>
+                        </button>
+                        <button
+                            class="finder-opt border border-mamayya-cream/20 p-6 hover:bg-mamayya-red hover:border-mamayya-red transition text-left"
+                            data-key="extreme">
+                            <div class="text-3xl mb-2">🌶️🌶️🌶️</div>
+                            <div class="font-semibold text-lg">Mamayya level</div>
+                            <div class="text-xs text-mamayya-cream/60">Bottle of curd ready</div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 3: Meat -->
+                <div class="finder-step" data-step="3">
+                    <h3 class="font-display font-extrabold text-2xl mb-2">What meat are you in the mood for?</h3>
+                    <p class="text-mamayya-cream/60 text-sm mb-6">The final call.</p>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        <button
+                            class="finder-opt border border-mamayya-cream/20 p-4 hover:bg-mamayya-red hover:border-mamayya-red transition text-left"
+                            data-key="chicken">
+                            <div class="text-2xl mb-1">🍗</div>
+                            <div class="font-semibold">Chicken</div>
+                        </button>
+                        <button
+                            class="finder-opt border border-mamayya-cream/20 p-4 hover:bg-mamayya-red hover:border-mamayya-red transition text-left"
+                            data-key="mutton">
+                            <div class="text-2xl mb-1">🥩</div>
+                            <div class="font-semibold">Mutton</div>
+                        </button>
+                        <button
+                            class="finder-opt border border-mamayya-cream/20 p-4 hover:bg-mamayya-red hover:border-mamayya-red transition text-left"
+                            data-key="fish">
+                            <div class="text-2xl mb-1">🐟</div>
+                            <div class="font-semibold">Fish</div>
+                        </button>
+                        <button
+                            class="finder-opt border border-mamayya-cream/20 p-4 hover:bg-mamayya-red hover:border-mamayya-red transition text-left"
+                            data-key="shrimp">
+                            <div class="text-2xl mb-1">🦐</div>
+                            <div class="font-semibold">Shrimp</div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Result -->
+                <div class="finder-step" data-step="4">
+                    <div class="text-center">
+                        <div class="text-xs font-bold tracking-widest text-mamayya-gold mb-3">YOUR MATCH</div>
+                        <h3 id="matchTitle"
+                            class="font-display font-extrabold text-4xl md:text-5xl text-mamayya-gold mb-3">Mutton
+                            Pickle</h3>
+                        <p id="matchDesc" class="text-mamayya-cream/80 mb-6 max-w-md mx-auto">Slow cooked. Deeply
+                            spiced. Seriously addictive. Perfect for the craving you didn't know you had.</p>
+                        <div class="inline-flex items-center gap-3 bg-mamayya-red px-6 py-3 mb-6">
+                            <span class="text-sm">Starting at</span>
+                            <span id="matchPrice" class="font-display font-extrabold text-2xl">₹549</span>
+                        </div>
+                        <div class="flex flex-wrap gap-3 justify-center">
+                            <button id="matchAddBtn" class="btn-primary">
+                                <i data-lucide="plus" class="w-4 h-4"></i>
+                                Add 500g to cart
+                            </button>
+                            <button
+                                class="btn-secondary border-mamayya-cream text-mamayya-cream hover:bg-mamayya-cream hover:text-mamayya-charcoal"
+                                onclick="resetFinder()">
+                                Try again
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============= PRODUCT STORYTELLING ============= -->
+    <section id="story" class="bg-mamayya-cream">
+
+        <!-- Chicken Story -->
+        <div class="product-section bg-mamayya-chicken text-mamayya-cream flex items-center"
+            style="background: linear-gradient(135deg, #7A1E14 0%, #A92A1D 100%);">
+            <div class="max-w-7xl mx-auto px-4 md:px-8 w-full grid lg:grid-cols-2 gap-12 items-center py-20">
+                <div class="reveal">
+                    <div class="text-xs font-bold tracking-[0.3em] text-mamayya-gold mb-4">01 / THE FAVOURITE</div>
+                    <h2 class="h-display text-5xl md:text-7xl mb-4">Chicken<br />Pickle</h2>
+                    <p class="text-xl mb-2 font-serif italic">The crowd favourite. The jar that empties first.</p>
+                    <p class="text-mamayya-cream/80 mb-6 max-w-md">Juicy bone-in chicken pieces slow-cooked in Mamayya's
+                        signature masala. Red chilli, garlic, curry leaves, ginger, and a vinegar base that's been in
+                        the family for years.</p>
+                    <div class="flex flex-wrap items-center gap-4 mb-6">
+                        <div class="bg-mamayya-cream/10 backdrop-blur px-4 py-2">
+                            <div class="text-xs text-mamayya-cream/60">Heat</div>
+                            <div class="font-bold">🌶️🌶️🌶️ Hot</div>
+                        </div>
+                        <div class="bg-mamayya-cream/10 backdrop-blur px-4 py-2">
+                            <div class="text-xs text-mamayya-cream/60">Texture</div>
+                            <div class="font-bold">Chunky & juicy</div>
+                        </div>
+                        <div class="bg-mamayya-cream/10 backdrop-blur px-4 py-2">
+                            <div class="text-xs text-mamayya-cream/60">Best with</div>
+                            <div class="font-bold">Rice, roti, dosa</div>
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-3">
+                        <span class="text-3xl font-display font-extrabold text-mamayya-gold">₹349</span>
+                        <span class="text-sm">onwards</span>
+                        <button class="btn-primary ml-auto" onclick="openProduct('chicken')">View & order <i
+                                data-lucide="arrow-right" class="w-4 h-4"></i></button>
+                    </div>
+                </div>
+                <div class="relative h-[500px] flex items-center justify-center">
+                    <svg viewBox="0 0 400 500" class="w-80 md:w-96 jar-float">
+                        <ellipse cx="200" cy="470" rx="120" ry="12" fill="#000" opacity="0.3" />
+                        <path
+                            d="M 100 130 Q 100 110 120 110 L 280 110 Q 300 110 300 130 L 300 440 Q 300 460 280 460 L 120 460 Q 100 460 100 440 Z"
+                            fill="rgba(255,244,228,0.1)" stroke="#FFF4E4" stroke-width="3" />
+                        <clipPath id="c1">
+                            <path d="M 105 135 L 295 135 L 295 455 L 105 455 Z" />
+                        </clipPath>
+                        <g clip-path="url(#c1)">
+                            <rect x="100" y="200" width="200" height="260" fill="url(#masalaGrad)" />
+                            <ellipse cx="200" cy="220" rx="100" ry="20" fill="#E6A62F" opacity="0.4" />
+                            <ellipse cx="160" cy="280" rx="22" ry="18" fill="#7A1E14" />
+                            <ellipse cx="230" cy="320" rx="25" ry="20" fill="#5A1408" />
+                            <ellipse cx="180" cy="370" rx="20" ry="16" fill="#6B1818" />
+                            <ellipse cx="240" cy="400" rx="22" ry="18" fill="#7A1E14" />
+                            <ellipse cx="155" cy="420" rx="18" ry="14" fill="#5A1408" />
+                            <circle cx="140" cy="250" r="4" fill="#E6A62F" />
+                            <circle cx="260" cy="270" r="3" fill="#C65B32" />
+                            <ellipse cx="175" cy="240" rx="6" ry="3" fill="#31533B" transform="rotate(30 175 240)" />
+                        </g>
+                        <rect x="115" y="95" width="170" height="20" fill="#241713" />
+                        <rect x="105" y="55" width="190" height="45" fill="#E6A62F" stroke="#241713" stroke-width="2"
+                            rx="2" />
+                        <text x="200" y="83" text-anchor="middle" fill="#241713" font-family="Bricolage Grotesque"
+                            font-weight="800" font-size="20">MAMAYYA</text>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mutton Story -->
+        <div class="product-section text-mamayya-cream flex items-center"
+            style="background: linear-gradient(135deg, #3A0808 0%, #6B1818 100%);">
+            <div class="max-w-7xl mx-auto px-4 md:px-8 w-full grid lg:grid-cols-2 gap-12 items-center py-20">
+                <div class="relative h-[500px] flex items-center justify-center order-2 lg:order-1">
+                    <svg viewBox="0 0 400 500" class="w-80 md:w-96 jar-float">
+                        <ellipse cx="200" cy="470" rx="120" ry="12" fill="#000" opacity="0.3" />
+                        <path
+                            d="M 100 130 Q 100 110 120 110 L 280 110 Q 300 110 300 130 L 300 440 Q 300 460 280 460 L 120 460 Q 100 460 100 440 Z"
+                            fill="rgba(255,244,228,0.1)" stroke="#FFF4E4" stroke-width="3" />
+                        <clipPath id="c2">
+                            <path d="M 105 135 L 295 135 L 295 455 L 105 455 Z" />
+                        </clipPath>
+                        <g clip-path="url(#c2)">
+                            <rect x="100" y="200" width="200" height="260" fill="#6B1818" />
+                            <ellipse cx="200" cy="220" rx="100" ry="20" fill="#E6A62F" opacity="0.3" />
+                            <ellipse cx="160" cy="280" rx="24" ry="20" fill="#4A0E0E" />
+                            <ellipse cx="235" cy="325" rx="28" ry="22" fill="#3A0808" />
+                            <ellipse cx="170" cy="380" rx="22" ry="18" fill="#4A0E0E" />
+                            <ellipse cx="245" cy="410" rx="24" ry="20" fill="#3A0808" />
+                            <circle cx="200" cy="350" r="4" fill="#E6A62F" />
+                            <ellipse cx="175" cy="240" rx="6" ry="3" fill="#31533B" transform="rotate(30 175 240)" />
+                        </g>
+                        <rect x="115" y="95" width="170" height="20" fill="#241713" />
+                        <rect x="105" y="55" width="190" height="45" fill="#241713" stroke="#E6A62F" stroke-width="2"
+                            rx="2" />
+                        <text x="200" y="83" text-anchor="middle" fill="#E6A62F" font-family="Bricolage Grotesque"
+                            font-weight="800" font-size="20">MAMAYYA</text>
+                    </svg>
+                </div>
+                <div class="reveal order-1 lg:order-2">
+                    <div class="text-xs font-bold tracking-[0.3em] text-mamayya-gold mb-4">02 / THE HEAVY HITTER</div>
+                    <h2 class="h-display text-5xl md:text-7xl mb-4">Mutton<br />Pickle</h2>
+                    <p class="text-xl mb-2 font-serif italic">Slow cooked. Deeply spiced. Seriously addictive.</p>
+                    <p class="text-mamayya-cream/80 mb-6 max-w-md">Tender mutton pieces marinated overnight, then cooked
+                        low and slow with whole spices. Every bite has that deep, slow-burn flavour you can't fake.</p>
+                    <div class="flex flex-wrap items-center gap-4 mb-6">
+                        <div class="bg-mamayya-cream/10 backdrop-blur px-4 py-2">
+                            <div class="text-xs text-mamayya-cream/60">Heat</div>
+                            <div class="font-bold">🌶️🌶️🌶️ Hot</div>
+                        </div>
+                        <div class="bg-mamayya-cream/10 backdrop-blur px-4 py-2">
+                            <div class="text-xs text-mamayya-cream/60">Texture</div>
+                            <div class="font-bold">Firm, fall-off-bone</div>
+                        </div>
+                        <div class="bg-mamayya-cream/10 backdrop-blur px-4 py-2">
+                            <div class="text-xs text-mamayya-cream/60">Best with</div>
+                            <div class="font-bold">Ghee rice, paratha</div>
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-3">
+                        <span class="text-3xl font-display font-extrabold text-mamayya-gold">₹549</span>
+                        <span class="text-sm">onwards</span>
+                        <button class="btn-primary ml-auto" onclick="openProduct('mutton')">View & order <i
+                                data-lucide="arrow-right" class="w-4 h-4"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fish Story -->
+        <div class="product-section text-mamayya-cream flex items-center"
+            style="background: linear-gradient(135deg, #1A3D3B 0%, #2D5F5D 100%);">
+            <div class="max-w-7xl mx-auto px-4 md:px-8 w-full grid lg:grid-cols-2 gap-12 items-center py-20">
+                <div class="reveal">
+                    <div class="text-xs font-bold tracking-[0.3em] text-mamayya-gold mb-4">03 / THE COASTAL ONE</div>
+                    <h2 class="h-display text-5xl md:text-7xl mb-4">Fish<br />Pickle</h2>
+                    <p class="text-xl mb-2 font-serif italic">Coastal flavour with a proper spicy kick.</p>
+                    <p class="text-mamayya-cream/80 mb-6 max-w-md">Fresh fish pieces marinated in tamarind, chilli and
+                        ginger. Tangy, sharp, and unapologetically coastal. The jar your curd rice has been waiting for.
+                    </p>
+                    <div class="flex flex-wrap items-center gap-4 mb-6">
+                        <div class="bg-mamayya-cream/10 backdrop-blur px-4 py-2">
+                            <div class="text-xs text-mamayya-cream/60">Heat</div>
+                            <div class="font-bold">🌶️🌶️ Medium-Hot</div>
+                        </div>
+                        <div class="bg-mamayya-cream/10 backdrop-blur px-4 py-2">
+                            <div class="text-xs text-mamayya-cream/60">Texture</div>
+                            <div class="font-bold">Soft, flaky</div>
+                        </div>
+                        <div class="bg-mamayya-cream/10 backdrop-blur px-4 py-2">
+                            <div class="text-xs text-mamayya-cream/60">Best with</div>
+                            <div class="font-bold">Curd rice, rasam rice</div>
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-3">
+                        <span class="text-3xl font-display font-extrabold text-mamayya-gold">₹399</span>
+                        <span class="text-sm">onwards</span>
+                        <button class="btn-primary ml-auto" onclick="openProduct('fish')">View & order <i
+                                data-lucide="arrow-right" class="w-4 h-4"></i></button>
+                    </div>
+                </div>
+                <div class="relative h-[500px] flex items-center justify-center">
+                    <svg viewBox="0 0 400 500" class="w-80 md:w-96 jar-float">
+                        <ellipse cx="200" cy="470" rx="120" ry="12" fill="#000" opacity="0.3" />
+                        <path
+                            d="M 100 130 Q 100 110 120 110 L 280 110 Q 300 110 300 130 L 300 440 Q 300 460 280 460 L 120 460 Q 100 460 100 440 Z"
+                            fill="rgba(255,244,228,0.1)" stroke="#FFF4E4" stroke-width="3" />
+                        <clipPath id="c3">
+                            <path d="M 105 135 L 295 135 L 295 455 L 105 455 Z" />
+                        </clipPath>
+                        <g clip-path="url(#c3)">
+                            <rect x="100" y="200" width="200" height="260" fill="#2D5F5D" />
+                            <ellipse cx="200" cy="220" rx="100" ry="20" fill="#E6A62F" opacity="0.4" />
+                            <ellipse cx="160" cy="290" rx="28" ry="10" fill="#1A3D3B" transform="rotate(-15 160 290)" />
+                            <ellipse cx="240" cy="330" rx="30" ry="11" fill="#1A3D3B" transform="rotate(10 240 330)" />
+                            <ellipse cx="180" cy="390" rx="26" ry="10" fill="#1A3D3B" transform="rotate(-8 180 390)" />
+                            <ellipse cx="175" cy="240" rx="6" ry="3" fill="#31533B" transform="rotate(30 175 240)" />
+                        </g>
+                        <rect x="115" y="95" width="170" height="20" fill="#241713" />
+                        <rect x="105" y="55" width="190" height="45" fill="#E6A62F" stroke="#241713" stroke-width="2"
+                            rx="2" />
+                        <text x="200" y="83" text-anchor="middle" fill="#241713" font-family="Bricolage Grotesque"
+                            font-weight="800" font-size="20">MAMAYYA</text>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Shrimp Story -->
+        <div class="product-section text-mamayya-cream flex items-center"
+            style="background: linear-gradient(135deg, #A04020 0%, #D26943 100%);">
+            <div class="max-w-7xl mx-auto px-4 md:px-8 w-full grid lg:grid-cols-2 gap-12 items-center py-20">
+                <div class="relative h-[500px] flex items-center justify-center order-2 lg:order-1">
+                    <svg viewBox="0 0 400 500" class="w-80 md:w-96 jar-float">
+                        <ellipse cx="200" cy="470" rx="120" ry="12" fill="#000" opacity="0.3" />
+                        <path
+                            d="M 100 130 Q 100 110 120 110 L 280 110 Q 300 110 300 130 L 300 440 Q 300 460 280 460 L 120 460 Q 100 460 100 440 Z"
+                            fill="rgba(255,244,228,0.1)" stroke="#FFF4E4" stroke-width="3" />
+                        <clipPath id="c4">
+                            <path d="M 105 135 L 295 135 L 295 455 L 105 455 Z" />
+                        </clipPath>
+                        <g clip-path="url(#c4)">
+                            <rect x="100" y="200" width="200" height="260" fill="#D26943" />
+                            <ellipse cx="200" cy="220" rx="100" ry="20" fill="#E6A62F" opacity="0.4" />
+                            <path d="M 150 280 Q 170 270 190 280 Q 180 290 170 285" fill="#A04020" />
+                            <path d="M 210 310 Q 230 300 250 310 Q 240 320 230 315" fill="#A04020" />
+                            <path d="M 160 360 Q 180 350 200 360 Q 190 370 180 365" fill="#A04020" />
+                            <path d="M 220 400 Q 240 390 260 400 Q 250 410 240 405" fill="#A04020" />
+                            <ellipse cx="175" cy="240" rx="6" ry="3" fill="#31533B" transform="rotate(30 175 240)" />
+                        </g>
+                        <rect x="115" y="95" width="170" height="20" fill="#241713" />
+                        <rect x="105" y="55" width="190" height="45" fill="#C65B32" stroke="#241713" stroke-width="2"
+                            rx="2" />
+                        <text x="200" y="83" text-anchor="middle" fill="#FFF4E4" font-family="Bricolage Grotesque"
+                            font-weight="800" font-size="20">MAMAYYA</text>
+                    </svg>
+                </div>
+                <div class="reveal order-1 lg:order-2">
+                    <div class="text-xs font-bold tracking-[0.3em] text-mamayya-gold mb-4">04 / THE SURPRISE</div>
+                    <h2 class="h-display text-5xl md:text-7xl mb-4">Shrimp<br />Pickle</h2>
+                    <p class="text-xl mb-2 font-serif italic">Small pieces. Massive flavour.</p>
+                    <p class="text-mamayya-cream/80 mb-6 max-w-md">Tiny prawns packed into a punchy garlic-chilli
+                        masala. Every spoonful is a flavour bomb. The pickle that disappears first at every family
+                        gathering.</p>
+                    <div class="flex flex-wrap items-center gap-4 mb-6">
+                        <div class="bg-mamayya-cream/10 backdrop-blur px-4 py-2">
+                            <div class="text-xs text-mamayya-cream/60">Heat</div>
+                            <div class="font-bold">🌶️🌶️🌶️ Hot</div>
+                        </div>
+                        <div class="bg-mamayya-cream/10 backdrop-blur px-4 py-2">
+                            <div class="text-xs text-mamayya-cream/60">Texture</div>
+                            <div class="font-bold">Small, bite-sized</div>
+                        </div>
+                        <div class="bg-mamayya-cream/10 backdrop-blur px-4 py-2">
+                            <div class="text-xs text-mamayya-cream/60">Best with</div>
+                            <div class="font-bold">Dal rice, dosa</div>
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-3">
+                        <span class="text-3xl font-display font-extrabold text-mamayya-gold">₹449</span>
+                        <span class="text-sm">onwards</span>
+                        <button class="btn-primary ml-auto" onclick="openProduct('shrimp')">View & order <i
+                                data-lucide="arrow-right" class="w-4 h-4"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </section>
+
+    <!-- ============= WEIGHT SELECTOR ============= -->
+    <section class="py-20 md:py-32 bg-mamayya-cream">
+        <div class="max-w-5xl mx-auto px-4 md:px-8">
+            <div class="text-center mb-12 reveal">
+                <div class="inline-block text-xs font-bold tracking-[0.3em] text-mamayya-red mb-4">PICK YOUR SIZE</div>
+                <h2 class="h-display text-4xl md:text-6xl text-mamayya-charcoal mb-4">How much Mamayya<br />are you
+                    bringing home?</h2>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-10">
+                <button class="weight-pill active" data-weight="250" data-product="chicken">
+                    <div class="font-display font-extrabold text-2xl">250g</div>
+                    <div class="text-xs opacity-80">First try</div>
+                    <div class="text-[10px] opacity-60 mt-1">8-10 servings</div>
+                </button>
+                <button class="weight-pill" data-weight="500" data-product="chicken">
+                    <div class="font-display font-extrabold text-2xl">500g</div>
+                    <div class="text-xs opacity-80">★ Most popular</div>
+                    <div class="text-[10px] opacity-60 mt-1">16-20 servings</div>
+                </button>
+                <button class="weight-pill" data-weight="1000" data-product="chicken">
+                    <div class="font-display font-extrabold text-2xl">1 kg</div>
+                    <div class="text-xs opacity-80">Family pack</div>
+                    <div class="text-[10px] opacity-60 mt-1">~40 servings</div>
+                </button>
+                <button class="weight-pill" data-weight="2000" data-product="chicken">
+                    <div class="font-display font-extrabold text-2xl">2 kg</div>
+                    <div class="text-xs opacity-80">Monthly stock-up</div>
+                    <div class="text-[10px] opacity-60 mt-1">2 sealed jars</div>
+                </button>
+                <button class="weight-pill" data-weight="5000" data-product="chicken">
+                    <div class="font-display font-extrabold text-2xl">5 kg</div>
+                    <div class="text-xs opacity-80">Events & gifting</div>
+                    <div class="text-[10px] opacity-60 mt-1">5 sealed jars</div>
+                </button>
+            </div>
+
+            <!-- Price visualizer -->
+            <div class="bg-mamayya-charcoal text-mamayya-cream p-8 md:p-12 grid md:grid-cols-2 gap-8 items-center">
+                <div>
+                    <div class="text-xs font-bold tracking-widest text-mamayya-gold mb-3">SELECTED</div>
+                    <h3 id="sizeTitle" class="font-display font-extrabold text-4xl mb-2">Chicken Pickle · 250g</h3>
+                    <p id="sizeDesc" class="text-mamayya-cream/70 mb-4">Perfect for trying Mamayya's signature masala
+                        for the first time. Sealed glass jar.</p>
+                    <div class="flex items-baseline gap-3 mb-6">
+                        <span id="sizePrice" class="font-display font-extrabold text-5xl text-mamayya-gold">₹349</span>
+                        <span class="text-sm text-mamayya-cream/60">(inclusive of GST)</span>
+                    </div>
+                    <div class="flex flex-wrap gap-3">
+                        <button class="btn-primary" onclick="addCurrentToCart()">
+                            <i data-lucide="plus" class="w-4 h-4"></i>
+                            Add to cart
+                        </button>
+                        <button
+                            class="btn-secondary border-mamayya-cream text-mamayya-cream hover:bg-mamayya-cream hover:text-mamayya-charcoal"
+                            onclick="document.getElementById('pincodeModal').classList.add('open')">
+                            <i data-lucide="truck" class="w-4 h-4"></i>
+                            Check delivery
+                        </button>
+                    </div>
+                </div>
+                <div class="flex justify-center" id="sizeJar">
+                    <svg viewBox="0 0 300 350" class="w-64 transition-all duration-500" id="sizeJarSvg">
+                        <ellipse cx="150" cy="335" rx="90" ry="10" fill="#000" opacity="0.3" />
+                        <path
+                            d="M 75 95 Q 75 80 90 80 L 210 80 Q 225 80 225 95 L 225 320 Q 225 335 210 335 L 90 335 Q 75 335 75 320 Z"
+                            fill="rgba(255,244,228,0.15)" stroke="#FFF4E4" stroke-width="2" />
+                        <clipPath id="sizeClip">
+                            <path d="M 78 98 L 222 98 L 222 333 L 78 333 Z" />
+                        </clipPath>
+                        <g clip-path="url(#sizeClip)">
+                            <rect x="75" y="160" width="150" height="180" fill="#A92A1D" />
+                            <ellipse cx="120" cy="220" rx="18" ry="14" fill="#7A1E14" />
+                            <ellipse cx="175" cy="260" rx="20" ry="16" fill="#5A1408" />
+                            <ellipse cx="130" cy="300" rx="16" ry="13" fill="#6B1818" />
+                        </g>
+                        <rect x="90" y="68" width="120" height="14" fill="#241713" />
+                        <rect x="80" y="40" width="140" height="32" fill="#E6A62F" stroke="#241713" stroke-width="2" />
+                        <text x="150" y="60" text-anchor="middle" fill="#241713" font-family="Bricolage Grotesque"
+                            font-weight="800" font-size="14">MAMAYYA</text>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============= BUILD A BOX ============= -->
+    <section id="build" class="py-20 md:py-32 bg-mamayya-charcoal text-mamayya-cream relative overflow-hidden">
+        <div class="blob bg-mamayya-gold w-96 h-96 top-20 -right-40 opacity-20"></div>
+        <div class="max-w-7xl mx-auto px-4 md:px-8 relative">
+            <div class="text-center mb-12">
+                <div class="inline-block text-xs font-bold tracking-[0.3em] text-mamayya-gold mb-4">BUILD YOUR BOX</div>
+                <h2 class="h-display text-4xl md:text-6xl mb-4">Mix, match, save.<br />Your way.</h2>
+                <p class="text-mamayya-cream/70 max-w-xl mx-auto">Pick your favourite Mamayya pickles and build a box
+                    that suits you. Tasting box, family box, party box — your call.</p>
+            </div>
+
+            <div class="grid lg:grid-cols-5 gap-8">
+                <!-- Preset boxes -->
+                <div class="lg:col-span-2 space-y-4">
+                    <h3 class="font-display font-extrabold text-2xl mb-4">Quick pick</h3>
+                    <button
+                        class="w-full bg-mamayya-cream/5 border border-mamayya-cream/10 p-5 text-left hover:border-mamayya-gold hover:bg-mamayya-gold/10 transition group"
+                        onclick="loadPreset('tasting')">
+                        <div class="flex items-start justify-between mb-2">
+                            <div>
+                                <div class="font-display font-extrabold text-xl">Mamayya Tasting Box</div>
+                                <div class="text-xs text-mamayya-cream/60 mt-1">250g Chicken + 250g Mutton + 250g Fish +
+                                    250g Shrimp</div>
+                            </div>
+                            <div class="text-mamayya-gold font-display font-extrabold text-2xl">₹1,499</div>
+                        </div>
+                        <div class="text-xs text-mamayya-gold">★ Best for first-timers</div>
+                    </button>
+
+                    <button
+                        class="w-full bg-mamayya-cream/5 border border-mamayya-cream/10 p-5 text-left hover:border-mamayya-gold hover:bg-mamayya-gold/10 transition"
+                        onclick="loadPreset('family')">
+                        <div class="flex items-start justify-between mb-2">
+                            <div>
+                                <div class="font-display font-extrabold text-xl">Family Box</div>
+                                <div class="text-xs text-mamayya-cream/60 mt-1">500g Chicken + 500g Mutton + 500g Fish
+                                </div>
+                            </div>
+                            <div class="text-mamayya-gold font-display font-extrabold text-2xl">₹1,399</div>
+                        </div>
+                        <div class="text-xs text-mamayya-gold">Save ₹98</div>
+                    </button>
+
+                    <button
+                        class="w-full bg-mamayya-cream/5 border border-mamayya-cream/10 p-5 text-left hover:border-mamayya-gold hover:bg-mamayya-gold/10 transition"
+                        onclick="loadPreset('party')">
+                        <div class="flex items-start justify-between mb-2">
+                            <div>
+                                <div class="font-display font-extrabold text-xl">Party Box</div>
+                                <div class="text-xs text-mamayya-cream/60 mt-1">1kg each of all 4 pickles</div>
+                            </div>
+                            <div class="text-mamayya-gold font-display font-extrabold text-2xl">₹3,499</div>
+                        </div>
+                        <div class="text-xs text-mamayya-gold">Save ₹200</div>
+                    </button>
+
+                    <button
+                        class="w-full bg-mamayya-cream/5 border border-mamayya-cream/10 p-5 text-left hover:border-mamayya-gold hover:bg-mamayya-gold/10 transition"
+                        onclick="loadPreset('full')">
+                        <div class="flex items-start justify-between mb-2">
+                            <div>
+                                <div class="font-display font-extrabold text-xl">Full Mamayya Box</div>
+                                <div class="text-xs text-mamayya-cream/60 mt-1">2kg Chicken + 1kg Mutton + 1kg Fish +
+                                    1kg Shrimp</div>
+                            </div>
+                            <div class="text-mamayya-gold font-display font-extrabold text-2xl">₹4,999</div>
+                        </div>
+                        <div class="text-xs text-mamayya-gold">★ Best value · Save ₹300</div>
+                    </button>
+                </div>
+
+                <!-- Box visualizer -->
+                <div class="lg:col-span-3">
+                    <h3 class="font-display font-extrabold text-2xl mb-4">Your custom box</h3>
+                    <div class="bg-mamayya-cream/5 border border-mamayya-cream/10 p-6 md:p-8">
+                        <div class="grid grid-cols-2 gap-3 mb-6" id="customBoxGrid">
+                            <div class="box-slot" data-slot="0">
+                                <i data-lucide="plus" class="w-6 h-6 text-mamayya-cream/40"></i>
+                            </div>
+                            <div class="box-slot" data-slot="1">
+                                <i data-lucide="plus" class="w-6 h-6 text-mamayya-cream/40"></i>
+                            </div>
+                            <div class="box-slot" data-slot="2">
+                                <i data-lucide="plus" class="w-6 h-6 text-mamayya-cream/40"></i>
+                            </div>
+                            <div class="box-slot" data-slot="3">
+                                <i data-lucide="plus" class="w-6 h-6 text-mamayya-cream/40"></i>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between mb-4 pb-4 border-b border-mamayya-cream/10">
+                            <div>
+                                <div class="text-xs text-mamayya-cream/60">Total weight</div>
+                                <div id="boxWeight" class="font-display font-extrabold text-2xl">0 g</div>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-xs text-mamayya-cream/60">Total price</div>
+                                <div id="boxPrice" class="font-display font-extrabold text-3xl text-mamayya-gold">₹0
+                                </div>
+                            </div>
+                        </div>
+                        <p class="text-xs text-mamayya-cream/50 mb-4">Click a slot to pick a pickle. Tap filled slots to
+                            remove.</p>
+                        <div class="flex flex-wrap gap-2 mb-4">
+                            <button class="filter-pill" onclick="addToBox('chicken', 500)">+ Chicken 500g</button>
+                            <button class="filter-pill" onclick="addToBox('mutton', 500)">+ Mutton 500g</button>
+                            <button class="filter-pill" onclick="addToBox('fish', 500)">+ Fish 500g</button>
+                            <button class="filter-pill" onclick="addToBox('shrimp', 500)">+ Shrimp 500g</button>
+                        </div>
+                        <button class="btn-primary w-full" onclick="addBoxToCart()">
+                            <i data-lucide="shopping-bag" class="w-4 h-4"></i>
+                            Add box to cart
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============= DELIVERY JOURNEY ============= -->
+    <section class="py-20 md:py-32 bg-mamayya-cream">
+        <div class="max-w-7xl mx-auto px-4 md:px-8">
+            <div class="text-center mb-12">
+                <div class="inline-block text-xs font-bold tracking-[0.3em] text-mamayya-red mb-4">HOW IT WORKS</div>
+                <h2 class="h-display text-4xl md:text-6xl text-mamayya-charcoal mb-4">From Mamayya's kitchen<br />to
+                    your table</h2>
+                <p class="text-mamayya-charcoal-soft max-w-xl mx-auto">Good pickle takes time. We don't take shortcuts.
+                    Plan for about 7 days from order to delivery.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
+                <div class="bg-mamayya-charcoal text-mamayya-cream p-6 hover-lift">
+                    <div class="w-12 h-12 bg-mamayya-red rounded-full flex items-center justify-center mb-4">
+                        <i data-lucide="chef-hat" class="w-6 h-6"></i>
+                    </div>
+                    <div class="text-xs font-bold tracking-widest text-mamayya-gold mb-1">DAY 1–2</div>
+                    <div class="font-display font-extrabold text-lg mb-1">Prepared fresh</div>
+                    <p class="text-xs text-mamayya-cream/70">Meat sourced, masala ground, pickles cooked in small
+                        batches.</p>
+                </div>
+
+                <div class="bg-mamayya-charcoal text-mamayya-cream p-6 hover-lift">
+                    <div class="w-12 h-12 bg-mamayya-red rounded-full flex items-center justify-center mb-4">
+                        <i data-lucide="snowflake" class="w-6 h-6"></i>
+                    </div>
+                    <div class="text-xs font-bold tracking-widest text-mamayya-gold mb-1">DAY 3</div>
+                    <div class="font-display font-extrabold text-lg mb-1">Cooled & rested</div>
+                    <p class="text-xs text-mamayya-cream/70">Pickle is rested so flavours settle and mature properly.
+                    </p>
+                </div>
+
+                <div class="bg-mamayya-charcoal text-mamayya-cream p-6 hover-lift">
+                    <div class="w-12 h-12 bg-mamayya-red rounded-full flex items-center justify-center mb-4">
+                        <i data-lucide="package" class="w-6 h-6"></i>
+                    </div>
+                    <div class="text-xs font-bold tracking-widest text-mamayya-gold mb-1">DAY 4</div>
+                    <div class="font-display font-extrabold text-lg mb-1">Leak-proof packed</div>
+                    <p class="text-xs text-mamayya-cream/70">Glass jar sealed, vacuum-checked, packed in tamper-proof
+                        box.</p>
+                </div>
+
+                <div class="bg-mamayya-charcoal text-mamayya-cream p-6 hover-lift">
+                    <div class="w-12 h-12 bg-mamayya-red rounded-full flex items-center justify-center mb-4">
+                        <i data-lucide="truck" class="w-6 h-6"></i>
+                    </div>
+                    <div class="text-xs font-bold tracking-widest text-mamayya-gold mb-1">DAY 5</div>
+                    <div class="font-display font-extrabold text-lg mb-1">Courier pickup</div>
+                    <p class="text-xs text-mamayya-cream/70">Handed to trusted courier with full insurance & tracking.
+                    </p>
+                </div>
+
+                <div class="bg-mamayya-red text-mamayya-cream p-6 hover-lift">
+                    <div class="w-12 h-12 bg-mamayya-charcoal rounded-full flex items-center justify-center mb-4">
+                        <i data-lucide="home" class="w-6 h-6"></i>
+                    </div>
+                    <div class="text-xs font-bold tracking-widest text-mamayya-gold mb-1">DAY 6–7</div>
+                    <div class="font-display font-extrabold text-lg mb-1">At your door</div>
+                    <p class="text-xs text-mamayya-cream/90">Delivered to your doorstep anywhere in India.</p>
+                </div>
+            </div>
+
+            <div class="bg-mamayya-gold/20 border-l-4 border-mamayya-red p-4 flex items-start gap-3">
+                <i data-lucide="info" class="w-5 h-5 text-mamayya-red flex-shrink-0 mt-0.5"></i>
+                <p class="text-sm text-mamayya-charcoal"><strong>Please allow at least 7 days</strong> for preparation
+                    and delivery. We don't ship 2-day. We don't compromise. You'll get tracking info via SMS/email once
+                    dispatched.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============= TRUST ============= -->
+    <section class="py-20 md:py-32 bg-mamayya-cream-dark">
+        <div class="max-w-7xl mx-auto px-4 md:px-8">
+            <div class="text-center mb-12">
+                <div class="inline-block text-xs font-bold tracking-[0.3em] text-mamayya-red mb-4">WHY TRUST US</div>
+                <h2 class="h-display text-4xl md:text-6xl text-mamayya-charcoal mb-4">Meat pickle needs<br />proper
+                    care. We do.</h2>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                <div class="bg-mamayya-cream p-6 border-2 border-mamayya-charcoal">
+                    <div class="w-12 h-12 bg-mamayya-red text-mamayya-cream flex items-center justify-center mb-4">
+                        <i data-lucide="leaf" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="font-display font-extrabold text-lg mb-2">Fresh batches only</h3>
+                    <p class="text-sm text-mamayya-charcoal-soft">Cooked in small batches, not factory-scale. Every jar
+                        gets attention.</p>
+                </div>
+
+                <div class="bg-mamayya-cream p-6 border-2 border-mamayya-charcoal">
+                    <div class="w-12 h-12 bg-mamayya-red text-mamayya-cream flex items-center justify-center mb-4">
+                        <i data-lucide="shield" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="font-display font-extrabold text-lg mb-2">Leak-proof glass jars</h3>
+                    <p class="text-sm text-mamayya-charcoal-soft">Tamper-evident seal, vacuum-checked, double-taped
+                        packaging.</p>
+                </div>
+
+                <div class="bg-mamayya-cream p-6 border-2 border-mamayya-charcoal">
+                    <div class="w-12 h-12 bg-mamayya-red text-mamayya-cream flex items-center justify-center mb-4">
+                        <i data-lucide="list" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="font-display font-extrabold text-lg mb-2">Full ingredients listed</h3>
+                    <p class="text-sm text-mamayya-charcoal-soft">Every allergen, every spice. No hidden ingredients,
+                        ever.</p>
+                </div>
+
+                <div class="bg-mamayya-cream p-6 border-2 border-mamayya-charcoal">
+                    <div class="w-12 h-12 bg-mamayya-red text-mamayya-cream flex items-center justify-center mb-4">
+                        <i data-lucide="badge-check" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="font-display font-extrabold text-lg mb-2">FSSAI registered</h3>
+                    <p class="text-sm text-mamayya-charcoal-soft">Licence displayed on every product page and at the
+                        bottom of the site.</p>
+                </div>
+
+                <div class="bg-mamayya-cream p-6 border-2 border-mamayya-charcoal">
+                    <div class="w-12 h-12 bg-mamayya-red text-mamayya-cream flex items-center justify-center mb-4">
+                        <i data-lucide="credit-card" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="font-display font-extrabold text-lg mb-2">Online payment only</h3>
+                    <p class="text-sm text-mamayya-charcoal-soft">UPI, cards, net banking via Razorpay. No COD. Helps us
+                        keep quality up.</p>
+                </div>
+
+                <div class="bg-mamayya-cream p-6 border-2 border-mamayya-charcoal">
+                    <div class="w-12 h-12 bg-mamayya-red text-mamayya-cream flex items-center justify-center mb-4">
+                        <i data-lucide="map" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="font-display font-extrabold text-lg mb-2">Full tracking</h3>
+                    <p class="text-sm text-mamayya-charcoal-soft">Real-time tracking link shared once your order leaves
+                        the kitchen.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============= CUSTOMER WALL ============= -->
+    <section class="py-20 md:py-32 bg-mamayya-cream">
+        <div class="max-w-7xl mx-auto px-4 md:px-8">
+            <div class="text-center mb-12">
+                <div class="inline-block text-xs font-bold tracking-[0.3em] text-mamayya-red mb-4">THE MAMAYYA WALL
+                </div>
+                <h2 class="h-display text-4xl md:text-6xl text-mamayya-charcoal mb-4">What people say<br />when the
+                    jar's empty</h2>
+            </div>
+
+            <div class="flex flex-wrap gap-2 justify-center mb-8">
+                <button class="filter-pill active" data-filter="all">All</button>
+                <button class="filter-pill" data-filter="chicken">Chicken</button>
+                <button class="filter-pill" data-filter="mutton">Mutton</button>
+                <button class="filter-pill" data-filter="fish">Fish</button>
+                <button class="filter-pill" data-filter="shrimp">Shrimp</button>
+            </div>
+
+            <div class="columns-1 sm:columns-2 lg:columns-3 gap-4" id="testimonialGrid">
+                <div class="testimonial-card p-5 mb-4 break-inside-avoid" data-product="mutton">
+                    <div class="flex gap-1 mb-2 text-mamayya-gold">
+                        <i data-lucide="star" class="w-4 h-4 fill-current"></i><i data-lucide="star"
+                            class="w-4 h-4 fill-current"></i><i data-lucide="star" class="w-4 h-4 fill-current"></i><i
+                            data-lucide="star" class="w-4 h-4 fill-current"></i><i data-lucide="star"
+                            class="w-4 h-4 fill-current"></i>
+                    </div>
+                    <p class="text-sm mb-3">"Mutton pickle order chesa. Husband and kids fought over the last piece.
+                        Packed properly, no leak. Will order again."</p>
+                    <div class="flex items-center gap-2">
+                        <div
+                            class="w-8 h-8 bg-mamayya-red text-mamayya-cream rounded-full flex items-center justify-center font-bold text-xs">
+                            PR</div>
+                        <div>
+                            <div class="text-xs font-bold">Priya R.</div>
+                            <div class="text-[10px] text-mamayya-charcoal-soft">Hyderabad</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="testimonial-card p-5 mb-4 break-inside-avoid bg-mamayya-red text-mamayya-cream"
+                    data-product="chicken">
+                    <div class="flex gap-1 mb-2 text-mamayya-gold">
+                        <i data-lucide="star" class="w-4 h-4 fill-current"></i><i data-lucide="star"
+                            class="w-4 h-4 fill-current"></i><i data-lucide="star" class="w-4 h-4 fill-current"></i><i
+                            data-lucide="star" class="w-4 h-4 fill-current"></i><i data-lucide="star"
+                            class="w-4 h-4 fill-current"></i>
+                    </div>
+                    <p class="text-sm mb-3 font-serif italic text-lg">"Idi full meal ki main character."</p>
+                    <p class="text-sm mb-3 text-mamayya-cream/90">Chicken pickle. Chunky pieces. Hot masala. Best with
+                        ghee rice. Just trust me.</p>
+                    <div class="flex items-center gap-2">
+                        <div
+                            class="w-8 h-8 bg-mamayya-cream text-mamayya-red rounded-full flex items-center justify-center font-bold text-xs">
+                            AK</div>
+                        <div>
+                            <div class="text-xs font-bold">Arjun K.</div>
+                            <div class="text-[10px] text-mamayya-cream/70">Bengaluru</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="testimonial-card p-5 mb-4 break-inside-avoid" data-product="fish">
+                    <div class="flex gap-1 mb-2 text-mamayya-gold">
+                        <i data-lucide="star" class="w-4 h-4 fill-current"></i><i data-lucide="star"
+                            class="w-4 h-4 fill-current"></i><i data-lucide="star" class="w-4 h-4 fill-current"></i><i
+                            data-lucide="star" class="w-4 h-4 fill-current"></i><i data-lucide="star"
+                            class="w-4 h-4 fill-current"></i>
+                    </div>
+                    <p class="text-sm mb-3">"Curd rice ki fish pickle add chesa. Entire plate finish. The tanginess is
+                        just perfect. Coastal flavour done right."</p>
+                    <div class="flex items-center gap-2">
+                        <div
+                            class="w-8 h-8 bg-mamayya-green text-mamayya-cream rounded-full flex items-center justify-center font-bold text-xs">
+                            LM</div>
+                        <div>
+                            <div class="text-xs font-bold">Lakshmi M.</div>
+                            <div class="text-[10px] text-mamayya-charcoal-soft">Vizag</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="testimonial-card p-5 mb-4 break-inside-avoid" data-product="shrimp">
+                    <div class="flex gap-1 mb-2 text-mamayya-gold">
+                        <i data-lucide="star" class="w-4 h-4 fill-current"></i><i data-lucide="star"
+                            class="w-4 h-4 fill-current"></i><i data-lucide="star" class="w-4 h-4 fill-current"></i><i
+                            data-lucide="star" class="w-4 h-4 fill-current"></i><i data-lucide="star"
+                            class="w-4 h-4 fill-current"></i>
+                    </div>
+                    <p class="text-sm mb-3">"Shrimp pickle tasting box lo try chesa. Roju sambar lo add chestunna.
+                        Dangerously good."</p>
+                    <div class="flex items-center gap-2">
+                        <div
+                            class="w-8 h-8 bg-mamayya-orange text-mamayya-cream rounded-full flex items-center justify-center font-bold text-xs">
+                            RV</div>
+                        <div>
+                            <div class="text-xs font-bold">Ravi V.</div>
+                            <div class="text-[10px] text-mamayya-charcoal-soft">Chennai</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="testimonial-card p-5 mb-4 break-inside-avoid bg-mamayya-gold text-mamayya-charcoal"
+                    data-product="chicken">
+                    <div class="flex gap-1 mb-2">
+                        <i data-lucide="star" class="w-4 h-4 fill-current"></i><i data-lucide="star"
+                            class="w-4 h-4 fill-current"></i><i data-lucide="star" class="w-4 h-4 fill-current"></i><i
+                            data-lucide="star" class="w-4 h-4 fill-current"></i><i data-lucide="star"
+                            class="w-4 h-4 fill-current"></i>
+                    </div>
+                    <p class="text-sm mb-3 font-serif italic">"5kg chicken pickle order for my son's wedding. 200 people
+                        finished it. Mamayya is now family."</p>
+                    <div class="flex items-center gap-2">
+                        <div
+                            class="w-8 h-8 bg-mamayya-charcoal text-mamayya-cream rounded-full flex items-center justify-center font-bold text-xs">
+                            SN</div>
+                        <div>
+                            <div class="text-xs font-bold">Sita N.</div>
+                            <div class="text-[10px]">Guntur</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="testimonial-card p-5 mb-4 break-inside-avoid" data-product="mutton">
+                    <div class="flex gap-1 mb-2 text-mamayya-gold">
+                        <i data-lucide="star" class="w-4 h-4 fill-current"></i><i data-lucide="star"
+                            class="w-4 h-4 fill-current"></i><i data-lucide="star" class="w-4 h-4 fill-current"></i><i
+                            data-lucide="star" class="w-4 h-4 fill-current"></i><i data-lucide="star"
+                            class="w-4 h-4 fill-current"></i>
+                    </div>
+                    <p class="text-sm mb-3">"Bangalore lo mamayya pickle — finally a non-veg pickle that doesn't taste
+                        like oil. Real meat, real masala. Love."</p>
+                    <div class="flex items-center gap-2">
+                        <div
+                            class="w-8 h-8 bg-mamayya-red text-mamayya-cream rounded-full flex items-center justify-center font-bold text-xs">
+                            DK</div>
+                        <div>
+                            <div class="text-xs font-bold">Deepak K.</div>
+                            <div class="text-[10px] text-mamayya-charcoal-soft">Bengaluru</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============= COMPARISON ============= -->
+    <section class="py-20 md:py-32 bg-mamayya-charcoal text-mamayya-cream">
+        <div class="max-w-6xl mx-auto px-4 md:px-8">
+            <div class="text-center mb-12">
+                <div class="inline-block text-xs font-bold tracking-[0.3em] text-mamayya-gold mb-4">FLAVOUR GUIDE</div>
+                <h2 class="h-display text-4xl md:text-6xl mb-4">Find your flavour</h2>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead>
+                        <tr class="border-b border-mamayya-cream/20">
+                            <th class="py-4 pr-4 font-display font-extrabold">Pickle</th>
+                            <th class="py-4 pr-4 font-display font-extrabold">Flavour</th>
+                            <th class="py-4 pr-4 font-display font-extrabold">Texture</th>
+                            <th class="py-4 pr-4 font-display font-extrabold">Heat</th>
+                            <th class="py-4 font-display font-extrabold">Starting</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="border-b border-mamayya-cream/10 hover:bg-mamayya-cream/5">
+                            <td class="py-4 pr-4">
+                                <div class="w-8 h-8 rounded-full bg-mamayya-chicken inline-block mr-2 align-middle">
+                                </div><span class="font-bold">Chicken</span>
+                            </td>
+                            <td class="py-4 pr-4 text-mamayya-cream/80">Rich & spicy</td>
+                            <td class="py-4 pr-4 text-mamayya-cream/80">Chunky, juicy</td>
+                            <td class="py-4 pr-4 text-mamayya-cream/80">🌶️🌶️🌶️</td>
+                            <td class="py-4 font-display font-extrabold text-mamayya-gold text-xl">₹349</td>
+                        </tr>
+                        <tr class="border-b border-mamayya-cream/10 hover:bg-mamayya-cream/5">
+                            <td class="py-4 pr-4">
+                                <div class="w-8 h-8 rounded-full bg-mamayya-mutton inline-block mr-2 align-middle">
+                                </div><span class="font-bold">Mutton</span>
+                            </td>
+                            <td class="py-4 pr-4 text-mamayya-cream/80">Deep, savoury</td>
+                            <td class="py-4 pr-4 text-mamayya-cream/80">Firm, fall-off-bone</td>
+                            <td class="py-4 pr-4 text-mamayya-cream/80">🌶️🌶️🌶️</td>
+                            <td class="py-4 font-display font-extrabold text-mamayya-gold text-xl">₹549</td>
+                        </tr>
+                        <tr class="border-b border-mamayya-cream/10 hover:bg-mamayya-cream/5">
+                            <td class="py-4 pr-4">
+                                <div class="w-8 h-8 rounded-full bg-mamayya-fish inline-block mr-2 align-middle"></div>
+                                <span class="font-bold">Fish</span>
+                            </td>
+                            <td class="py-4 pr-4 text-mamayya-cream/80">Tangy, coastal</td>
+                            <td class="py-4 pr-4 text-mamayya-cream/80">Soft, flaky</td>
+                            <td class="py-4 pr-4 text-mamayya-cream/80">🌶️🌶️</td>
+                            <td class="py-4 font-display font-extrabold text-mamayya-gold text-xl">₹399</td>
+                        </tr>
+                        <tr class="hover:bg-mamayya-cream/5">
+                            <td class="py-4 pr-4">
+                                <div class="w-8 h-8 rounded-full bg-mamayya-shrimp inline-block mr-2 align-middle">
+                                </div><span class="font-bold">Shrimp</span>
+                            </td>
+                            <td class="py-4 pr-4 text-mamayya-cream/80">Intense, aromatic</td>
+                            <td class="py-4 pr-4 text-mamayya-cream/80">Small, bite-sized</td>
+                            <td class="py-4 pr-4 text-mamayya-cream/80">🌶️🌶️🌶️</td>
+                            <td class="py-4 font-display font-extrabold text-mamayya-gold text-xl">₹449</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============= FAQ ============= -->
+    <section id="faq" class="py-20 md:py-32 bg-mamayya-cream">
+        <div class="max-w-4xl mx-auto px-4 md:px-8">
+            <div class="text-center mb-12">
+                <div class="inline-block text-xs font-bold tracking-[0.3em] text-mamayya-red mb-4">FAQS</div>
+                <h2 class="h-display text-4xl md:text-6xl text-mamayya-charcoal mb-4">Before you order</h2>
+            </div>
+
+            <div class="space-y-0">
+                <div class="faq-item py-5 cursor-pointer" onclick="toggleFaq(this)">
+                    <div class="flex items-start justify-between gap-4">
+                        <h3 class="font-display font-extrabold text-lg md:text-xl">How long does delivery take?</h3>
+                        <i data-lucide="plus" class="faq-icon w-6 h-6 flex-shrink-0 text-mamayya-red"></i>
+                    </div>
+                    <div class="faq-answer text-mamayya-charcoal-soft">
+                        <p class="pt-3">We need at least 7 days from order to delivery. This includes 2–3 days for fresh
+                            preparation, 1 day for packing and resting, and 3–4 days for shipping via our courier
+                            partners. Once dispatched, you'll receive a tracking link via SMS and email.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item py-5 cursor-pointer" onclick="toggleFaq(this)">
+                    <div class="flex items-start justify-between gap-4">
+                        <h3 class="font-display font-extrabold text-lg md:text-xl">Do you offer Cash on Delivery?</h3>
+                        <i data-lucide="plus" class="faq-icon w-6 h-6 flex-shrink-0 text-mamayya-red"></i>
+                    </div>
+                    <div class="faq-answer text-mamayya-charcoal-soft">
+                        <p class="pt-3">No. Mamayya Pickles is online payment only. We accept UPI, credit cards, debit
+                            cards, and net banking via Razorpay. This helps us maintain quality and avoid returns on
+                            perishable meat products.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item py-5 cursor-pointer" onclick="toggleFaq(this)">
+                    <div class="flex items-start justify-between gap-4">
+                        <h3 class="font-display font-extrabold text-lg md:text-xl">What's the shelf life?</h3>
+                        <i data-lucide="plus" class="faq-icon w-6 h-6 flex-shrink-0 text-mamayya-red"></i>
+                    </div>
+                    <div class="faq-answer text-mamayya-charcoal-soft">
+                        <p class="pt-3">Unopened jars last 3 months at room temperature. Once opened, refrigerate and
+                            consume within 3–4 weeks. Always use a dry spoon.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item py-5 cursor-pointer" onclick="toggleFaq(this)">
+                    <div class="flex items-start justify-between gap-4">
+                        <h3 class="font-display font-extrabold text-lg md:text-xl">Do you ship across India?</h3>
+                        <i data-lucide="plus" class="faq-icon w-6 h-6 flex-shrink-0 text-mamayya-red"></i>
+                    </div>
+                    <div class="faq-answer text-mamayya-charcoal-soft">
+                        <p class="pt-3">Yes — we deliver to all serviceable pin codes across India via Shiprocket.
+                            Remote areas may take an extra day or two. Enter your pin code on any product page to check
+                            serviceability and the exact delivery estimate.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item py-5 cursor-pointer" onclick="toggleFaq(this)">
+                    <div class="flex items-start justify-between gap-4">
+                        <h3 class="font-display font-extrabold text-lg md:text-xl">Is it safe to order meat pickle
+                            online?</h3>
+                        <i data-lucide="plus" class="faq-icon w-6 h-6 flex-shrink-0 text-mamayya-red"></i>
+                    </div>
+                    <div class="faq-answer text-mamayya-charcoal-soft">
+                        <p class="pt-3">Yes. We are FSSAI registered, source fresh meat, cook in controlled batches,
+                            vacuum-seal glass jars, and pack in tamper-evident boxes. The pickling process itself
+                            preserves the meat naturally with vinegar, salt, and oil.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item py-5 cursor-pointer" onclick="toggleFaq(this)">
+                    <div class="flex items-start justify-between gap-4">
+                        <h3 class="font-display font-extrabold text-lg md:text-xl">What's your return policy?</h3>
+                        <i data-lucide="plus" class="faq-icon w-6 h-6 flex-shrink-0 text-mamayya-red"></i>
+                    </div>
+                    <div class="faq-answer text-mamayya-charcoal-soft">
+                        <p class="pt-3">Since this is a perishable food product, we do not accept returns. However, if
+                            your order arrives damaged or with a broken seal, please share an unboxing video within 24
+                            hours and we'll send a replacement or refund. No questions asked.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item py-5 cursor-pointer" onclick="toggleFaq(this)">
+                    <div class="flex items-start justify-between gap-4">
+                        <h3 class="font-display font-extrabold text-lg md:text-xl">Do you do bulk or gifting orders?
+                        </h3>
+                        <i data-lucide="plus" class="faq-icon w-6 h-6 flex-shrink-0 text-mamayya-red"></i>
+                    </div>
+                    <div class="faq-answer text-mamayya-charcoal-soft">
+                        <p class="pt-3">Yes! For weddings, corporate gifting, or 5kg+ orders, please email us at
+                            hello@mamayyapickles.in with your requirements. We offer custom packaging for bulk orders.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============= FINAL CTA ============= -->
+    <section class="py-20 md:py-32 bg-mamayya-red text-mamayya-cream relative overflow-hidden">
+        <div class="blob bg-mamayya-charcoal w-96 h-96 -bottom-40 -left-20 opacity-50"></div>
+        <div class="blob bg-mamayya-gold w-72 h-72 -top-20 -right-20 opacity-30"></div>
+        <div class="max-w-4xl mx-auto px-4 md:px-8 text-center relative">
+            <div class="text-xs font-bold tracking-[0.3em] text-mamayya-gold mb-4">READY?</div>
+            <h2 class="h-display text-5xl md:text-8xl mb-6">
+                Rice ready unda?<br />
+                <span class="text-mamayya-gold">Mamayya is sending the pickle.</span>
+            </h2>
+            <p class="text-xl text-mamayya-cream/90 mb-8 max-w-xl mx-auto font-serif italic">"Jar empty avvadaniki
+                ekkuva time pattadu. Getting another one might."</p>
+            <div class="flex flex-wrap gap-3 justify-center">
+                <a href="#shop"
+                    class="btn-primary bg-mamayya-charcoal border-mamayya-charcoal hover:bg-mamayya-gold hover:border-mamayya-gold hover:text-mamayya-charcoal">
+                    Order now <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                </a>
+                <a href="#build"
+                    class="btn-secondary border-mamayya-cream text-mamayya-cream hover:bg-mamayya-cream hover:text-mamayya-red">
+                    Build a box
+                </a>
+            </div>
+            <p class="text-xs text-mamayya-cream/70 mt-6">Online payment only · 7-day delivery · FSSAI registered</p>
+        </div>
+    </section>
+
+    <!-- ============= FOOTER ============= -->
+    <footer class="bg-mamayya-charcoal text-mamayya-cream pt-16 pb-32 md:pb-12">
+        <div class="max-w-7xl mx-auto px-4 md:px-8">
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-8 mb-12">
+                <div class="col-span-2">
+                    <a href="#home" class="flex items-center gap-2 mb-4">
+                        <svg width="48" height="48" viewBox="0 0 40 40">
+                            <circle cx="20" cy="20" r="19" fill="#A92A1D" />
+                            <path d="M12 14 L12 26 Q12 28 14 28 L26 28 Q28 28 28 26 L28 14 Z" fill="#FFF4E4" />
+                            <rect x="12" y="11" width="16" height="4" fill="#E6A62F" />
+                            <circle cx="17" cy="20" r="1.5" fill="#A92A1D" />
+                            <circle cx="23" cy="22" r="1.5" fill="#C65B32" />
+                        </svg>
+                        <div>
+                            <div class="font-display font-extrabold text-2xl">Mamayya</div>
+                            <div class="text-[11px] tracking-[0.3em] font-semibold text-mamayya-red">PICKLES</div>
+                        </div>
+                    </a>
+                    <p class="text-sm text-mamayya-cream/70 mb-4 max-w-sm">Bold non-veg pickles made with proper spices,
+                        big meat pieces, and zero shortcuts. Hand-packed and delivered across India.</p>
+                    <div class="flex gap-2">
+                        <a href="#"
+                            class="w-9 h-9 bg-mamayya-cream/10 hover:bg-mamayya-red flex items-center justify-center transition"><i
+                                data-lucide="instagram" class="w-4 h-4"></i></a>
+                        <a href="#"
+                            class="w-9 h-9 bg-mamayya-cream/10 hover:bg-mamayya-red flex items-center justify-center transition"><i
+                                data-lucide="youtube" class="w-4 h-4"></i></a>
+                        <a href="#"
+                            class="w-9 h-9 bg-mamayya-cream/10 hover:bg-mamayya-red flex items-center justify-center transition"><i
+                                data-lucide="facebook" class="w-4 h-4"></i></a>
+                        <a href="#"
+                            class="w-9 h-9 bg-mamayya-cream/10 hover:bg-mamayya-red flex items-center justify-center transition"><i
+                                data-lucide="twitter" class="w-4 h-4"></i></a>
+                    </div>
+                </div>
+
+                <div>
+                    <h4 class="font-display font-extrabold mb-4 text-mamayya-gold">Shop</h4>
+                    <ul class="space-y-2 text-sm text-mamayya-cream/70">
+                        <li><a href="#" class="hover:text-mamayya-gold transition">Chicken Pickle</a></li>
+                        <li><a href="#" class="hover:text-mamayya-gold transition">Mutton Pickle</a></li>
+                        <li><a href="#" class="hover:text-mamayya-gold transition">Fish Pickle</a></li>
+                        <li><a href="#" class="hover:text-mamayya-gold transition">Shrimp Pickle</a></li>
+                        <li><a href="#" class="hover:text-mamayya-gold transition">Build a box</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="font-display font-extrabold mb-4 text-mamayya-gold">Help</h4>
+                    <ul class="space-y-2 text-sm text-mamayya-cream/70">
+                        <li><a href="#" class="hover:text-mamayya-gold transition">Track order</a></li>
+                        <li><a href="#" class="hover:text-mamayya-gold transition">Shipping policy</a></li>
+                        <li><a href="#" class="hover:text-mamayya-gold transition">Returns & refunds</a></li>
+                        <li><a href="#" class="hover:text-mamayya-gold transition">FAQs</a></li>
+                        <li><a href="#" class="hover:text-mamayya-gold transition">Contact us</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="font-display font-extrabold mb-4 text-mamayya-gold">Contact</h4>
+                    <ul class="space-y-2 text-sm text-mamayya-cream/70">
+                        <li class="flex items-start gap-2"><i data-lucide="mail"
+                                class="w-4 h-4 mt-0.5 flex-shrink-0"></i>hello@mamayyapickles.in</li>
+                        <li class="flex items-start gap-2"><i data-lucide="phone"
+                                class="w-4 h-4 mt-0.5 flex-shrink-0"></i>+91 98765 43210</li>
+                        <li class="flex items-start gap-2"><i data-lucide="map-pin"
+                                class="w-4 h-4 mt-0.5 flex-shrink-0"></i>Hyderabad, India</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="border-t border-mamayya-cream/10 pt-8">
+                <div class="flex flex-col md:flex-row justify-between gap-4 mb-4">
+                    <div class="text-xs text-mamayya-cream/60">
+                        <p class="mb-1"><strong class="text-mamayya-gold">FSSAI Licence No:</strong> 12345678901234</p>
+                        <p><strong class="text-mamayya-gold">Manufactured by:</strong> Mamayya Foods Pvt Ltd, Hyderabad,
+                            Telangana</p>
+                    </div>
+                    <div class="text-xs text-mamayya-cream/60">
+                        <p>© 2025 Mamayya Pickles. All rights reserved.</p>
+                        <div class="flex gap-3 mt-1">
+                            <a href="#" class="hover:text-mamayya-gold">Privacy</a>
+                            <a href="#" class="hover:text-mamayya-gold">Terms</a>
+                            <a href="#" class="hover:text-mamayya-gold">Sitemap</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ============= MOBILE BOTTOM NAV ============= -->
+    <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-mamayya-cream border-t-2 border-mamayya-charcoal z-50">
+        <div class="grid grid-cols-5">
+            <a href="#home" class="flex flex-col items-center gap-1 py-2.5 text-mamayya-red">
+                <i data-lucide="home" class="w-5 h-5"></i>
+                <span class="text-[10px] font-bold">Home</span>
+            </a>
+            <a href="#shop" class="flex flex-col items-center gap-1 py-2.5">
+                <i data-lucide="shopping-bag" class="w-5 h-5"></i>
+                <span class="text-[10px] font-bold">Shop</span>
+            </a>
+            <a href="#build" class="flex flex-col items-center gap-1 py-2.5">
+                <i data-lucide="package" class="w-5 h-5"></i>
+                <span class="text-[10px] font-bold">Box</span>
+            </a>
+            <a href="#" class="flex flex-col items-center gap-1 py-2.5" onclick="event.preventDefault()">
+                <i data-lucide="search" class="w-5 h-5"></i>
+                <span class="text-[10px] font-bold">Track</span>
+            </a>
+            <button class="flex flex-col items-center gap-1 py-2.5" onclick="toggleCart()">
+                <div class="relative">
+                    <i data-lucide="shopping-cart" class="w-5 h-5"></i>
+                    <span id="cartCountMobile"
+                        class="absolute -top-1 -right-1 bg-mamayya-red text-mamayya-cream text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center hidden">0</span>
+                </div>
+                <span class="text-[10px] font-bold">Cart</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- ============= CART DRAWER ============= -->
+    <div class="drawer-overlay" id="cartOverlay" onclick="toggleCart()"></div>
+    <aside class="cart-drawer" id="cartDrawer">
+        <div class="p-6 border-b border-mamayya-charcoal/10 flex items-center justify-between">
+            <div>
+                <h3 class="font-display font-extrabold text-2xl">Your cart</h3>
+                <p class="text-xs text-mamayya-charcoal-soft" id="cartItemCount">0 items</p>
+            </div>
+            <button onclick="toggleCart()" class="hover:bg-mamayya-cream-dark p-2 rounded-full transition">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-6" id="cartItems">
+            <div id="emptyCart" class="text-center py-12">
+                <i data-lucide="shopping-bag" class="w-16 h-16 mx-auto text-mamayya-charcoal/20 mb-3"></i>
+                <p class="font-display font-bold text-lg mb-1">Cart is empty</p>
+                <p class="text-sm text-mamayya-charcoal-soft mb-4">Time to add some Mamayya.</p>
+                <a href="#shop" onclick="toggleCart()" class="btn-primary">Browse pickles</a>
+            </div>
+        </div>
+
+        <div class="p-6 border-t border-mamayya-charcoal/10 bg-mamayya-cream-dark" id="cartFooter"
+            style="display:none;">
+            <div class="space-y-2 mb-4 text-sm">
+                <div class="flex justify-between"><span>Subtotal</span><span id="cartSubtotal"
+                        class="font-bold">₹0</span></div>
+                <div class="flex justify-between"><span>Shipping</span><span id="cartShipping"
+                        class="font-bold">Calculated at checkout</span></div>
+                <div class="flex justify-between"><span>Free shipping at</span><span
+                        class="font-bold text-mamayya-green">₹1,500</span></div>
+            </div>
+            <div class="w-full bg-mamayya-cream h-2 mb-4 overflow-hidden">
+                <div id="shippingProgress" class="h-full bg-mamayya-green transition-all" style="width:0%"></div>
+            </div>
+            <p class="text-xs text-mamayya-charcoal-soft mb-4 text-center" id="shippingMessage">Add ₹1,500 more for free
+                shipping</p>
+            <div class="bg-mamayya-charcoal text-mamayya-cream p-3 mb-4 flex items-start gap-2 text-xs">
+                <i data-lucide="info" class="w-4 h-4 flex-shrink-0 mt-0.5 text-mamayya-gold"></i>
+                <span>Online payment only. We don't offer Cash on Delivery. Please allow 7 days for delivery.</span>
+            </div>
+            <button class="btn-primary w-full" onclick="checkout()">
+                Proceed to checkout · <span id="cartTotal">₹0</span>
+                <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </button>
+        </div>
+    </aside>
+
+    <!-- ============= PINCODE MODAL ============= -->
+    <div class="modal" id="pincodeModal">
+        <div class="modal-content">
+            <button onclick="document.getElementById('pincodeModal').classList.remove('open')"
+                class="absolute top-4 right-4 hover:bg-mamayya-cream-dark p-2 rounded-full">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+            <div class="w-12 h-12 bg-mamayya-red text-mamayya-cream rounded-full flex items-center justify-center mb-4">
+                <i data-lucide="truck" class="w-6 h-6"></i>
+            </div>
+            <h3 class="font-display font-extrabold text-2xl mb-2">Check delivery</h3>
+            <p class="text-sm text-mamayya-charcoal-soft mb-4">Enter your pin code to see estimated delivery date.</p>
+            <input type="text" id="pincodeInput" placeholder="Enter 6-digit pin code" maxlength="6"
+                class="w-full border-2 border-mamayya-charcoal p-3 text-lg font-bold focus:outline-none focus:border-mamayya-red"
+                oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+            <button class="btn-primary w-full mt-4" onclick="checkPincode()">Check</button>
+            <div id="pincodeResult" class="mt-4 hidden"></div>
+        </div>
+    </div>
+
+    <!-- ============= TOAST ============= -->
+    <div class="toast" id="toast">
+        <i data-lucide="check-circle" class="w-5 h-5 text-mamayya-gold"></i>
+        <span id="toastMsg">Added to cart</span>
+    </div>
+
+    <!-- ============= PRODUCT MODAL ============= -->
+    <div class="modal" id="productModal">
+        <div class="modal-content max-w-2xl max-h-[90vh] overflow-y-auto">
+            <button onclick="closeProduct()"
+                class="absolute top-4 right-4 hover:bg-mamayya-cream-dark p-2 rounded-full z-10">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+            <div id="productModalContent"></div>
+        </div>
+    </div>
+
+    <!-- ============= JAVASCRIPT ============= -->
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // ============= DATA =============
+        const products = {
+            chicken: { name: 'Chicken Pickle', color: '#A92A1D', tagline: 'The crowd favourite', desc: 'Juicy bone-in chicken pieces slow-cooked in Mamayya\'s signature masala. Bold, chunky, and unapologetically flavourful.', prices: { 250: 349, 500: 649, 1000: 1199, 2000: 2299, 5000: 5499 } },
+            mutton: { name: 'Mutton Pickle', color: '#6B1818', tagline: 'Slow cooked. Deeply spiced.', desc: 'Tender mutton pieces marinated overnight in whole spices. Deep, slow-burn flavour that gets better with every bite.', prices: { 250: 549, 500: 999, 1000: 1899, 2000: 3699, 5000: 8999 } },
+            fish: { name: 'Fish Pickle', color: '#2D5F5D', tagline: 'Tangy, coastal, addictive', desc: 'Fresh fish in a tangy tamarind-chilli masala. Sharp, aromatic, and perfect with curd rice.', prices: { 250: 399, 500: 749, 1000: 1399, 2000: 2699, 5000: 6499 } },
+            shrimp: { name: 'Shrimp Pickle', color: '#D26943', tagline: 'Small pieces. Massive flavour.', desc: 'Tiny prawns packed into a punchy garlic-chilli masala. A flavour bomb that disappears fast.', prices: { 250: 449, 500: 849, 1000: 1599, 2000: 3099, 5000: 7499 } }
+        };
+
+        let cart = JSON.parse(localStorage.getItem('mamayyaCart') || '[]');
+        let customBox = [];
+        let finderAnswers = {};
+        let currentSize = { product: 'chicken', weight: 250 };
+
+        // ============= CART FUNCTIONS =============
+        function saveCart() {
+            localStorage.setItem('mamayyaCart', JSON.stringify(cart));
+            updateCartUI();
+        }
+
+        function addToCart(productKey, weight, qty = 1) {
+            const product = products[productKey];
+            const id = `${productKey}-${weight}`;
+            const existing = cart.find(i => i.id === id);
+            if (existing) {
+                existing.qty += qty;
+            } else {
+                cart.push({ id, product: productKey, name: product.name, weight, qty, price: product.prices[weight] });
+            }
+            saveCart();
+            showToast(`${product.name} (${weight}g) added to cart`);
+        }
+
+        function removeFromCart(id) {
+            cart = cart.filter(i => i.id !== id);
+            saveCart();
+        }
+
+        function updateQty(id, delta) {
+            const item = cart.find(i => i.id === id);
+            if (item) {
+                item.qty += delta;
+                if (item.qty <= 0) {
+                    removeFromCart(id);
+                } else {
+                    saveCart();
+                }
+            }
+        }
+
+        function updateCartUI() {
+            const totalItems = cart.reduce((sum, i) => sum + i.qty, 0);
+            const subtotal = cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
+
+            document.getElementById('cartCount').textContent = totalItems;
+            document.getElementById('cartCountMobile').textContent = totalItems;
+            document.getElementById('cartCount').classList.toggle('hidden', totalItems === 0);
+            document.getElementById('cartCountMobile').classList.toggle('hidden', totalItems === 0);
+            document.getElementById('cartItemCount').textContent = `${totalItems} item${totalItems !== 1 ? 's' : ''}`;
+
+            const cartItemsEl = document.getElementById('cartItems');
+            const emptyEl = document.getElementById('emptyCart');
+            const footerEl = document.getElementById('cartFooter');
+
+            if (cart.length === 0) {
+                emptyEl.style.display = 'block';
+                footerEl.style.display = 'none';
+                // Clear existing items
+                cartItemsEl.querySelectorAll('.cart-item').forEach(el => el.remove());
+            } else {
+                emptyEl.style.display = 'none';
+                footerEl.style.display = 'block';
+                // Clear existing items
+                cartItemsEl.querySelectorAll('.cart-item').forEach(el => el.remove());
+
+                cart.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'cart-item flex gap-3 mb-4 pb-4 border-b border-mamayya-charcoal/10';
+                    div.innerHTML = `
+          <div class="w-16 h-16 rounded-full flex-shrink-0" style="background:${products[item.product].color}"></div>
+          <div class="flex-1">
+            <div class="font-bold text-sm">${item.name}</div>
+            <div class="text-xs text-mamayya-charcoal-soft">${item.weight}g · ₹${item.price}</div>
+            <div class="flex items-center gap-2 mt-2">
+              <button onclick="updateQty('${item.id}', -1)" class="w-6 h-6 border border-mamayya-charcoal/30 flex items-center justify-center text-sm hover:bg-mamayya-charcoal hover:text-mamayya-cream">−</button>
+              <span class="text-sm font-bold w-6 text-center">${item.qty}</span>
+              <button onclick="updateQty('${item.id}', 1)" class="w-6 h-6 border border-mamayya-charcoal/30 flex items-center justify-center text-sm hover:bg-mamayya-charcoal hover:text-mamayya-cream">+</button>
+              <button onclick="removeFromCart('${item.id}')" class="ml-auto text-mamayya-red hover:underline text-xs">Remove</button>
+            </div>
+          </div>
+          <div class="text-right font-bold text-sm">₹${item.price * item.qty}</div>
+        `;
+                    cartItemsEl.appendChild(div);
+                });
+
+                document.getElementById('cartSubtotal').textContent = `₹${subtotal.toLocaleString('en-IN')}`;
+                document.getElementById('cartTotal').textContent = `₹${subtotal.toLocaleString('en-IN')}`;
+
+                const freeShippingAt = 1500;
+                const progress = Math.min(100, (subtotal / freeShippingAt) * 100);
+                document.getElementById('shippingProgress').style.width = `${progress}%`;
+                if (subtotal >= freeShippingAt) {
+                    document.getElementById('shippingMessage').textContent = '🎉 You unlocked free shipping!';
+                    document.getElementById('cartShipping').textContent = 'FREE';
+                } else {
+                    const remaining = freeShippingAt - subtotal;
+                    document.getElementById('shippingMessage').textContent = `Add ₹${remaining} more for free shipping`;
+                    document.getElementById('cartShipping').textContent = 'Calculated at checkout';
+                }
+            }
+        }
+
+        function toggleCart() {
+            document.getElementById('cartOverlay').classList.toggle('open');
+            document.getElementById('cartDrawer').classList.toggle('open');
+            document.body.style.overflow = document.getElementById('cartDrawer').classList.contains('open') ? 'hidden' : '';
+        }
+
+        function checkout() {
+            showToast('Redirecting to secure payment...');
+            setTimeout(() => {
+                alert('In a live build, this would open Razorpay checkout.\n\nYour cart has ' + cart.reduce((s, i) => s + i.qty, 0) + ' items worth ₹' + cart.reduce((s, i) => s + (i.price * i.qty), 0).toLocaleString('en-IN'));
+            }, 1000);
+        }
+
+        // ============= FLAVOUR FINDER =============
+        document.querySelectorAll('.finder-opt').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const step = this.closest('.finder-step').dataset.step;
+                finderAnswers[step] = this.dataset.key;
+
+                // Animate transition
+                if (parseInt(step) < 4) {
+                    document.querySelector(`.finder-step[data-step="${step}"]`).classList.remove('active');
+                    const next = parseInt(step) + 1;
+                    document.querySelector(`.finder-step[data-step="${next}"]`).classList.add('active');
+                    document.getElementById('progressBar').style.width = `${(next / 3) * 100}%`;
+                    document.getElementById('stepIndicator').textContent = `${next}/3`;
+
+                    if (next === 4) showFinderResult();
+                }
+            });
+        });
+
+        function showFinderResult() {
+            const meat = finderAnswers['3'] || 'chicken';
+            const product = products[meat];
+            const weight = finderAnswers['2'] === 'extreme' ? 500 : 500;
+            const price = product.prices[weight];
+
+            document.getElementById('matchTitle').textContent = `${product.name}`;
+            document.getElementById('matchDesc').textContent = product.desc;
+            document.getElementById('matchPrice').textContent = `₹${price}`;
+            document.getElementById('matchAddBtn').innerHTML = `<i data-lucide="plus" class="w-4 h-4"></i> Add ${weight}g to cart`;
+            document.getElementById('matchAddBtn').onclick = () => {
+                addToCart(meat, weight);
+                resetFinder();
+            };
+            lucide.createIcons();
+        }
+
+        function resetFinder() {
+            finderAnswers = {};
+            document.querySelectorAll('.finder-step').forEach(s => s.classList.remove('active'));
+            document.querySelector('.finder-step[data-step="1"]').classList.add('active');
+            document.getElementById('progressBar').style.width = '33%';
+            document.getElementById('stepIndicator').textContent = '1/3';
+        }
+
+        // ============= WEIGHT SELECTOR =============
+        document.querySelectorAll('.weight-pill').forEach(pill => {
+            pill.addEventListener('click', function () {
+                document.querySelectorAll('.weight-pill').forEach(p => p.classList.remove('active'));
+                this.classList.add('active');
+                currentSize.weight = parseInt(this.dataset.weight);
+                currentSize.product = this.dataset.product;
+                updateSizeDisplay();
+            });
+        });
+
+        function updateSizeDisplay() {
+            const product = products[currentSize.product];
+            const weight = currentSize.weight;
+            const price = product.prices[weight];
+            const descriptions = {
+                250: 'Perfect for trying Mamayya\'s signature masala for the first time. Sealed glass jar.',
+                500: 'Most popular. Great for a small family. Comes in one sealed jar.',
+                1000: 'Family pack. Plenty for the month. Comes in one large sealed jar.',
+                2000: 'Stock-up size. Comes in 2 sealed glass jars for freshness.',
+                5000: 'Bulk order. Comes in 5 sealed glass jars. Great for gifting and events.'
+            };
+            document.getElementById('sizeTitle').textContent = `${product.name} · ${weight >= 1000 ? (weight / 1000) + 'kg' : weight + 'g'}`;
+            document.getElementById('sizeDesc').textContent = descriptions[weight];
+            document.getElementById('sizePrice').textContent = `₹${price.toLocaleString('en-IN')}`;
+
+            // Scale jar
+            const jar = document.getElementById('sizeJarSvg');
+            const scale = 0.8 + (weight / 5000) * 0.6;
+            jar.style.transform = `scale(${Math.min(scale, 1.3)})`;
+        }
+
+        function addCurrentToCart() {
+            addToCart(currentSize.product, currentSize.weight);
+        }
+
+        // ============= BUILD A BOX =============
+        function addToBox(productKey, weight) {
+            if (customBox.length >= 4) {
+                showToast('Box is full! Try a Party Box.');
+                return;
+            }
+            customBox.push({ product: productKey, weight });
+            renderBox();
+        }
+
+        function removeFromBox(index) {
+            customBox.splice(index, 1);
+            renderBox();
+        }
+
+        function renderBox() {
+            const grid = document.getElementById('customBoxGrid');
+            const slots = grid.querySelectorAll('.box-slot');
+            slots.forEach((slot, i) => {
+                if (customBox[i]) {
+                    const item = customBox[i];
+                    const product = products[item.product];
+                    slot.classList.add('filled');
+                    slot.innerHTML = `
+          <div class="text-center p-2">
+            <div class="w-10 h-10 rounded-full mx-auto mb-1" style="background:${product.color}"></div>
+            <div class="font-bold text-xs">${product.name.split(' ')[0]}</div>
+            <div class="text-[10px] text-mamayya-cream/60">${item.weight}g</div>
+            <button onclick="event.stopPropagation();removeFromBox(${i})" class="text-mamayya-red text-[10px] mt-1 hover:underline">Remove</button>
+          </div>
+        `;
+                } else {
+                    slot.classList.remove('filled');
+                    slot.innerHTML = `<i data-lucide="plus" class="w-6 h-6 text-mamayya-cream/40"></i>`;
+                }
+            });
+            lucide.createIcons();
+
+            const totalWeight = customBox.reduce((s, i) => s + i.weight, 0);
+            const totalPrice = customBox.reduce((s, i) => s + products[i.product].prices[i.weight], 0);
+            document.getElementById('boxWeight').textContent = `${(totalWeight / 1000).toFixed(2)} kg`;
+            document.getElementById('boxPrice').textContent = `₹${totalPrice.toLocaleString('en-IN')}`;
+        }
+
+        function loadPreset(type) {
+            customBox = [];
+            if (type === 'tasting') {
+                customBox = [{ product: 'chicken', weight: 250 }, { product: 'mutton', weight: 250 }, { product: 'fish', weight: 250 }, { product: 'shrimp', weight: 250 }];
+            } else if (type === 'family') {
+                customBox = [{ product: 'chicken', weight: 500 }, { product: 'mutton', weight: 500 }, { product: 'fish', weight: 500 }];
+            } else if (type === 'party') {
+                customBox = [{ product: 'chicken', weight: 1000 }, { product: 'mutton', weight: 1000 }, { product: 'fish', weight: 1000 }, { product: 'shrimp', weight: 1000 }];
+            } else if (type === 'full') {
+                customBox = [{ product: 'chicken', weight: 2000 }, { product: 'mutton', weight: 1000 }, { product: 'fish', weight: 1000 }, { product: 'shrimp', weight: 1000 }];
+            }
+            renderBox();
+            showToast('Preset loaded! Review and add to cart.');
+        }
+
+        function addBoxToCart() {
+            if (customBox.length === 0) {
+                showToast('Add some pickles to your box first');
+                return;
+            }
+            customBox.forEach(item => addToCart(item.product, item.weight));
+            customBox = [];
+            renderBox();
+            showToast('Box added to cart!');
+        }
+
+        // ============= PRODUCT MODAL =============
+        function openProduct(productKey) {
+            const product = products[productKey];
+            const content = document.getElementById('productModalContent');
+            content.innerHTML = `
+      <div class="p-6">
+        <div class="aspect-square rounded mb-6 flex items-center justify-center" style="background: linear-gradient(135deg, ${product.color}dd, ${product.color}66);">
+          <div class="font-display font-extrabold text-6xl text-white">${product.name.split(' ')[0]}</div>
+        </div>
+        <h2 class="font-display font-extrabold text-3xl mb-2">${product.name}</h2>
+        <p class="text-mamayya-charcoal-soft mb-4">${product.desc}</p>
+        <div class="mb-4">
+          <div class="text-xs font-bold mb-2">SELECT WEIGHT</div>
+          <div class="grid grid-cols-5 gap-2">
+            ${[250, 500, 1000, 2000, 5000].map(w => `
+              <button onclick="modalAdd('${productKey}', ${w})" class="border-2 border-mamayya-charcoal p-2 hover:bg-mamayya-red hover:text-mamayya-cream hover:border-mamayya-red transition">
+                <div class="font-bold text-sm">${w >= 1000 ? (w / 1000) + 'kg' : w + 'g'}</div>
+                <div class="text-[10px]">₹${product.prices[w]}</div>
+              </button>
+            `).join('')}
+          </div>
+        </div>
+        <div class="text-xs text-mamayya-charcoal-soft space-y-1">
+          <p>✓ Handmade in small batches</p>
+          <p>✓ FSSAI registered</p>
+          <p>✓ Leak-proof glass jar</p>
+          <p>✓ Online payment only · 7-day delivery</p>
+        </div>
+      </div>
+    `;
+            document.getElementById('productModal').classList.add('open');
+        }
+
+        function closeProduct() {
+            document.getElementById('productModal').classList.remove('open');
+        }
+
+        function modalAdd(productKey, weight) {
+            addToCart(productKey, weight);
+            closeProduct();
+        }
+
+        // ============= PINCODE =============
+        function checkPincode() {
+            const pin = document.getElementById('pincodeInput').value;
+            const result = document.getElementById('pincodeResult');
+            if (pin.length !== 6) {
+                result.innerHTML = '<p class="text-mamayya-red text-sm">Please enter a valid 6-digit pin code</p>';
+                result.classList.remove('hidden');
+                return;
+            }
+            // Mock check
+            const date = new Date();
+            date.setDate(date.getDate() + 7);
+            const options = { weekday: 'long', month: 'long', day: 'numeric' };
+            const dateStr = date.toLocaleDateString('en-IN', options);
+
+            result.innerHTML = `
+      <div class="bg-mamayya-green/10 border-l-4 border-mamayya-green p-3 text-sm">
+        <p class="font-bold text-mamayya-green mb-1">✓ Delivery available to ${pin}</p>
+        <p class="text-mamayya-charcoal-soft">Estimated delivery: <strong>${dateStr}</strong></p>
+      </div>
+    `;
+            result.classList.remove('hidden');
+            document.getElementById('pincodeDisplay').textContent = pin;
+            setTimeout(() => {
+                document.getElementById('pincodeModal').classList.remove('open');
+            }, 2000);
+        }
+
+        // ============= FAQ =============
+        function toggleFaq(item) {
+            item.classList.toggle('open');
+        }
+
+        // ============= TOAST =============
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMsg').textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2500);
+        }
+
+        // ============= TESTIMONIAL FILTER =============
+        document.querySelectorAll('.filter-pill[data-filter]').forEach(pill => {
+            pill.addEventListener('click', function () {
+                document.querySelectorAll('.filter-pill[data-filter]').forEach(p => p.classList.remove('active'));
+                this.classList.add('active');
+                const filter = this.dataset.filter;
+                document.querySelectorAll('.testimonial-card').forEach(card => {
+                    if (filter === 'all' || card.dataset.product === filter) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+        });
+
+        // ============= SCROLL ANIMATIONS =============
+        gsap.registerPlugin(ScrollTrigger);
+
+        // Reveal animations
+        gsap.utils.toArray('.reveal').forEach(el => {
+            gsap.fromTo(el, { opacity: 0, y: 40 }, {
+                opacity: 1, y: 0, duration: 1, ease: 'power3.out',
+                scrollTrigger: { trigger: el, start: 'top 85%' }
+            });
+        });
+
+        // Hero jar parallax
+        gsap.to('#heroJar', {
+            y: 100,
+            rotation: -10,
+            scrollTrigger: {
+                trigger: '#home',
+                start: 'top top',
+                end: 'bottom top',
+                scrub: 1
+            }
+        });
+
+        // Lid opens on scroll
+        const lidTween = gsap.to('#heroLid', {
+            y: -150,
+            rotation: -25,
+            opacity: 0,
+            scrollTrigger: {
+                trigger: '#home',
+                start: 'top top',
+                end: 'bottom 50%',
+                scrub: 1
+            }
+        });
+
+        // Header background change
+        ScrollTrigger.create({
+            start: 'top -50',
+            onUpdate: (self) => {
+                if (self.direction === 1 && window.scrollY > 50) {
+                    document.getElementById('header').classList.add('shadow-md');
+                } else {
+                    document.getElementById('header').classList.remove('shadow-md');
+                }
+            }
+        });
+
+        // Product sections parallax
+        gsap.utils.toArray('.product-section').forEach((section, i) => {
+            gsap.fromTo(section.querySelector('.reveal'),
+                { opacity: 0, x: i % 2 === 0 ? -50 : 50 },
+                {
+                    opacity: 1, x: 0, duration: 1.2, ease: 'power3.out',
+                    scrollTrigger: { trigger: section, start: 'top 60%' }
+                }
+            );
+        });
+
+        // ============= INIT =============
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                document.getElementById('preloader').classList.add('hidden');
+            }, 1500);
+            updateCartUI();
+            updateSizeDisplay();
+            renderBox();
+        });
+
+        // Close modals on overlay click
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', function (e) {
+                if (e.target === this) this.classList.remove('open');
+            });
+        });
+    </script>
+
+</body>
+
+</html>
