@@ -13,7 +13,7 @@ const CHANNELS = [
     title: "WhatsApp",
     detail: "Fastest for order issues. Send your order number and we reply within a few hours, 10am-7pm IST.",
     action: "Message on WhatsApp",
-    href: "https://wa.me/19472738380",
+    href: "https://wa.me/919741982425",
     external: true,
   },
   {
