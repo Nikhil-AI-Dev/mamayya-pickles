@@ -13,7 +13,7 @@ const CHANNELS = [
     title: "WhatsApp",
     detail: "Fastest for order issues. Send your order number and we reply within a few hours, 10am-7pm IST.",
     action: "Message on WhatsApp",
-    href: "https://wa.me/919999999999",
+    href: "https://wa.me/19472738380",
     external: true,
   },
   {
@@ -73,10 +73,6 @@ export default function ContactPage() {
               </li>
             ))}
           </ul>
-          <p className="mt-6 text-xs text-cream/60 leading-relaxed">
-            WhatsApp number above is a placeholder - replace with the live support
-            number before launch.
-          </p>
         </aside>
       </div>
     </div>
