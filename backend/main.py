@@ -8,6 +8,7 @@ Run:  uvicorn main:app --port 8001 --reload  (from the backend/ directory)
 """
 
 import json
+import os
 import sqlite3
 from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
@@ -21,6 +22,18 @@ from pydantic import BaseModel, Field
 EMAIL_PATTERN = r"^[^@\s]+@[^@\s]+\.[^@\s]+$"
 
 DB_PATH = Path(__file__).parent / "mamayya.db"
+
+# Postgres in production (set DATABASE_URL), SQLite locally.
+DATABASE_URL = os.environ.get("DATABASE_URL", "")
+IS_PG = DATABASE_URL.startswith(("postgres://", "postgresql://"))
+if IS_PG:
+    import psycopg
+    from psycopg.rows import dict_row
+
+
+def _sql(query: str) -> str:
+    """SQL is written with %s placeholders; SQLite wants ?."""
+    return query if IS_PG else query.replace("%s", "?")
 
 # Prices mirror src/lib/products.ts. The server is the pricing authority:
 # client-sent prices are ignored, totals are recomputed here.
@@ -51,9 +64,20 @@ STAGES = [
 
 app = FastAPI(title="Mamayya Pickles API", version="0.1.0")
 
+ALLOWED_ORIGINS = [
+    o.strip()
+    for o in os.environ.get(
+        "ALLOWED_ORIGINS",
+        "http://localhost:3001,http://127.0.0.1:3001,"
+        "https://mamayyapickles.com,https://www.mamayyapickles.com,"
+        "https://nikhil-ai-dev.github.io",
+    ).split(",")
+    if o.strip()
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3001", "http://127.0.0.1:3001"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
@@ -61,8 +85,11 @@ app.add_middleware(
 
 @contextmanager
 def db():
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
+    if IS_PG:
+        conn = psycopg.connect(DATABASE_URL, row_factory=dict_row)
+    else:
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
     try:
         yield conn
         conn.commit()
@@ -71,33 +98,38 @@ def db():
 
 
 def init_db() -> None:
-    with db() as conn:
-        conn.executescript(
-            """
-            CREATE TABLE IF NOT EXISTS orders (
-                rowid_pk INTEGER PRIMARY KEY AUTOINCREMENT,
-                order_id TEXT UNIQUE,
-                created_at TEXT NOT NULL,
-                name TEXT NOT NULL,
-                phone TEXT NOT NULL,
-                email TEXT NOT NULL,
-                address TEXT NOT NULL,
-                city TEXT NOT NULL,
-                pincode TEXT NOT NULL,
-                lines_json TEXT NOT NULL,
-                subtotal INTEGER NOT NULL,
-                shipping INTEGER NOT NULL,
-                total INTEGER NOT NULL
-            );
-            CREATE TABLE IF NOT EXISTS contact_messages (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                created_at TEXT NOT NULL,
-                name TEXT NOT NULL,
-                email TEXT NOT NULL,
-                message TEXT NOT NULL
-            );
-            """
+    pk = "SERIAL PRIMARY KEY" if IS_PG else "INTEGER PRIMARY KEY AUTOINCREMENT"
+    ddl = [
+        f"""
+        CREATE TABLE IF NOT EXISTS orders (
+            rowid_pk {pk},
+            order_id TEXT UNIQUE,
+            created_at TEXT NOT NULL,
+            name TEXT NOT NULL,
+            phone TEXT NOT NULL,
+            email TEXT NOT NULL,
+            address TEXT NOT NULL,
+            city TEXT NOT NULL,
+            pincode TEXT NOT NULL,
+            lines_json TEXT NOT NULL,
+            subtotal INTEGER NOT NULL,
+            shipping INTEGER NOT NULL,
+            total INTEGER NOT NULL
         )
+        """,
+        f"""
+        CREATE TABLE IF NOT EXISTS contact_messages (
+            id {pk},
+            created_at TEXT NOT NULL,
+            name TEXT NOT NULL,
+            email TEXT NOT NULL,
+            message TEXT NOT NULL
+        )
+        """,
+    ]
+    with db() as conn:
+        for statement in ddl:
+            conn.execute(statement)
 
 
 init_db()
@@ -182,12 +214,15 @@ def create_order(payload: OrderCreate) -> dict:
 
     with db() as conn:
         cur = conn.execute(
-            """
-            INSERT INTO orders
-                (created_at, name, phone, email, address, city, pincode,
-                 lines_json, subtotal, shipping, total)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """,
+            _sql(
+                """
+                INSERT INTO orders
+                    (created_at, name, phone, email, address, city, pincode,
+                     lines_json, subtotal, shipping, total)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                RETURNING rowid_pk
+                """
+            ),
             (
                 created.isoformat(),
                 payload.name,
@@ -202,10 +237,11 @@ def create_order(payload: OrderCreate) -> dict:
                 total,
             ),
         )
-        order_id = f"MP-{1000 + cur.lastrowid}"
+        row_id = cur.fetchone()["rowid_pk"]
+        order_id = f"MP-{1000 + row_id}"
         conn.execute(
-            "UPDATE orders SET order_id = ? WHERE rowid_pk = ?",
-            (order_id, cur.lastrowid),
+            _sql("UPDATE orders SET order_id = %s WHERE rowid_pk = %s"),
+            (order_id, row_id),
         )
 
     return {
@@ -223,7 +259,8 @@ def create_order(payload: OrderCreate) -> dict:
 def get_order(order_id: str) -> dict:
     with db() as conn:
         row = conn.execute(
-            "SELECT * FROM orders WHERE order_id = ?", (order_id.strip().upper(),)
+            _sql("SELECT * FROM orders WHERE order_id = %s"),
+            (order_id.strip().upper(),),
         ).fetchone()
     if row is None:
         raise HTTPException(404, "No order found with that number.")
@@ -249,7 +286,10 @@ class ContactCreate(BaseModel):
 def create_contact(payload: ContactCreate) -> dict:
     with db() as conn:
         conn.execute(
-            "INSERT INTO contact_messages (created_at, name, email, message) VALUES (?, ?, ?, ?)",
+            _sql(
+                "INSERT INTO contact_messages (created_at, name, email, message)"
+                " VALUES (%s, %s, %s, %s)"
+            ),
             (datetime.now(timezone.utc).isoformat(), payload.name, payload.email, payload.message),
         )
     return {"status": "received"}
