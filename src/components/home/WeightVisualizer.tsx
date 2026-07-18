@@ -25,10 +25,7 @@ export default function WeightVisualizer() {
   return (
     <section className="bg-cream-deep grain py-20 md:py-28" id="sizes">
       <div className="mx-auto max-w-6xl px-4 md:px-6">
-        <p className="text-sm font-bold uppercase tracking-widest text-clay">
-          From first taste to full stock-up
-        </p>
-        <h2 className="mt-2 font-display font-extrabold text-3xl md:text-5xl">
+        <h2 className="font-display font-extrabold text-3xl md:text-5xl">
           Pick your size. Watch it grow.
         </h2>
 

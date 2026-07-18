@@ -239,10 +239,6 @@ export default function Hero() {
         </div>
       </div>
 
-      {/* Scroll hint */}
-      <div className="absolute bottom-5 inset-x-0 flex justify-center text-cream/50 text-xs font-semibold tracking-widest uppercase">
-        Scroll to open the jar ↓
-      </div>
     </section>
   );
 }

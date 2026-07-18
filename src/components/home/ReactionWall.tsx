@@ -79,10 +79,7 @@ export default function ReactionWall() {
   return (
     <section className="bg-cream-deep grain py-20 md:py-28" id="wall">
       <div className="mx-auto max-w-6xl px-4 md:px-6">
-        <p className="text-sm font-bold uppercase tracking-widest text-clay">
-          The Mamayya Wall
-        </p>
-        <h2 className="mt-2 font-display font-extrabold text-3xl md:text-5xl">
+        <h2 className="font-display font-extrabold text-3xl md:text-5xl">
           Plates that didn&apos;t survive
         </h2>
 

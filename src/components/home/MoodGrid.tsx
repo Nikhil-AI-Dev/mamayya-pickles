@@ -12,10 +12,7 @@ export default function MoodGrid() {
   return (
     <section className="bg-cream grain py-20 md:py-28" id="moods">
       <div className="mx-auto max-w-6xl px-4 md:px-6">
-        <p className="text-sm font-bold uppercase tracking-widest text-clay">
-          Choose your trouble
-        </p>
-        <h2 className="mt-2 font-display font-extrabold text-3xl md:text-5xl">
+        <h2 className="font-display font-extrabold text-3xl md:text-5xl">
           Which Mamayya mood are you in?
         </h2>
 

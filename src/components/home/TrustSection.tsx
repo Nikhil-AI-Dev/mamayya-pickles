@@ -41,10 +41,7 @@ export default function TrustSection() {
   return (
     <section className="bg-cream grain py-20 md:py-28" id="trust">
       <div className="mx-auto max-w-6xl px-4 md:px-6">
-        <p className="text-sm font-bold uppercase tracking-widest text-clay">
-          Meat pickle, done properly
-        </p>
-        <h2 className="mt-2 font-display font-extrabold text-3xl md:text-5xl max-w-2xl">
+        <h2 className="font-display font-extrabold text-3xl md:text-5xl max-w-2xl">
           Why people trust Mamayya with non-veg
         </h2>
 

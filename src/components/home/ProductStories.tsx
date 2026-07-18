@@ -121,7 +121,7 @@ export default function ProductStories() {
 
             <div className="story-copy [direction:ltr]">
               <p className="text-xs font-extrabold uppercase tracking-[0.25em] text-gold">
-                {String(idx + 1).padStart(2, "0")} / 04 · {p.mood}
+                {p.mood}
               </p>
               <h2 className="mt-3 font-display font-extrabold text-4xl md:text-5xl leading-tight">
                 {p.tagline}
