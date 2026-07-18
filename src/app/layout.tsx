@@ -26,9 +26,25 @@ const notoTelugu = Noto_Sans_Telugu({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://mamayyapickles.com"),
   title: "Mamayya Pickles - Big pieces. Bold spice. Proper non-veg pickle.",
   description:
     "Handmade non-veg pickles - chicken, mutton, fish and shrimp - packed with bold spices and delivered across India. Freshly prepared, online payment only.",
+  openGraph: {
+    type: "website",
+    siteName: "Mamayya Pickles",
+    locale: "en_IN",
+    url: "https://mamayyapickles.com",
+    title: "Mamayya Pickles - Big pieces. Bold spice. Proper non-veg pickle.",
+    description:
+      "Handmade chicken, mutton, fish and shrimp pickles, prepared fresh per order and delivered across India.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Mamayya Pickles - Big pieces. Bold spice.",
+    description:
+      "Handmade non-veg pickles, prepared fresh per order and delivered across India.",
+  },
 };
 
 export default function RootLayout({
