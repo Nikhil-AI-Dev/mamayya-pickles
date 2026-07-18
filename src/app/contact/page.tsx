@@ -19,8 +19,8 @@ const CHANNELS = [
   {
     title: "Email",
     detail: "Best for bulk orders, gifting, replacements with photos, or anything longer than a text.",
-    action: "hello@mamayyapickles.in",
-    href: "mailto:hello@mamayyapickles.in",
+    action: "contact@mamayyapickles.com",
+    href: "mailto:contact@mamayyapickles.com",
     external: false,
   },
 ];
@@ -74,8 +74,8 @@ export default function ContactPage() {
             ))}
           </ul>
           <p className="mt-6 text-xs text-cream/60 leading-relaxed">
-            Phone number and email above are placeholders - replace with the live support
-            contacts before launch.
+            WhatsApp number above is a placeholder - replace with the live support
+            number before launch.
           </p>
         </aside>
       </div>

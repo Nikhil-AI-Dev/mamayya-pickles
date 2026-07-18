@@ -131,10 +131,10 @@ export default function TrackLookup() {
               <p className="mt-1.5 text-charcoal/80">
                 Double-check the number, or write to us and we&apos;ll find it:{" "}
                 <a
-                  href={`mailto:hello@mamayyapickles.in?subject=Where is my order ${encodeURIComponent(orderId)}`}
+                  href={`mailto:contact@mamayyapickles.com?subject=Where is my order ${encodeURIComponent(orderId)}`}
                   className="font-bold text-red hover:underline"
                 >
-                  hello@mamayyapickles.in
+                  contact@mamayyapickles.com
                 </a>
               </p>
             </div>
