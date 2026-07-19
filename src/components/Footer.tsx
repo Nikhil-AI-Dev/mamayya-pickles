@@ -19,9 +19,9 @@ export default function Footer() {
             <img
               src="/logo-192.png"
               alt="Mamayya Pickles - Taste of Rayalaseema"
-              width={72}
-              height={72}
-              className="w-18 h-18 rounded-full"
+              width={104}
+              height={104}
+              className="w-26 h-26 rounded-full"
             />
             <div>
               <p className="font-display font-extrabold text-2xl text-gold">

@@ -364,8 +364,8 @@ def customer_email_html(
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;">
 
     <tr><td style="background:#241713;border-radius:18px 18px 0 0;padding:24px 32px 20px;" align="center">
-      <img src="https://mamayyapickles.com/logo-192.png" width="86" height="86" alt="Mamayya Pickles"
-           style="border-radius:50%;display:block;margin:0 auto 10px;">
+      <img src="https://mamayyapickles.com/logo-192.png" width="112" height="112" alt="Mamayya Pickles"
+           style="border-radius:50%;display:block;margin:0 auto 12px;">
       <div style="font-size:30px;font-weight:900;color:#e05545;letter-spacing:-1px;">Mamayya
         <span style="font-size:13px;font-weight:800;color:#fff4e4;letter-spacing:5px;">PICKLES</span></div>
       <div style="margin-top:5px;font-size:11px;font-weight:700;letter-spacing:3px;color:#e6a62f;">
