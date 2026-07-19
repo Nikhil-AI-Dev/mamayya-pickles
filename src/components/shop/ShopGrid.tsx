@@ -15,7 +15,6 @@ import {
   getProduct,
   products,
 } from "@/lib/products";
-import JarIllustration from "../JarIllustration";
 import SpiceMeter from "../SpiceMeter";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
@@ -41,24 +40,18 @@ function ProductCard({ product }: { product: Product }) {
         >
           {product.mood}
         </span>
-        {product.slug === "chicken-pickle" ? (
-          <div className="w-24 transition-transform duration-300 group-hover:-translate-y-1">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/jar-chicken.webp"
-              alt="Mamayya Chicken Pickle jar"
-              width={640}
-              height={1153}
-              loading="lazy"
-              decoding="async"
-              className="w-full h-auto drop-shadow-lg"
-            />
-          </div>
-        ) : (
-          <div className="w-32 transition-transform duration-300 group-hover:-translate-y-1">
-            <JarIllustration color={product.color} label={`${product.name} jar`} />
-          </div>
-        )}
+        <div className="w-24 transition-transform duration-300 group-hover:-translate-y-1">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={product.image}
+            alt={`${product.name} jar`}
+            width={640}
+            height={1180}
+            loading="lazy"
+            decoding="async"
+            className="w-full h-auto drop-shadow-lg"
+          />
+        </div>
       </Link>
 
       <div className="flex flex-col flex-1 p-5">

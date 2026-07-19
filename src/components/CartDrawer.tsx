@@ -126,10 +126,10 @@ export default function CartDrawer() {
               </div>
 
               {lines.map((line) => {
-                const color =
+                const image =
                   line.kind === "product"
-                    ? getProduct(line.productSlug)?.color ?? "#a92a1d"
-                    : "#e6a62f";
+                    ? getProduct(line.productSlug)?.image ?? "/logo-192.png"
+                    : "/logo-192.png";
                 const sub =
                   line.kind === "box"
                     ? getBox(line.boxSlug)
@@ -146,7 +146,14 @@ export default function CartDrawer() {
                     key={line.id}
                     className="flex gap-3 rounded-xl border border-charcoal/10 bg-white/60 p-3"
                   >
-                    <JarIllustration color={color} className="w-14 shrink-0" />
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={image}
+                      alt=""
+                      width={640}
+                      height={1180}
+                      className="w-10 h-auto self-center shrink-0 drop-shadow"
+                    />
                     <div className="flex-1 min-w-0">
                       <p className="font-bold text-sm leading-tight">
                         {lineTitle(line)}

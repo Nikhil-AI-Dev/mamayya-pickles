@@ -332,7 +332,7 @@ def _send_email(to: str, subject: str, body: str, html: str | None = None) -> No
 
 
 def customer_email_html(
-    name: str, order_id: str, total: int, window: str, items: list[str]
+    name: str, order_id: str, total: int, window: str, items: list[tuple[str, str]]
 ) -> str:
     import html as html_mod
 
@@ -341,11 +341,14 @@ def customer_email_html(
     preheader = f"Order {order_id} confirmed. Estimated delivery {window}."
     items_html = "".join(
         f'''<tr>
-          <td style="padding:9px 0;border-bottom:1px solid #f3e9d8;color:#241713;font-size:15px;font-weight:600;">
-            {html_mod.escape(i.strip("- ").strip())}
+          <td width="34" style="padding:8px 0;border-bottom:1px solid #f3e9d8;" valign="middle">
+            <img src="{img}" width="26" alt="" style="display:block;">
+          </td>
+          <td style="padding:8px 0 8px 10px;border-bottom:1px solid #f3e9d8;color:#241713;font-size:15px;font-weight:600;" valign="middle">
+            {html_mod.escape(label.strip("- ").strip())}
           </td>
         </tr>'''
-        for i in items
+        for label, img in items
     )
     journey = "".join(
         f'''<td align="center" style="padding:0 2px;">
@@ -442,11 +445,18 @@ def customer_email_html(
 
 API_PUBLIC_URL = os.environ.get("API_PUBLIC_URL", "https://mamayya-api.onrender.com")
 
+ITEM_IMAGES = {
+    "chicken-pickle": "https://mamayyapickles.com/jar-chicken.webp",
+    "mutton-pickle": "https://mamayyapickles.com/jar-mutton.webp",
+    "fish-pickle": "https://mamayyapickles.com/jar-fish.webp",
+    "shrimp-pickle": "https://mamayyapickles.com/jar-shrimp.webp",
+}
+
 ITEM_NAMES = {
     "chicken-pickle": "Chicken Pickle",
     "mutton-pickle": "Mutton Pickle",
     "fish-pickle": "Fish Pickle",
-    "shrimp-pickle": "Shrimp Pickle",
+    "shrimp-pickle": "Prawn Pickle",
     "tasting-box": "Mamayya Tasting Box",
     "family-box": "Family Box",
     "coastal-box": "Coastal Box",
@@ -465,6 +475,26 @@ def format_item_lines(payload: "OrderCreate") -> list[str]:
             weight = f"{line.grams // 1000} kg" if line.grams >= 1000 else f"{line.grams} g"
             lines.append(f"  - {line.quantity} x {name} ({weight})")
     return lines
+
+
+LOGO_URL = "https://mamayyapickles.com/logo-192.png"
+
+
+def format_item_pairs(payload: "OrderCreate") -> list[tuple[str, str]]:
+    """(label, thumbnail-url) pairs for HTML email item rows."""
+    pairs = []
+    for line in payload.lines:
+        if isinstance(line, BoxLine):
+            name = ITEM_NAMES.get(line.boxSlug, line.boxSlug)
+            pairs.append((f"{line.quantity} x {name}", LOGO_URL))
+        else:
+            name = ITEM_NAMES.get(line.productSlug, line.productSlug)
+            weight = f"{line.grams // 1000} kg" if line.grams >= 1000 else f"{line.grams} g"
+            pairs.append(
+                (f"{line.quantity} x {name} ({weight})",
+                 ITEM_IMAGES.get(line.productSlug, LOGO_URL))
+            )
+    return pairs
 
 
 def _send_async(job) -> None:
@@ -574,7 +604,7 @@ def send_customer_confirmation_email(
         "Mamayya Pickles\n"
         "Big pieces. Bold spice. Proper non-veg pickle."
     )
-    html = customer_email_html(payload.name, order_id, total, window, item_lines)
+    html = customer_email_html(payload.name, order_id, total, window, format_item_pairs(payload))
     _send_async(
         lambda: _send_email(
             payload.email,

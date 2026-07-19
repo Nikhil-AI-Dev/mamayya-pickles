@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { lineTitle, lineUnitPrice, useCart } from "@/lib/cart";
-import { deliveryWindow, formatINR } from "@/lib/products";
+import { deliveryWindow, formatINR, getProduct } from "@/lib/products";
 import {
   ApiError,
   OrderConfirmation,
@@ -225,7 +225,19 @@ export default function CheckoutClient() {
         <ul className="mt-4 divide-y divide-cream/10">
           {lines.map((line) => (
             <li key={line.id} className="py-3 flex items-center justify-between gap-3">
-              <div className="min-w-0">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={
+                  line.kind === "product"
+                    ? getProduct(line.productSlug)?.image ?? "/logo-192.png"
+                    : "/logo-192.png"
+                }
+                alt=""
+                width={640}
+                height={1180}
+                className="w-8 h-auto shrink-0 drop-shadow"
+              />
+              <div className="min-w-0 flex-1">
                 <p className="font-bold text-sm truncate">{lineTitle(line)}</p>
                 <div className="mt-1 flex items-center gap-2 text-xs">
                   <button

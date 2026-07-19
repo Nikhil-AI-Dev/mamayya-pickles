@@ -10,7 +10,6 @@ import {
   getProduct,
   products,
 } from "@/lib/products";
-import JarIllustration from "../JarIllustration";
 import SpiceMeter from "../SpiceMeter";
 
 type PickGrams = 250 | 500;
@@ -78,8 +77,10 @@ export default function BoxBuilder() {
             aria-label={`Add ${p.name}`}
             className="rounded-3xl bg-white/70 border border-charcoal/10 shadow-card p-5 flex gap-5 items-center"
           >
-            <div className="w-16 shrink-0 hidden sm:block">
-              <JarIllustration color={p.color} label={`${p.name} jar`} />
+            <div className="w-14 shrink-0 hidden sm:block">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={p.image} alt={`${p.name} jar`} width={640} height={1180}
+                   loading="lazy" decoding="async" className="w-full h-auto drop-shadow" />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1">

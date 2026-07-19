@@ -90,8 +90,12 @@ export default async function ProductPage({
                 <span className="absolute bottom-6 right-8 text-3xl" aria-hidden>
                   {product.emoji}
                 </span>
-                <div className="w-52 md:w-64 animate-float">
-                  <JarIllustration color={product.color} label={`${product.name} jar`} />
+                <div className="relative w-52 md:w-64 animate-float">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={product.image} alt={`${product.name} jar`} width={640} height={1180}
+                       className="w-full h-auto drop-shadow-2xl" />
+                  <div aria-hidden
+                       className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-3/4 h-5 rounded-[50%] bg-black/35 blur-md" />
                 </div>
               </>
             )}

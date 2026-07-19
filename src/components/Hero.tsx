@@ -6,7 +6,6 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
 import { DELIVERY_NOTE, products } from "@/lib/products";
-import JarIllustration from "./JarIllustration";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
@@ -231,7 +230,9 @@ export default function Hero() {
             <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 flex gap-2 sm:gap-3">
               {products.map((p, i) => (
                 <div key={p.slug} className={`hero-flavour-${i} opacity-0 w-12 sm:w-16`}>
-                  <JarIllustration color={p.color} label={`${p.name} jar`} />
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={p.image} alt={`${p.name} jar`} width={640} height={1180}
+                       className="w-full h-auto drop-shadow-lg" />
                   <p className="text-center text-[10px] sm:text-xs font-bold text-cream/80 mt-1">
                     {p.shortName}
                   </p>

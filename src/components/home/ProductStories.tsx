@@ -151,8 +151,13 @@ export default function ProductStories() {
                   <span className="story-ingredient absolute -bottom-2 right-12 text-3xl" aria-hidden>
                     {p.emoji}
                   </span>
-                  <div className="story-jar w-48 md:w-60 animate-float">
-                    <JarIllustration color={p.color} label={`${p.name} jar`} />
+                  <div className="story-jar relative w-44 md:w-56 animate-float">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={p.image} alt={`${p.name} jar`} width={640} height={1180}
+                         loading="lazy" decoding="async"
+                         className="w-full h-auto drop-shadow-2xl" />
+                    <div aria-hidden
+                         className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-3/4 h-5 rounded-[50%] bg-black/35 blur-md" />
                   </div>
                 </>
               )}
