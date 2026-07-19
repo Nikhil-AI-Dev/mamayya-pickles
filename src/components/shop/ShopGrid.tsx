@@ -35,12 +35,12 @@ function ProductCard({ product }: { product: Product }) {
           {product.emoji}
         </span>
         <span
-          className="absolute top-4 right-4 text-[10px] font-extrabold uppercase tracking-[0.2em] px-2.5 py-1 rounded-full text-cream"
+          className="absolute top-4 right-3 text-[10px] font-extrabold uppercase tracking-[0.18em] px-2.5 py-1 rounded-lg text-cream rotate-[3deg] shadow-[2px_2px_0_rgba(36,23,19,0.35)]"
           style={{ background: product.color }}
         >
           {product.mood}
         </span>
-        <div className="w-24 transition-transform duration-300 group-hover:-translate-y-1">
+        <div className="w-24 transition-transform duration-300 group-hover:-translate-y-1.5 group-hover:rotate-[-2deg]">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={product.image}

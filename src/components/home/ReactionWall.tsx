@@ -13,7 +13,7 @@ type Reaction = {
 
 const REACTIONS: Reaction[] = [
   {
-    quote: "Curd rice ki shrimp pickle add chesa. Entire plate finish.",
+    quote: "Curd rice ki prawn pickle add chesa. Entire plate finish.",
     name: "Pravallika",
     city: "Hyderabad",
     productSlug: "shrimp-pickle",
@@ -55,7 +55,7 @@ const REACTIONS: Reaction[] = [
     pairing: "Dosa",
   },
   {
-    quote: "Shrimp jar emptied in four days. Four. Days.",
+    quote: "Prawn jar emptied in four days. Four. Days.",
     name: "Keerthi",
     city: "Visakhapatnam",
     productSlug: "shrimp-pickle",
@@ -116,19 +116,20 @@ export default function ReactionWall() {
         </div>
 
         <div className="mt-8 columns-1 sm:columns-2 lg:columns-3 gap-5 [&>*]:break-inside-avoid">
-          {visible.map((r) => {
+          {visible.map((r, i) => {
             const product = products.find((p) => p.slug === r.productSlug)!;
+            const tilt = ["rotate-[-1.5deg]", "rotate-[1.2deg]", "rotate-[-0.8deg]", "rotate-[1.8deg]"][i % 4];
             return (
               <figure
                 key={r.quote}
-                className="mb-5 rounded-2xl bg-white/80 border border-charcoal/10 p-6 shadow-card"
+                className={`mb-5 rounded-2xl bg-white/90 border-2 border-charcoal/15 p-6 shadow-card ${tilt} hover:rotate-0 hover:scale-[1.02] transition-transform duration-300`}
               >
                 <div
                   className="h-1.5 w-12 rounded-full"
                   style={{ background: product.color }}
                   aria-hidden
                 />
-                <blockquote className="mt-4 font-display font-semibold text-lg leading-snug">
+                <blockquote className="mt-4 font-display font-bold text-xl leading-snug">
                   &ldquo;{r.quote}&rdquo;
                 </blockquote>
                 <figcaption className="mt-4 flex items-center justify-between text-sm">

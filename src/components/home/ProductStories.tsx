@@ -114,7 +114,7 @@ export default function ProductStories() {
               <p className="text-xs font-extrabold uppercase tracking-[0.25em] text-gold">
                 {p.mood}
               </p>
-              <h2 className="mt-3 font-display font-extrabold text-4xl md:text-5xl leading-tight">
+              <h2 className="mt-3 font-display font-extrabold text-4xl md:text-6xl leading-[1.02] tracking-tight">
                 {p.tagline}
               </h2>
               <p className="mt-4 text-cream/80 max-w-md text-lg">{p.story}</p>
