@@ -7,7 +7,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
 import { useCart } from "@/lib/cart";
 import { formatINR, products } from "@/lib/products";
-import JarIllustration from "../JarIllustration";
+import JarScene from "../JarScene";
 import SpiceMeter from "../SpiceMeter";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
@@ -107,60 +107,7 @@ export default function ProductStories() {
             }`}
           >
             <div className="[direction:ltr] relative grid place-items-center">
-              {p.slug === "chicken-pickle" ? (
-                <div className="relative w-56 md:w-72 pb-8">
-                  {/* Warm backlight */}
-                  <div
-                    aria-hidden
-                    className="absolute inset-x-[-30%] top-[10%] bottom-0"
-                    style={{
-                      background:
-                        "radial-gradient(ellipse 60% 50% at 50% 60%, rgba(230,166,47,0.28), rgba(230,166,47,0) 70%)",
-                    }}
-                  />
-                  <div
-                    aria-hidden
-                    className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-[130%] h-8 rounded-[50%] bg-black/35 blur-lg"
-                  />
-                  {/* eslint-disable @next/next/no-img-element */}
-                  <img src="/ing-chicken.webp" alt="Fresh chicken pieces" width={470} height={341}
-                       loading="lazy" decoding="async"
-                       className="story-ingredient absolute bottom-10 -left-14 md:-left-20 w-32 md:w-44 z-0" />
-                  <img src="/ing-chilli.webp" alt="Dried red chillies" width={416} height={416}
-                       loading="lazy" decoding="async"
-                       className="story-ingredient absolute bottom-12 -right-12 md:-right-16 w-28 md:w-40 rotate-[6deg] z-0" />
-                  <div className="story-jar relative z-10 animate-float">
-                    <img src="/jar-chicken.webp" alt="Mamayya Chicken Pickle jar" width={640} height={1153}
-                         loading="lazy" decoding="async"
-                         className="w-full h-auto drop-shadow-2xl" />
-                  </div>
-                  <img src="/ing-garlic.webp" alt="Garlic" width={394} height={322}
-                       loading="lazy" decoding="async"
-                       className="story-ingredient absolute -bottom-1 -left-7 md:-left-10 w-22 md:w-28 rotate-[-5deg] z-20 drop-shadow-lg" />
-                  <img src="/ing-curry.webp" alt="Curry leaves" width={417} height={341}
-                       loading="lazy" decoding="async"
-                       className="story-ingredient absolute -bottom-2 -right-5 md:-right-8 w-22 md:w-28 rotate-[10deg] z-20 drop-shadow-lg" />
-                  {/* eslint-enable @next/next/no-img-element */}
-                </div>
-              ) : (
-                <>
-                  {/* Floating ingredient chips */}
-                  <span className="story-ingredient absolute -top-4 left-8 text-3xl" aria-hidden>🌶️</span>
-                  <span className="story-ingredient absolute top-10 right-6 text-2xl" aria-hidden>🍃</span>
-                  <span className="story-ingredient absolute bottom-8 left-4 text-2xl" aria-hidden>🧄</span>
-                  <span className="story-ingredient absolute -bottom-2 right-12 text-3xl" aria-hidden>
-                    {p.emoji}
-                  </span>
-                  <div className="story-jar relative w-44 md:w-56 animate-float">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={p.image} alt={`${p.name} jar`} width={640} height={1180}
-                         loading="lazy" decoding="async"
-                         className="w-full h-auto drop-shadow-2xl" />
-                    <div aria-hidden
-                         className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-3/4 h-5 rounded-[50%] bg-black/35 blur-md" />
-                  </div>
-                </>
-              )}
+              <JarScene product={p} story />
             </div>
 
             <div className="story-copy [direction:ltr]">
