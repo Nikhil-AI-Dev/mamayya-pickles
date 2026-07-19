@@ -301,8 +301,12 @@ def _send_email(to: str, subject: str, body: str) -> None:
             },
             method="POST",
         )
-        with urllib.request.urlopen(req, timeout=20) as res:
-            res.read()
+        try:
+            with urllib.request.urlopen(req, timeout=20) as res:
+                res.read()
+        except urllib.error.HTTPError as exc:
+            body = exc.read().decode(errors="replace")[:300]
+            raise RuntimeError(f"Resend {exc.code}: {body}") from exc
         return
     msg = EmailMessage()
     msg["From"] = SMTP_USER
