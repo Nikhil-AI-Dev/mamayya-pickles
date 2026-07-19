@@ -17,7 +17,9 @@ export default function Hero() {
     () => {
       const mm = gsap.matchMedia();
 
-      mm.add("(prefers-reduced-motion: no-preference)", () => {
+      // Pinned scroll scene is desktop-only: on touch screens pinning fights
+      // native scrolling (feels stuck) and URL-bar resizes cause jumps.
+      mm.add("(min-width: 768px) and (prefers-reduced-motion: no-preference)", () => {
         const tl = gsap.timeline({
           scrollTrigger: {
             trigger: sectionRef.current,
@@ -78,8 +80,8 @@ export default function Hero() {
           );
       });
 
-      // Reduced motion: everything visible, no pin, no scrub.
-      mm.add("(prefers-reduced-motion: reduce)", () => {
+      // Mobile and reduced motion: everything visible, no pin, no scrub.
+      mm.add("(max-width: 767px), (prefers-reduced-motion: reduce)", () => {
         gsap.set(
           [".hero-headline-2", ".hero-spoon", ".hero-flavour-0", ".hero-flavour-1", ".hero-flavour-2", ".hero-flavour-3"],
           { opacity: 1, x: 0, y: 0 }
