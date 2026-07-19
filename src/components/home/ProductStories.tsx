@@ -136,7 +136,7 @@ export default function ProductStories() {
                   </div>
                   <img src="/ing-chicken.webp" alt="Fresh chicken pieces" width={470} height={341}
                        loading="lazy" decoding="async"
-                       className="story-ingredient absolute -bottom-2 -left-10 md:-left-16 w-32 md:w-44 z-20 drop-shadow-lg" />
+                       className="story-ingredient absolute -bottom-3 -left-12 md:-left-20 w-36 md:w-52 z-20 drop-shadow-lg" />
                   <img src="/ing-curry.webp" alt="Curry leaves" width={417} height={341}
                        loading="lazy" decoding="async"
                        className="story-ingredient absolute -bottom-2 -right-5 md:-right-8 w-22 md:w-28 rotate-[10deg] z-20 drop-shadow-lg" />

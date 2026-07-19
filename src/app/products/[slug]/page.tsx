@@ -77,7 +77,7 @@ export default async function ProductPage({
                 </div>
                 {/* Front row, leaning against the jar's base */}
                 <img src="/ing-chicken.webp" alt="Fresh chicken pieces" width={470} height={341}
-                     className="absolute -bottom-2 -left-12 md:-left-20 w-36 md:w-48 z-20 drop-shadow-lg" />
+                     className="absolute -bottom-3 -left-14 md:-left-24 w-40 md:w-56 z-20 drop-shadow-lg" />
                 <img src="/ing-curry.webp" alt="Curry leaves" width={417} height={341}
                      className="absolute -bottom-2 -right-6 md:-right-10 w-24 md:w-32 rotate-[10deg] z-20 drop-shadow-lg" />
                 {/* eslint-enable @next/next/no-img-element */}
