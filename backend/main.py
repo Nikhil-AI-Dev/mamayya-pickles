@@ -298,6 +298,9 @@ def _send_email(to: str, subject: str, body: str) -> None:
             headers={
                 "Content-Type": "application/json",
                 "Authorization": f"Bearer {RESEND_API_KEY}",
+                # Cloudflare fronts api.resend.com and blocks the default
+                # Python-urllib user agent (error 1010).
+                "User-Agent": "mamayya-api/1.0 (+https://mamayyapickles.com)",
             },
             method="POST",
         )
