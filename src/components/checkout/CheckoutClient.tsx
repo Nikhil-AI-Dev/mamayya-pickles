@@ -59,12 +59,13 @@ export default function CheckoutClient() {
             🫙
           </p>
           <h2 className="mt-4 font-display font-extrabold text-3xl">
-            Order placed. Jars incoming.
+            Order received.
           </h2>
           <p className="mt-3 text-cream/80">
             Your order number is{" "}
-            <strong className="text-gold">{confirmation.orderId}</strong>. Save it, you
-            can follow every stage on the Track Order page.
+            <strong className="text-gold">{confirmation.orderId}</strong>. The kitchen
+            confirms every order personally - your confirmation email arrives as soon
+            as that happens, usually within a few hours.
           </p>
           <dl className="mt-6 mx-auto max-w-xs space-y-1.5 text-sm text-left">
             <div className="flex justify-between">

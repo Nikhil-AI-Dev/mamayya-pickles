@@ -11,6 +11,7 @@ import base64
 import hashlib
 import hmac
 import json
+import secrets
 import logging
 import os
 import smtplib
@@ -26,6 +27,7 @@ from typing import Literal
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field
 
 logger = logging.getLogger("mamayya")
@@ -168,7 +170,9 @@ def init_db() -> None:
             shipping INTEGER NOT NULL,
             total INTEGER NOT NULL,
             payment_status TEXT NOT NULL DEFAULT 'test',
-            razorpay_order_id TEXT
+            razorpay_order_id TEXT,
+            confirmed_at TEXT,
+            confirm_token TEXT
         )
         """,
         f"""
@@ -188,6 +192,8 @@ def init_db() -> None:
     for column_ddl in (
         "ALTER TABLE orders ADD COLUMN payment_status TEXT NOT NULL DEFAULT 'test'",
         "ALTER TABLE orders ADD COLUMN razorpay_order_id TEXT",
+        "ALTER TABLE orders ADD COLUMN confirmed_at TEXT",
+        "ALTER TABLE orders ADD COLUMN confirm_token TEXT",
     ):
         try:
             with db() as conn:
@@ -237,10 +243,11 @@ def price_line(line: ProductLine | BoxLine) -> int:
     return unit * line.quantity
 
 
-def delivery_window(created: datetime) -> str:
+def delivery_window(anchor: datetime) -> str:
+    """Door delivery within one week of kitchen confirmation."""
     fmt = "%d %b"
-    start = created + timedelta(days=6)
-    end = created + timedelta(days=9)
+    start = anchor + timedelta(days=5)
+    end = anchor + timedelta(days=7)
     return f"{start.strftime(fmt)} to {end.strftime(fmt)}"
 
 
@@ -432,76 +439,144 @@ def customer_email_html(
 </div>'''
 
 
-def send_order_emails(order_id: str, payload: "OrderCreate", total: int, window: str) -> None:
-    """Fire-and-forget: never blocks or fails the order request."""
-    if not EMAIL_ENABLED:
-        return
+API_PUBLIC_URL = os.environ.get("API_PUBLIC_URL", "https://mamayya-api.onrender.com")
 
-    item_names = {
-        "chicken-pickle": "Chicken Pickle",
-        "mutton-pickle": "Mutton Pickle",
-        "fish-pickle": "Fish Pickle",
-        "shrimp-pickle": "Shrimp Pickle",
-        "tasting-box": "Mamayya Tasting Box",
-        "family-box": "Family Box",
-        "coastal-box": "Coastal Box",
-        "full-mamayya-box": "Full Mamayya Box",
-    }
-    item_lines = []
+ITEM_NAMES = {
+    "chicken-pickle": "Chicken Pickle",
+    "mutton-pickle": "Mutton Pickle",
+    "fish-pickle": "Fish Pickle",
+    "shrimp-pickle": "Shrimp Pickle",
+    "tasting-box": "Mamayya Tasting Box",
+    "family-box": "Family Box",
+    "coastal-box": "Coastal Box",
+    "full-mamayya-box": "Full Mamayya Box",
+}
+
+
+def format_item_lines(payload: "OrderCreate") -> list[str]:
+    lines = []
     for line in payload.lines:
         if isinstance(line, BoxLine):
-            name = item_names.get(line.boxSlug, line.boxSlug)
-            item_lines.append(f"  - {line.quantity} x {name}")
+            name = ITEM_NAMES.get(line.boxSlug, line.boxSlug)
+            lines.append(f"  - {line.quantity} x {name}")
         else:
-            name = item_names.get(line.productSlug, line.productSlug)
+            name = ITEM_NAMES.get(line.productSlug, line.productSlug)
             weight = f"{line.grams // 1000} kg" if line.grams >= 1000 else f"{line.grams} g"
-            item_lines.append(f"  - {line.quantity} x {name} ({weight})")
+            lines.append(f"  - {line.quantity} x {name} ({weight})")
+    return lines
 
-    owner_body = (
-        f"New order {order_id}\n\n"
+
+def _send_async(job) -> None:
+    """Run an email job on a background thread; record outcome, never raise."""
+
+    def worker() -> None:
+        try:
+            job()
+            _email_state["lastResult"] = "sent"
+        except Exception as exc:
+            logger.exception("email job failed")
+            detail = str(exc)[:300]
+            for secret_val in (SMTP_PASS, RESEND_API_KEY):
+                if secret_val:
+                    detail = detail.replace(secret_val, "***")
+            _email_state["lastResult"] = f"{type(exc).__name__}: {detail}"
+            _email_state["lastErrorAt"] = datetime.now(timezone.utc).isoformat()
+
+    threading.Thread(target=worker, daemon=True).start()
+
+
+def send_admin_new_order_email(
+    order_id: str, payload: "OrderCreate", total: int, confirm_token: str
+) -> None:
+    """Packing slip + one-click Confirm button. Sent when an order arrives."""
+    if not EMAIL_ENABLED:
+        return
+    item_lines = format_item_lines(payload)
+    confirm_url = f"{API_PUBLIC_URL}/api/orders/{order_id}/confirm?token={confirm_token}"
+    body = (
+        f"New order {order_id} - awaiting your confirmation\n\n"
         f"Name: {payload.name}\n"
         f"Phone: {payload.phone}\n"
         f"Email: {payload.email}\n"
         f"Address: {payload.address}, {payload.city} - {payload.pincode}\n\n"
         "Items:\n" + "\n".join(item_lines) + "\n\n"
-        f"Total: Rs. {total:,}\n"
-        f"Estimated delivery: {window}"
+        f"Total: Rs. {total:,}\n\n"
+        "The customer has NOT been emailed yet. Confirm to start the one-week\n"
+        "delivery clock and send their confirmation email:\n"
+        f"{confirm_url}"
+    )
+    html = f"""\
+<div style="background:#f3e6d0;padding:28px 12px;font-family:Arial,Helvetica,sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;margin:0 auto;">
+    <tr><td style="background:#241713;border-radius:14px 14px 0 0;padding:16px 24px;">
+      <span style="color:#e05545;font-size:22px;font-weight:900;">Mamayya</span>
+      <span style="color:#fff4e4;font-size:12px;font-weight:800;letter-spacing:3px;"> PICKLES &nbsp;&bull;&nbsp; KITCHEN</span>
+    </td></tr>
+    <tr><td style="background:#fff4e4;padding:24px;">
+      <h1 style="margin:0 0 4px;color:#241713;font-size:20px;font-weight:900;">New order {order_id}</h1>
+      <p style="margin:0 0 16px;color:#a92a1d;font-size:13px;font-weight:700;">
+        Awaiting your confirmation - customer not emailed yet.</p>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+             style="background:#ffffff;border:1px solid #eadfc8;border-radius:10px;">
+        <tr><td style="padding:14px 18px;font-size:14px;line-height:1.8;color:#241713;">
+          <strong>{payload.name}</strong><br>
+          {payload.phone} &nbsp;&bull;&nbsp; {payload.email}<br>
+          {payload.address}, {payload.city} - {payload.pincode}<br><br>
+          {"<br>".join(line.strip("- ").strip() for line in item_lines)}<br><br>
+          <strong style="color:#a92a1d;font-size:17px;">Total: Rs. {total:,}</strong>
+        </td></tr>
+      </table>
+      <table role="presentation" cellpadding="0" cellspacing="0" style="margin:20px auto 4px;">
+        <tr><td style="background:#a92a1d;border-radius:999px;" align="center">
+          <a href="{confirm_url}"
+             style="display:inline-block;padding:14px 38px;color:#fff4e4;font-size:16px;font-weight:800;text-decoration:none;">
+            Confirm order &#10003;
+          </a>
+        </td></tr>
+      </table>
+      <p style="margin:10px 0 0;color:#9c8a76;font-size:12px;" align="center">
+        Confirming emails the customer and starts the one-week delivery clock.</p>
+    </td></tr>
+  </table>
+</div>"""
+    _send_async(
+        lambda: _send_email(
+            ORDER_NOTIFY_TO,
+            f"New order {order_id} - Rs. {total:,} - confirm to accept",
+            body,
+            html=html,
+        )
     )
 
-    customer_body = (
+
+def send_customer_confirmation_email(
+    order_id: str, payload: "OrderCreate", total: int, window: str
+) -> None:
+    """Branded confirmation. Sent only after the kitchen confirms the order."""
+    if not EMAIL_ENABLED:
+        return
+    item_lines = format_item_lines(payload)
+    body = (
         f"Namaste {payload.name},\n\n"
         f"Your Mamayya Pickles order {order_id} is confirmed.\n\n"
         "Your jars:\n" + "\n".join(item_lines) + "\n\n"
         f"Total: Rs. {total:,}\n"
         f"Estimated delivery: {window}\n\n"
-        "Fresh preparation starts now and takes 2-3 days, then 4-6 days of shipping.\n"
+        "Fresh preparation starts now - your jars reach your door within a week.\n"
         f"Track any time: https://mamayyapickles.com/track?order={order_id}\n\n"
         "Questions? Just reply to this email.\n\n"
         "Mamayya Pickles\n"
         "Big pieces. Bold spice. Proper non-veg pickle."
     )
-    customer_html = customer_email_html(payload.name, order_id, total, window, item_lines)
-
-    def worker() -> None:
-        try:
-            _send_email(
-                payload.email,
-                f"Order {order_id} confirmed - Mamayya Pickles",
-                customer_body,
-                html=customer_html,
-            )
-            _send_email(ORDER_NOTIFY_TO, f"New order {order_id} - Rs. {total:,}", owner_body)
-            _email_state["lastResult"] = "sent"
-        except Exception as exc:
-            logger.exception("order email failed for %s", order_id)
-            detail = str(exc)[:300]
-            for secret in (SMTP_PASS, RESEND_API_KEY):
-                if secret:
-                    detail = detail.replace(secret, "***")
-            _email_state["lastResult"] = f"{type(exc).__name__}: {detail}"
-            _email_state["lastErrorAt"] = datetime.now(timezone.utc).isoformat()
-
-    threading.Thread(target=worker, daemon=True).start()
+    html = customer_email_html(payload.name, order_id, total, window, item_lines)
+    _send_async(
+        lambda: _send_email(
+            payload.email,
+            f"Order {order_id} confirmed - Mamayya Pickles",
+            body,
+            html=html,
+        )
+    )
 
 
 @app.get("/health")
@@ -517,6 +592,7 @@ def create_order(payload: OrderCreate) -> dict:
     created = datetime.now(timezone.utc)
 
     payment_status = "pending" if PAYMENTS_ENABLED else "test"
+    confirm_token = secrets.token_urlsafe(24)
 
     with db() as conn:
         cur = conn.execute(
@@ -524,8 +600,9 @@ def create_order(payload: OrderCreate) -> dict:
                 """
                 INSERT INTO orders
                     (created_at, name, phone, email, address, city, pincode,
-                     lines_json, subtotal, shipping, total, payment_status)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                     lines_json, subtotal, shipping, total, payment_status,
+                     confirm_token)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 RETURNING rowid_pk
                 """
             ),
@@ -542,6 +619,7 @@ def create_order(payload: OrderCreate) -> dict:
                 shipping,
                 total,
                 payment_status,
+                confirm_token,
             ),
         )
         row_id = cur.fetchone()["rowid_pk"]
@@ -551,15 +629,12 @@ def create_order(payload: OrderCreate) -> dict:
             (order_id, row_id),
         )
 
-    window = delivery_window(created)
-
     response = {
         "orderId": order_id,
         "subtotal": subtotal,
         "shipping": shipping,
         "total": total,
-        "deliveryWindow": window,
-        "status": "confirmed",
+        "status": "received",
         "paymentStatus": payment_status,
     }
 
@@ -572,15 +647,72 @@ def create_order(payload: OrderCreate) -> dict:
             )
         response["razorpayOrderId"] = rzp_order_id
         response["razorpayKeyId"] = RAZORPAY_KEY_ID
-        response["paymentNote"] = "Complete the payment to confirm your order."
-        # Confirmation email waits for successful payment (see verify endpoint).
+        response["paymentNote"] = "Complete the payment to place your order."
+        # Admin is notified after successful payment (see verify endpoint).
     else:
         response["paymentNote"] = (
-            "Test order. Payment gateway is not live; no money has moved."
+            "Order received. The kitchen will confirm it shortly - "
+            "your confirmation email arrives then."
         )
-        send_order_emails(order_id, payload, total, window)
+        send_admin_new_order_email(order_id, payload, total, confirm_token)
 
     return response
+
+
+@app.get("/api/orders/{order_id}/confirm", response_class=HTMLResponse)
+def confirm_order(order_id: str, token: str = "") -> str:
+    """One-click kitchen confirmation from the admin email."""
+    with db() as conn:
+        row = conn.execute(
+            _sql("SELECT * FROM orders WHERE order_id = %s"),
+            (order_id.strip().upper(),),
+        ).fetchone()
+    if row is None or not token or row["confirm_token"] != token:
+        raise HTTPException(404, "Unknown order or invalid confirmation link.")
+
+    def page(title: str, detail: str) -> str:
+        return f"""<!doctype html><html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{title}</title></head>
+<body style="margin:0;background:#fff4e4;font-family:Arial,Helvetica,sans-serif;">
+<div style="max-width:460px;margin:80px auto;padding:36px;background:#ffffff;
+            border:1px solid #eadfc8;border-radius:18px;text-align:center;">
+  <div style="font-size:26px;font-weight:900;color:#a92a1d;">Mamayya
+    <span style="font-size:12px;font-weight:800;color:#241713;letter-spacing:4px;">PICKLES</span></div>
+  <h1 style="margin:22px 0 8px;font-size:22px;color:#241713;">{title}</h1>
+  <p style="margin:0;color:#6f5d4e;font-size:15px;line-height:1.6;">{detail}</p>
+</div></body></html>"""
+
+    if row["confirmed_at"]:
+        return page(
+            f"{row['order_id']} was already confirmed",
+            "The customer has their confirmation email. Nothing more to do.",
+        )
+
+    confirmed = datetime.now(timezone.utc)
+    with db() as conn:
+        conn.execute(
+            _sql("UPDATE orders SET confirmed_at = %s WHERE order_id = %s"),
+            (confirmed.isoformat(), row["order_id"]),
+        )
+
+    order_payload = OrderCreate(
+        name=row["name"],
+        phone=row["phone"],
+        email=row["email"],
+        address=row["address"],
+        city=row["city"],
+        pincode=row["pincode"],
+        lines=json.loads(row["lines_json"]),
+    )
+    send_customer_confirmation_email(
+        row["order_id"], order_payload, row["total"], delivery_window(confirmed)
+    )
+    return page(
+        f"{row['order_id']} confirmed",
+        f"{row['name']} has been emailed. The one-week delivery clock "
+        f"started now - door delivery by {delivery_window(confirmed)}.",
+    )
 
 
 class PaymentVerify(BaseModel):
@@ -613,7 +745,6 @@ def verify_payment(order_id: str, payload: PaymentVerify) -> dict:
             (row["order_id"],),
         )
 
-    created = datetime.fromisoformat(row["created_at"])
     order_payload = OrderCreate(
         name=row["name"],
         phone=row["phone"],
@@ -623,7 +754,10 @@ def verify_payment(order_id: str, payload: PaymentVerify) -> dict:
         pincode=row["pincode"],
         lines=json.loads(row["lines_json"]),
     )
-    send_order_emails(row["order_id"], order_payload, row["total"], delivery_window(created))
+    # Payment captured: now the kitchen decides. Customer email waits for confirm.
+    send_admin_new_order_email(
+        row["order_id"], order_payload, row["total"], row["confirm_token"]
+    )
     return {"orderId": row["order_id"], "paymentStatus": "paid"}
 
 
@@ -656,15 +790,33 @@ def get_order(order_id: str, phone: str = "") -> dict:
             404, "No order found with that number and phone combination."
         )
     created = datetime.fromisoformat(row["created_at"])
-    return {
+    confirmed_raw = row["confirmed_at"]
+    base = {
         "orderId": row["order_id"],
         "placedOn": created.strftime("%d %b %Y"),
         "name": row["name"],
         "total": row["total"],
-        "deliveryWindow": delivery_window(created),
         "lines": json.loads(row["lines_json"]),
         "paymentStatus": row["payment_status"],
-        **stage_info(created),
+        "confirmed": bool(confirmed_raw),
+    }
+    if not confirmed_raw:
+        # Kitchen hasn't accepted yet: the delivery clock hasn't started.
+        return {
+            **base,
+            "deliveryWindow": "Within a week of confirmation",
+            "currentStage": "received",
+            "currentStageIndex": -1,
+            "stages": [
+                {"name": name, "reached": False, "expected": ""}
+                for name, _ in STAGES
+            ],
+        }
+    confirmed = datetime.fromisoformat(confirmed_raw)
+    return {
+        **base,
+        "deliveryWindow": delivery_window(confirmed),
+        **stage_info(confirmed),
     }
 
 

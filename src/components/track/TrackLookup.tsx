@@ -196,7 +196,9 @@ export default function TrackLookup() {
               <div className="flex justify-between">
                 <dt className="text-cream/70">Current stage</dt>
                 <dd className="font-bold text-gold">
-                  {STAGE_COPY[order.currentStage]?.name ?? order.currentStage}
+                  {order.confirmed
+                    ? (STAGE_COPY[order.currentStage]?.name ?? order.currentStage)
+                    : "Waiting for kitchen confirmation"}
                 </dd>
               </div>
             </dl>
@@ -211,6 +213,13 @@ export default function TrackLookup() {
             ? `Where ${order.orderId} is right now`
             : "The six stamps every order collects"}
         </h2>
+        {order && !order.confirmed && (
+          <p className="mt-4 rounded-2xl border-2 border-gold/60 bg-gold/10 p-4 text-sm leading-relaxed text-charcoal/80">
+            <strong className="text-charcoal">The kitchen hasn&apos;t confirmed this order yet.</strong>{" "}
+            You&apos;ll get an email the moment it does - then the one-week delivery
+            clock starts and the stamps below begin filling in.
+          </p>
+        )}
         <ol className="mt-6 space-y-0">
           {STAGE_ORDER.map((key, i) => {
             const copy = STAGE_COPY[key];
