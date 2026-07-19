@@ -18,12 +18,22 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-40 bg-cream/90 backdrop-blur border-b border-charcoal/10">
       <div className="mx-auto max-w-6xl px-4 md:px-6 h-16 flex items-center justify-between gap-4">
-        <Link href="/" className="flex items-baseline gap-1.5 shrink-0">
-          <span className="font-display font-extrabold text-2xl text-red leading-none">
-            Mamayya
-          </span>
-          <span className="font-display font-semibold text-sm text-charcoal tracking-wide uppercase">
-            Pickles
+        <Link href="/" className="flex items-center gap-2.5 shrink-0">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/logo-192.png"
+            alt="Mamayya Pickles - Taste of Rayalaseema"
+            width={40}
+            height={40}
+            className="w-10 h-10 rounded-full"
+          />
+          <span className="flex items-baseline gap-1.5">
+            <span className="font-display font-extrabold text-2xl text-red leading-none">
+              Mamayya
+            </span>
+            <span className="font-display font-semibold text-sm text-charcoal tracking-wide uppercase">
+              Pickles
+            </span>
           </span>
         </Link>
 

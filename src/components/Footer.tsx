@@ -14,16 +14,44 @@ export default function Footer() {
     <footer className="bg-charcoal text-cream mt-0">
       <div className="mx-auto max-w-6xl px-4 md:px-6 py-12 grid gap-10 md:grid-cols-4">
         <div className="md:col-span-2">
-          <p className="font-display font-extrabold text-2xl text-gold">
-            Mamayya Pickles
-          </p>
-          <p className="mt-2 text-cream/70 text-sm max-w-sm">
+          <div className="flex items-center gap-4">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/logo-192.png"
+              alt="Mamayya Pickles - Taste of Rayalaseema"
+              width={72}
+              height={72}
+              className="w-18 h-18 rounded-full"
+            />
+            <div>
+              <p className="font-display font-extrabold text-2xl text-gold">
+                Mamayya Pickles
+              </p>
+              <p className="text-cream/60 text-xs font-bold uppercase tracking-widest mt-1">
+                Taste of Rayalaseema
+              </p>
+            </div>
+          </div>
+          <p className="mt-4 text-cream/70 text-sm max-w-sm">
             Big pieces. Bold spice. Proper non-veg pickle. Handmade in small
             batches and shipped across India.
           </p>
           <p className="mt-4 text-cream/60 text-xs font-telugu">
             Intlo chesina ruchi. India motham delivery.
           </p>
+          <a
+            href="https://www.instagram.com/mamayyapickle/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-4 inline-flex items-center gap-2 text-sm font-bold text-cream/80 hover:text-gold transition-colors"
+          >
+            <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+              <rect x="2" y="2" width="20" height="20" rx="5" />
+              <circle cx="12" cy="12" r="4.5" />
+              <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" />
+            </svg>
+            @mamayyapickle
+          </a>
           <div className="mt-6 rounded-lg border border-cream/20 px-4 py-3 text-xs text-cream/70 max-w-sm">
             <p className="font-bold text-cream">FSSAI Registration</p>
             <p className="mt-1">

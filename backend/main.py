@@ -363,11 +363,13 @@ def customer_email_html(
   <div style="display:none;max-height:0;overflow:hidden;mso-hide:all;">{preheader}</div>
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;">
 
-    <tr><td style="background:#241713;border-radius:18px 18px 0 0;padding:26px 32px 22px;" align="center">
-      <div style="font-size:34px;font-weight:900;color:#e05545;letter-spacing:-1px;">Mamayya
-        <span style="font-size:14px;font-weight:800;color:#fff4e4;letter-spacing:5px;">PICKLES</span></div>
-      <div style="margin-top:6px;font-size:11px;font-weight:700;letter-spacing:3px;color:#e6a62f;">
-        HANDMADE &nbsp;&bull;&nbsp; SMALL BATCHES &nbsp;&bull;&nbsp; ALL INDIA</div>
+    <tr><td style="background:#241713;border-radius:18px 18px 0 0;padding:24px 32px 20px;" align="center">
+      <img src="https://mamayyapickles.com/logo-192.png" width="86" height="86" alt="Mamayya Pickles"
+           style="border-radius:50%;display:block;margin:0 auto 10px;">
+      <div style="font-size:30px;font-weight:900;color:#e05545;letter-spacing:-1px;">Mamayya
+        <span style="font-size:13px;font-weight:800;color:#fff4e4;letter-spacing:5px;">PICKLES</span></div>
+      <div style="margin-top:5px;font-size:11px;font-weight:700;letter-spacing:3px;color:#e6a62f;">
+        TASTE OF RAYALASEEMA</div>
     </td></tr>
 
     <tr><td style="background:#a92a1d;padding:34px 32px;" align="center">
@@ -508,9 +510,11 @@ def send_admin_new_order_email(
     html = f"""\
 <div style="background:#f3e6d0;padding:28px 12px;font-family:Arial,Helvetica,sans-serif;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;margin:0 auto;">
-    <tr><td style="background:#241713;border-radius:14px 14px 0 0;padding:16px 24px;">
-      <span style="color:#e05545;font-size:22px;font-weight:900;">Mamayya</span>
-      <span style="color:#fff4e4;font-size:12px;font-weight:800;letter-spacing:3px;"> PICKLES &nbsp;&bull;&nbsp; KITCHEN</span>
+    <tr><td style="background:#241713;border-radius:14px 14px 0 0;padding:14px 24px;">
+      <img src="https://mamayyapickles.com/logo-192.png" width="40" height="40" alt=""
+           style="border-radius:50%;vertical-align:middle;margin-right:10px;">
+      <span style="color:#e05545;font-size:22px;font-weight:900;vertical-align:middle;">Mamayya</span>
+      <span style="color:#fff4e4;font-size:12px;font-weight:800;letter-spacing:3px;vertical-align:middle;"> PICKLES &nbsp;&bull;&nbsp; KITCHEN</span>
     </td></tr>
     <tr><td style="background:#fff4e4;padding:24px;">
       <h1 style="margin:0 0 4px;color:#241713;font-size:20px;font-weight:900;">New order {order_id}</h1>

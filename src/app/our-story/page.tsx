@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import PageHeader from "@/components/PageHeader";
-import JarIllustration from "@/components/JarIllustration";
 
 export const metadata: Metadata = {
   title: "Our Story | Mamayya Pickles",
@@ -65,13 +64,16 @@ export default function OurStoryPage() {
 
         <aside className="lg:sticky lg:top-24 space-y-4">
           <div className="relative grid place-items-center rounded-3xl bg-charcoal py-10 shadow-jar overflow-hidden">
-            <span className="absolute top-4 left-6 text-2xl animate-float" aria-hidden>🌶️</span>
-            <span className="absolute bottom-6 right-6 text-2xl" aria-hidden>🍃</span>
-            <div className="w-40">
-              <JarIllustration color="#a92a1d" label="Mamayya's original chicken pickle jar" />
-            </div>
-            <p className="mt-4 text-cream/70 text-sm font-semibold">
-              The original jar.
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/logo.png"
+              alt="Mamayya Pickles stamp - Taste of Rayalaseema, with Mamayya's portrait"
+              width={208}
+              height={208}
+              className="w-52 h-52 rounded-full"
+            />
+            <p className="mt-5 text-cream/70 text-sm font-semibold">
+              The man himself. Taste of Rayalaseema.
             </p>
           </div>
           {PRINCIPLES.map((p) => (

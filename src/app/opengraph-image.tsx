@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { ImageResponse } from "next/og";
 
 export const dynamic = "force-static";
@@ -7,6 +9,8 @@ export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
 export default function OgImage() {
+  const logo = readFileSync(join(process.cwd(), "public", "logo.png"));
+  const logoSrc = `data:image/png;base64,${logo.toString("base64")}`;
   return new ImageResponse(
     (
       <div
@@ -32,19 +36,14 @@ export default function OgImage() {
             Proper non-veg pickle, made fresh per order. Delivered across India.
           </div>
         </div>
-        <svg width="280" height="350" viewBox="0 0 160 200">
-          <rect x="42" y="30" width="76" height="18" rx="6" fill="#3a2a24" />
-          <rect x="52" y="24" width="56" height="10" rx="5" fill="#241713" />
-          <path
-            d="M38 56 Q30 60 30 74 L30 156 Q30 176 52 176 L108 176 Q130 176 130 156 L130 74 Q130 60 122 56 Z"
-            fill="#fffdf8"
-            fillOpacity="0.92"
-          />
-          <rect x="32" y="72" width="96" height="102" rx="8" fill="#c65b32" />
-          <circle cx="58" cy="102" r="12" fill="#241713" opacity="0.35" />
-          <circle cx="94" cy="122" r="14" fill="#241713" opacity="0.3" />
-          <circle cx="68" cy="146" r="11" fill="#241713" opacity="0.32" />
-        </svg>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={logoSrc}
+          width={340}
+          height={340}
+          style={{ borderRadius: "50%" }}
+          alt=""
+        />
       </div>
     ),
     size

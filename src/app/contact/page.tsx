@@ -23,6 +23,13 @@ const CHANNELS = [
     href: "mailto:contact@mamayyapickles.com",
     external: false,
   },
+  {
+    title: "Instagram",
+    detail: "Kitchen photos, new batch announcements and behind-the-jar stories. DMs open.",
+    action: "@mamayyapickle",
+    href: "https://www.instagram.com/mamayyapickle/",
+    external: true,
+  },
 ];
 
 const QUICK_HELP = [
@@ -41,7 +48,7 @@ export default function ContactPage() {
         lede="One kitchen, one small team. Include your order number and we can help faster."
       />
 
-      <div className="mx-auto max-w-6xl px-4 md:px-6 pb-20 grid gap-6 md:grid-cols-2 lg:grid-cols-[1fr_1fr_0.9fr]">
+      <div className="mx-auto max-w-6xl px-4 md:px-6 pb-20 grid gap-6 md:grid-cols-2 lg:grid-cols-[1fr_1fr_1fr_0.9fr]">
         {CHANNELS.map((c) => (
           <article
             key={c.title}
