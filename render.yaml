@@ -14,6 +14,10 @@ services:
         fromDatabase:
           name: mamayya-db
           property: connectionString
+      # Mailbox password for order emails; set in the Render dashboard.
+      # Leave unset to skip emails entirely.
+      - key: SMTP_PASS
+        sync: false
 
 databases:
   - name: mamayya-db

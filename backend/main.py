@@ -8,16 +8,22 @@ Run:  uvicorn main:app --port 8001 --reload  (from the backend/ directory)
 """
 
 import json
+import logging
 import os
+import smtplib
 import sqlite3
+import threading
 from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
+from email.message import EmailMessage
 from pathlib import Path
 from typing import Literal
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
+
+logger = logging.getLogger("mamayya")
 
 EMAIL_PATTERN = r"^[^@\s]+@[^@\s]+\.[^@\s]+$"
 
@@ -201,6 +207,63 @@ def stage_info(created: datetime) -> dict:
     }
 
 
+# Order emails are optional: configured entirely via env, silently skipped
+# when SMTP_PASS is absent. Microsoft 365 mailbox works with these settings:
+#   SMTP_HOST=smtp.office365.com  SMTP_PORT=587
+#   SMTP_USER=contact@mamayyapickles.com  SMTP_PASS=<mailbox password>
+SMTP_HOST = os.environ.get("SMTP_HOST", "smtp.office365.com")
+SMTP_PORT = int(os.environ.get("SMTP_PORT", "587"))
+SMTP_USER = os.environ.get("SMTP_USER", "contact@mamayyapickles.com")
+SMTP_PASS = os.environ.get("SMTP_PASS", "")
+ORDER_NOTIFY_TO = os.environ.get("ORDER_NOTIFY_TO", SMTP_USER)
+
+
+def _send_email(to: str, subject: str, body: str) -> None:
+    msg = EmailMessage()
+    msg["From"] = SMTP_USER
+    msg["To"] = to
+    msg["Subject"] = subject
+    msg.set_content(body)
+    with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=20) as server:
+        server.starttls()
+        server.login(SMTP_USER, SMTP_PASS)
+        server.send_message(msg)
+
+
+def send_order_emails(order_id: str, payload: "OrderCreate", total: int, window: str) -> None:
+    """Fire-and-forget: never blocks or fails the order request."""
+    if not SMTP_PASS:
+        return
+
+    customer_body = (
+        f"Namaste {payload.name},\n\n"
+        f"Your Mamayya Pickles order {order_id} is confirmed.\n\n"
+        f"Total: Rs. {total:,}\n"
+        f"Estimated delivery: {window}\n\n"
+        "Fresh preparation starts now and takes 2-3 days, then 4-6 days of shipping.\n"
+        f"Track any time: https://mamayyapickles.com/track (order number {order_id})\n\n"
+        "Questions? Just reply to this email.\n\n"
+        "Mamayya Pickles\n"
+        "Big pieces. Bold spice. Proper non-veg pickle."
+    )
+    owner_body = (
+        f"New order {order_id}\n\n"
+        f"Name: {payload.name}\nPhone: {payload.phone}\nEmail: {payload.email}\n"
+        f"Address: {payload.address}, {payload.city} - {payload.pincode}\n"
+        f"Total: Rs. {total:,}\n"
+        f"Lines: {json.dumps([line.model_dump() for line in payload.lines], indent=2)}"
+    )
+
+    def worker() -> None:
+        try:
+            _send_email(payload.email, f"Order {order_id} confirmed - Mamayya Pickles", customer_body)
+            _send_email(ORDER_NOTIFY_TO, f"New order {order_id} - Rs. {total:,}", owner_body)
+        except Exception:
+            logger.exception("order email failed for %s", order_id)
+
+    threading.Thread(target=worker, daemon=True).start()
+
+
 @app.get("/health")
 def health() -> dict:
     return {"status": "ok"}
@@ -245,12 +308,15 @@ def create_order(payload: OrderCreate) -> dict:
             (order_id, row_id),
         )
 
+    window = delivery_window(created)
+    send_order_emails(order_id, payload, total, window)
+
     return {
         "orderId": order_id,
         "subtotal": subtotal,
         "shipping": shipping,
         "total": total,
-        "deliveryWindow": delivery_window(created),
+        "deliveryWindow": window,
         "status": "confirmed",
         "paymentNote": "Test order. Payment gateway is not live; no money has moved.",
     }
