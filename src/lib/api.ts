@@ -87,8 +87,10 @@ export function createOrder(
   });
 }
 
-export function getOrder(orderId: string): Promise<TrackedOrder> {
-  return request<TrackedOrder>(`/api/orders/${encodeURIComponent(orderId.trim())}`);
+export function getOrder(orderId: string, phone: string): Promise<TrackedOrder> {
+  return request<TrackedOrder>(
+    `/api/orders/${encodeURIComponent(orderId.trim())}?phone=${encodeURIComponent(phone.trim())}`
+  );
 }
 
 export function verifyPayment(

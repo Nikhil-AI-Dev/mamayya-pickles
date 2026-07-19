@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
@@ -40,10 +40,17 @@ const STAGE_ORDER = Object.keys(STAGE_COPY);
 
 export default function TrackLookup() {
   const [orderId, setOrderId] = useState("");
+  const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [order, setOrder] = useState<TrackedOrder | null>(null);
   const stagesRef = useRef<HTMLElement>(null);
+
+  // Deep link from the confirmation email: /track?order=MP-1234
+  useEffect(() => {
+    const fromLink = new URLSearchParams(window.location.search).get("order");
+    if (fromLink) setOrderId(fromLink);
+  }, []);
 
   useGSAP(
     () => {
@@ -75,7 +82,7 @@ export default function TrackLookup() {
     setError(null);
     setOrder(null);
     try {
-      setOrder(await getOrder(orderId));
+      setOrder(await getOrder(orderId, phone));
     } catch (err) {
       setError(
         err instanceof ApiError ? err.message : "Something went wrong. Try again."
@@ -114,6 +121,23 @@ export default function TrackLookup() {
           <p className="mt-2 text-xs text-charcoal/60">
             It&apos;s on your order confirmation screen and email, starting with MP-.
           </p>
+
+          <label htmlFor="track-phone" className="mt-4 block font-bold text-charcoal">
+            Phone number used on the order
+          </label>
+          <input
+            id="track-phone"
+            name="track-phone"
+            type="tel"
+            required
+            value={phone}
+            onChange={(e) => {
+              setPhone(e.target.value);
+              setError(null);
+            }}
+            placeholder="10-digit number"
+            className="mt-2 w-full rounded-xl border-2 border-charcoal/15 bg-cream/50 px-4 py-3 font-semibold placeholder:text-charcoal/55 focus:border-red focus:outline-none"
+          />
           <button
             type="submit"
             disabled={loading}

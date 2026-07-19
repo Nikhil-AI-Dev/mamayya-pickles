@@ -282,19 +282,20 @@ EMAIL_ENABLED = bool(RESEND_API_KEY or SMTP_PASS)
 _email_state: dict = {"lastResult": None, "lastErrorAt": None}
 
 
-def _send_email(to: str, subject: str, body: str) -> None:
+def _send_email(to: str, subject: str, body: str, html: str | None = None) -> None:
     if RESEND_API_KEY:
+        payload: dict = {
+            "from": EMAIL_FROM,
+            "to": [to],
+            "reply_to": ORDER_NOTIFY_TO,
+            "subject": subject,
+            "text": body,
+        }
+        if html:
+            payload["html"] = html
         req = urllib.request.Request(
             "https://api.resend.com/emails",
-            data=json.dumps(
-                {
-                    "from": EMAIL_FROM,
-                    "to": [to],
-                    "reply_to": ORDER_NOTIFY_TO,
-                    "subject": subject,
-                    "text": body,
-                }
-            ).encode(),
+            data=json.dumps(payload).encode(),
             headers={
                 "Content-Type": "application/json",
                 "Authorization": f"Bearer {RESEND_API_KEY}",
@@ -316,10 +317,77 @@ def _send_email(to: str, subject: str, body: str) -> None:
     msg["To"] = to
     msg["Subject"] = subject
     msg.set_content(body)
+    if html:
+        msg.add_alternative(html, subtype="html")
     with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=20) as server:
         server.starttls()
         server.login(SMTP_USER, SMTP_PASS)
         server.send_message(msg)
+
+
+def customer_email_html(
+    name: str, order_id: str, total: int, window: str, items: list[str]
+) -> str:
+    import html as html_mod
+
+    safe_name = html_mod.escape(name)
+    track_url = f"https://mamayyapickles.com/track?order={order_id}"
+    items_html = "".join(
+        f'<tr><td style="padding:6px 0;color:#3a2a24;font-size:14px;">{html_mod.escape(i.strip("- ").strip())}</td></tr>'
+        for i in items
+    )
+    return f"""\
+<div style="background:#f9e9d2;padding:32px 12px;font-family:Arial,Helvetica,sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;margin:0 auto;">
+    <tr><td style="background:#241713;border-radius:16px 16px 0 0;padding:20px 28px;">
+      <span style="color:#a92a1d;font-size:26px;font-weight:800;">Mamayya</span>
+      <span style="color:#fff4e4;font-size:13px;font-weight:700;letter-spacing:3px;"> PICKLES</span>
+    </td></tr>
+    <tr><td style="background:#fff4e4;padding:28px;">
+      <p style="margin:0 0 6px;color:#3a2a24;font-size:15px;">Namaste {safe_name},</p>
+      <h1 style="margin:0 0 18px;color:#a92a1d;font-size:24px;font-weight:800;">
+        Order {order_id} is confirmed.
+      </h1>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+             style="background:#ffffff;border:1px solid #e8dcc8;border-radius:12px;padding:0;">
+        <tr><td style="padding:16px 20px 8px;">
+          <p style="margin:0 0 8px;color:#8a7a6d;font-size:11px;font-weight:700;letter-spacing:2px;">YOUR JARS</p>
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0">{items_html}</table>
+        </td></tr>
+        <tr><td style="padding:8px 20px 16px;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid #e8dcc8;">
+            <tr>
+              <td style="padding-top:10px;color:#3a2a24;font-size:14px;">Total</td>
+              <td style="padding-top:10px;color:#241713;font-size:18px;font-weight:800;" align="right">Rs. {total:,}</td>
+            </tr>
+            <tr>
+              <td style="padding-top:4px;color:#3a2a24;font-size:14px;">Estimated delivery</td>
+              <td style="padding-top:4px;color:#241713;font-size:14px;font-weight:700;" align="right">{window}</td>
+            </tr>
+          </table>
+        </td></tr>
+      </table>
+      <p style="margin:20px 0 8px;color:#3a2a24;font-size:14px;line-height:1.6;">
+        Fresh preparation starts now and takes 2-3 days, then 4-6 days of shipping.
+      </p>
+      <table role="presentation" cellpadding="0" cellspacing="0" style="margin:18px 0 6px;">
+        <tr><td style="background:#a92a1d;border-radius:999px;">
+          <a href="{track_url}"
+             style="display:inline-block;padding:13px 30px;color:#fff4e4;font-size:15px;font-weight:700;text-decoration:none;">
+            Track your order
+          </a>
+        </td></tr>
+      </table>
+      <p style="margin:16px 0 0;color:#8a7a6d;font-size:12px;">
+        Questions? Just reply to this email.
+      </p>
+    </td></tr>
+    <tr><td style="background:#241713;border-radius:0 0 16px 16px;padding:18px 28px;">
+      <p style="margin:0;color:#fff4e4;font-size:13px;font-weight:700;">Big pieces. Bold spice. Proper non-veg pickle.</p>
+      <p style="margin:4px 0 0;color:#e6a62f;font-size:12px;">Intlo chesina ruchi. India motham delivery.</p>
+    </td></tr>
+  </table>
+</div>"""
 
 
 def send_order_emails(order_id: str, payload: "OrderCreate", total: int, window: str) -> None:
@@ -327,17 +395,6 @@ def send_order_emails(order_id: str, payload: "OrderCreate", total: int, window:
     if not EMAIL_ENABLED:
         return
 
-    customer_body = (
-        f"Namaste {payload.name},\n\n"
-        f"Your Mamayya Pickles order {order_id} is confirmed.\n\n"
-        f"Total: Rs. {total:,}\n"
-        f"Estimated delivery: {window}\n\n"
-        "Fresh preparation starts now and takes 2-3 days, then 4-6 days of shipping.\n"
-        f"Track any time: https://mamayyapickles.com/track (order number {order_id})\n\n"
-        "Questions? Just reply to this email.\n\n"
-        "Mamayya Pickles\n"
-        "Big pieces. Bold spice. Proper non-veg pickle."
-    )
     item_names = {
         "chicken-pickle": "Chicken Pickle",
         "mutton-pickle": "Mutton Pickle",
@@ -369,9 +426,28 @@ def send_order_emails(order_id: str, payload: "OrderCreate", total: int, window:
         f"Estimated delivery: {window}"
     )
 
+    customer_body = (
+        f"Namaste {payload.name},\n\n"
+        f"Your Mamayya Pickles order {order_id} is confirmed.\n\n"
+        "Your jars:\n" + "\n".join(item_lines) + "\n\n"
+        f"Total: Rs. {total:,}\n"
+        f"Estimated delivery: {window}\n\n"
+        "Fresh preparation starts now and takes 2-3 days, then 4-6 days of shipping.\n"
+        f"Track any time: https://mamayyapickles.com/track?order={order_id}\n\n"
+        "Questions? Just reply to this email.\n\n"
+        "Mamayya Pickles\n"
+        "Big pieces. Bold spice. Proper non-veg pickle."
+    )
+    customer_html = customer_email_html(payload.name, order_id, total, window, item_lines)
+
     def worker() -> None:
         try:
-            _send_email(payload.email, f"Order {order_id} confirmed - Mamayya Pickles", customer_body)
+            _send_email(
+                payload.email,
+                f"Order {order_id} confirmed - Mamayya Pickles",
+                customer_body,
+                html=customer_html,
+            )
             _send_email(ORDER_NOTIFY_TO, f"New order {order_id} - Rs. {total:,}", owner_body)
             _email_state["lastResult"] = "sent"
         except Exception as exc:
@@ -520,15 +596,23 @@ def get_config() -> dict:
     }
 
 
+def _phone_digits(value: str) -> str:
+    return "".join(c for c in value if c.isdigit())[-10:]
+
+
 @app.get("/api/orders/{order_id}")
-def get_order(order_id: str) -> dict:
+def get_order(order_id: str, phone: str = "") -> dict:
     with db() as conn:
         row = conn.execute(
             _sql("SELECT * FROM orders WHERE order_id = %s"),
             (order_id.strip().upper(),),
         ).fetchone()
-    if row is None:
-        raise HTTPException(404, "No order found with that number.")
+    # Order numbers are sequential, so the phone used on the order acts as a
+    # shared secret: without a match, reveal nothing (including existence).
+    if row is None or not phone or _phone_digits(phone) != _phone_digits(row["phone"]):
+        raise HTTPException(
+            404, "No order found with that number and phone combination."
+        )
     created = datetime.fromisoformat(row["created_at"])
     return {
         "orderId": row["order_id"],
