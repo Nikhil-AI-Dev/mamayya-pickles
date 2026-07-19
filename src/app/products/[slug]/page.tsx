@@ -50,19 +50,40 @@ export default async function ProductPage({
           <div className="relative grid place-items-center">
             {product.slug === "chicken-pickle" ? (
               <>
+                {/* Warm glow grounds the jar in the scene */}
+                <div
+                  aria-hidden
+                  className="absolute inset-0 -m-10"
+                  style={{
+                    background:
+                      "radial-gradient(ellipse 55% 45% at 50% 55%, rgba(230,166,47,0.28), rgba(230,166,47,0) 70%)",
+                  }}
+                />
                 {/* eslint-disable @next/next/no-img-element */}
-                <img src="/ing-chicken.webp" alt="Fresh chicken pieces" width={320} height={236}
-                     className="absolute -top-4 left-0 w-24 md:w-32 drop-shadow-lg animate-float" />
+                {/* Back layer: big, softly blurred, half-tucked behind the jar */}
                 <img src="/ing-chilli.webp" alt="Dried red chillies" width={320} height={286}
-                     className="absolute top-8 -right-2 w-20 md:w-28 drop-shadow-lg" />
-                <img src="/ing-garlic.webp" alt="Garlic" width={320} height={263}
-                     className="absolute bottom-2 -left-3 w-20 md:w-28 drop-shadow-lg" />
-                <img src="/ing-curry.webp" alt="Curry leaves" width={320} height={263}
-                     className="absolute -bottom-4 right-4 w-20 md:w-28 drop-shadow-lg animate-float" />
-                <div className="w-52 md:w-64 animate-float">
+                     className="absolute top-2 right-0 md:-right-6 w-32 md:w-44 rotate-[14deg] opacity-90 blur-[1.5px] drop-shadow-lg animate-float"
+                     style={{ animationDelay: "-2s", animationDuration: "7s" }} />
+                <img src="/ing-chicken.webp" alt="Fresh chicken pieces" width={320} height={236}
+                     className="absolute -top-8 -left-2 md:-left-8 w-28 md:w-40 rotate-[-9deg] opacity-95 blur-[0.5px] drop-shadow-lg animate-float"
+                     style={{ animationDelay: "-4s", animationDuration: "8s" }} />
+                {/* The jar owns the frame */}
+                <div className="relative z-10 w-56 md:w-72 animate-float">
                   <img src="/jar-chicken.webp" alt="Mamayya Chicken Pickle jar" width={640} height={1153}
                        className="w-full h-auto drop-shadow-2xl" />
+                  {/* Ground shadow */}
+                  <div
+                    aria-hidden
+                    className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-3/4 h-6 rounded-full bg-black/40 blur-md"
+                  />
                 </div>
+                {/* Front layer: crisp, overlapping the jar's base */}
+                <img src="/ing-garlic.webp" alt="Garlic" width={320} height={263}
+                     className="absolute z-20 bottom-0 left-2 md:-left-1 w-24 md:w-32 rotate-[-12deg] drop-shadow-xl animate-float"
+                     style={{ animationDelay: "-1s", animationDuration: "6.5s" }} />
+                <img src="/ing-curry.webp" alt="Curry leaves" width={320} height={263}
+                     className="absolute z-20 -bottom-8 right-6 w-20 md:w-28 rotate-[18deg] drop-shadow-xl animate-float"
+                     style={{ animationDelay: "-5s", animationDuration: "7.5s" }} />
                 {/* eslint-enable @next/next/no-img-element */}
               </>
             ) : (

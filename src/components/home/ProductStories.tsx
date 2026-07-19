@@ -109,25 +109,43 @@ export default function ProductStories() {
             <div className="[direction:ltr] relative grid place-items-center">
               {p.slug === "chicken-pickle" ? (
                 <>
-                  {/* Real ingredient cutouts float where the emojis do elsewhere */}
+                  {/* Warm glow grounds the jar */}
+                  <div
+                    aria-hidden
+                    className="absolute inset-0 -m-8"
+                    style={{
+                      background:
+                        "radial-gradient(ellipse 55% 45% at 50% 55%, rgba(230,166,47,0.25), rgba(230,166,47,0) 70%)",
+                    }}
+                  />
                   {/* eslint-disable @next/next/no-img-element */}
-                  <img src="/ing-chicken.webp" alt="Fresh chicken pieces" width={320} height={236}
-                       loading="lazy" decoding="async"
-                       className="story-ingredient absolute -top-6 -left-2 w-24 md:w-32 drop-shadow-lg" />
+                  {/* Back layer: large, soft, tucked behind the jar */}
                   <img src="/ing-chilli.webp" alt="Dried red chillies" width={320} height={286}
                        loading="lazy" decoding="async"
-                       className="story-ingredient absolute top-6 -right-2 w-20 md:w-28 drop-shadow-lg" />
-                  <img src="/ing-garlic.webp" alt="Garlic" width={320} height={263}
+                       className="story-ingredient absolute top-0 -right-4 w-28 md:w-40 rotate-[14deg] opacity-90 blur-[1.5px] drop-shadow-lg animate-float"
+                       style={{ animationDelay: "-2s", animationDuration: "7s" }} />
+                  <img src="/ing-chicken.webp" alt="Fresh chicken pieces" width={320} height={236}
                        loading="lazy" decoding="async"
-                       className="story-ingredient absolute bottom-4 -left-4 w-20 md:w-28 drop-shadow-lg" />
-                  <img src="/ing-curry.webp" alt="Curry leaves" width={320} height={263}
-                       loading="lazy" decoding="async"
-                       className="story-ingredient absolute -bottom-6 right-2 w-20 md:w-28 drop-shadow-lg" />
-                  <div className="story-jar w-44 md:w-56 animate-float">
+                       className="story-ingredient absolute -top-10 -left-4 w-24 md:w-36 rotate-[-9deg] opacity-95 blur-[0.5px] drop-shadow-lg animate-float"
+                       style={{ animationDelay: "-4s", animationDuration: "8s" }} />
+                  <div className="story-jar relative z-10 w-48 md:w-60 animate-float">
                     <img src="/jar-chicken.webp" alt="Mamayya Chicken Pickle jar" width={640} height={1153}
                          loading="lazy" decoding="async"
                          className="w-full h-auto drop-shadow-2xl" />
+                    <div
+                      aria-hidden
+                      className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-3/4 h-6 rounded-full bg-black/40 blur-md"
+                    />
                   </div>
+                  {/* Front layer: crisp, overlapping the jar's base */}
+                  <img src="/ing-garlic.webp" alt="Garlic" width={320} height={263}
+                       loading="lazy" decoding="async"
+                       className="story-ingredient absolute z-20 bottom-2 -left-4 w-20 md:w-28 rotate-[-12deg] drop-shadow-xl animate-float"
+                       style={{ animationDelay: "-1s", animationDuration: "6.5s" }} />
+                  <img src="/ing-curry.webp" alt="Curry leaves" width={320} height={263}
+                       loading="lazy" decoding="async"
+                       className="story-ingredient absolute z-20 -bottom-8 right-4 w-16 md:w-24 rotate-[18deg] drop-shadow-xl animate-float"
+                       style={{ animationDelay: "-5s", animationDuration: "7.5s" }} />
                   {/* eslint-enable @next/next/no-img-element */}
                 </>
               ) : (
