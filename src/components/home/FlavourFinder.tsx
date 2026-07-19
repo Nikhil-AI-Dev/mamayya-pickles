@@ -20,7 +20,7 @@ const QUESTIONS = [
   {
     key: "meat",
     prompt: "What meat do you prefer?",
-    options: ["Chicken", "Mutton", "Fish", "Shrimp"],
+    options: ["Chicken", "Mutton", "Fish", "Prawn"],
   },
 ] as const;
 

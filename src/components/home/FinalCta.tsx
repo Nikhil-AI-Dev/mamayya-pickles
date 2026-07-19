@@ -8,7 +8,7 @@ export default function FinalCta() {
       <div aria-hidden className="absolute inset-x-0 top-6 opacity-10 whitespace-nowrap overflow-hidden">
         <div className="animate-marquee inline-block font-display font-extrabold text-7xl">
           {Array(6)
-            .fill("MAMAYYA · CHICKEN · MUTTON · FISH · SHRIMP · ")
+            .fill("MAMAYYA · CHICKEN · MUTTON · FISH · PRAWN · ")
             .join("")}
         </div>
       </div>
