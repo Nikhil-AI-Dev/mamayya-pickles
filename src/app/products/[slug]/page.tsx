@@ -54,9 +54,22 @@ export default async function ProductPage({
             <span className="absolute bottom-6 right-8 text-3xl" aria-hidden>
               {product.emoji}
             </span>
-            <div className="w-52 md:w-64 animate-float">
-              <JarIllustration color={product.color} label={`${product.name} jar`} />
-            </div>
+            {product.slug === "chicken-pickle" ? (
+              <div className="w-56 md:w-72 rounded-3xl bg-white p-3 shadow-jar rotate-[-2deg]">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/jar-chicken.jpg"
+                  alt="Mamayya Chicken Pickle jar"
+                  width={900}
+                  height={1600}
+                  className="w-full h-auto rounded-2xl"
+                />
+              </div>
+            ) : (
+              <div className="w-52 md:w-64 animate-float">
+                <JarIllustration color={product.color} label={`${product.name} jar`} />
+              </div>
+            )}
           </div>
           <div>
             <p className="text-xs font-extrabold uppercase tracking-[0.25em] text-gold">
@@ -108,6 +121,21 @@ export default async function ProductPage({
             >
               What&apos;s inside the jar
             </h2>
+
+            {product.slug === "chicken-pickle" && (
+              <div className="mt-5 rounded-2xl bg-white p-3 border border-charcoal/10">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/ingredients-chicken.jpg"
+                  alt="Fresh chicken, dried red chillies, garlic and curry leaves - the chicken pickle ingredients"
+                  width={1024}
+                  height={1536}
+                  loading="lazy"
+                  decoding="async"
+                  className="w-full h-auto rounded-xl"
+                />
+              </div>
+            )}
 
             <dl className="mt-5 space-y-5 text-sm">
               <div>

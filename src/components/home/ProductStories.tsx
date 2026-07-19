@@ -114,9 +114,38 @@ export default function ProductStories() {
               <span className="story-ingredient absolute -bottom-2 right-12 text-3xl" aria-hidden>
                 {p.emoji}
               </span>
-              <div className="story-jar w-48 md:w-60 animate-float">
-                <JarIllustration color={p.color} label={`${p.name} jar`} />
-              </div>
+              {p.slug === "chicken-pickle" ? (
+                <div className="flex flex-col items-center gap-4">
+                  <div className="story-jar w-52 md:w-60 rounded-3xl bg-cream p-3 shadow-jar rotate-[-2deg]">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src="/jar-chicken.jpg"
+                      alt="Mamayya Chicken Pickle jar"
+                      width={900}
+                      height={1600}
+                      loading="lazy"
+                      decoding="async"
+                      className="w-full h-auto rounded-2xl"
+                    />
+                  </div>
+                  <div className="story-ingredient w-40 rounded-2xl bg-cream p-2 shadow-card rotate-[2deg]">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src="/ingredients-chicken.jpg"
+                      alt="Chicken pickle ingredients: chicken, red chillies, garlic, curry leaves"
+                      width={1024}
+                      height={1536}
+                      loading="lazy"
+                      decoding="async"
+                      className="w-full h-auto rounded-xl"
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div className="story-jar w-48 md:w-60 animate-float">
+                  <JarIllustration color={p.color} label={`${p.name} jar`} />
+                </div>
+              )}
             </div>
 
             <div className="story-copy [direction:ltr]">

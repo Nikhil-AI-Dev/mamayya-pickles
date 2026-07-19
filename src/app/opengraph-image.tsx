@@ -26,8 +26,8 @@ export default function OgImage() {
         }}
       >
         <div style={{ display: "flex", flexDirection: "column", maxWidth: 700 }}>
-          <div style={{ fontSize: 30, fontWeight: 700, color: "#e6a62f", letterSpacing: 6 }}>
-            MAMAYYA PICKLES
+          <div style={{ fontSize: 28, fontWeight: 700, color: "#e6a62f", letterSpacing: 5 }}>
+            MAMAYYA PICKLES · TASTE OF RAYALASEEMA
           </div>
           <div style={{ fontSize: 76, fontWeight: 800, lineHeight: 1.1, marginTop: 24 }}>
             Big pieces. Bold spice.

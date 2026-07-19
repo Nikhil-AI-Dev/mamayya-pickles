@@ -27,12 +27,17 @@ export default function Header() {
             height={64}
             className="w-16 h-16 rounded-full"
           />
-          <span className="flex items-baseline gap-1.5">
-            <span className="font-display font-extrabold text-2xl text-red leading-none">
-              Mamayya
+          <span className="flex flex-col">
+            <span className="flex items-baseline gap-1.5">
+              <span className="font-display font-extrabold text-2xl text-red leading-none">
+                Mamayya
+              </span>
+              <span className="font-display font-semibold text-sm text-charcoal tracking-wide uppercase">
+                Pickles
+              </span>
             </span>
-            <span className="font-display font-semibold text-sm text-charcoal tracking-wide uppercase">
-              Pickles
+            <span className="mt-0.5 text-[10px] font-bold uppercase tracking-[0.22em] text-clay">
+              Taste of Rayalaseema
             </span>
           </span>
         </Link>
