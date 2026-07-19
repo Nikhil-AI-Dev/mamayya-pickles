@@ -123,7 +123,6 @@ ALLOWED_ORIGINS = [
         "ALLOWED_ORIGINS",
         "http://localhost:3001,http://127.0.0.1:3001,"
         "https://mamayyapickles.com,https://www.mamayyapickles.com,"
-        "http://mamayyapickles.com,http://www.mamayyapickles.com,"
         "https://nikhil-ai-dev.github.io",
     ).split(",")
     if o.strip()

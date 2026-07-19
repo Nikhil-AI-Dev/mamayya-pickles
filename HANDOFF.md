@@ -6,64 +6,91 @@ Everything about how this store runs, what's live, and what's left before taking
 
 | What | URL |
 |------|-----|
-| Storefront | https://mamayyapickles.com |
-| Order API | https://mamayya-api.onrender.com (health: `/health`) |
+| Storefront | https://mamayyapickles.com (HTTPS enforced) |
+| Order API | https://mamayya-api.onrender.com (health: `/health`, status: `/api/config`) |
 | Code | https://github.com/Nikhil-AI-Dev/mamayya-pickles |
-| Support email | contact@mamayyapickles.com (Microsoft 365 via GoDaddy) |
+| Support email | contact@mamayyapickles.com (Microsoft 365 via GoDaddy, webmail at outlook.office.com) |
+| Sending email | orders@mamayyapickles.com via Resend (free tier, 100/day) |
+| Instagram | https://www.instagram.com/mamayyapickle/ |
 
 ## Architecture in one paragraph
 
-The storefront is a static Next.js site, built and deployed automatically by GitHub Actions to GitHub Pages on every push to `master`. The order backend is a FastAPI service on Render (free tier) with a Postgres database; it owns all pricing, creates order numbers (MP-XXXX), and serves order tracking. The cart lives in the shopper's browser (localStorage). No accounts, guest checkout only, prepaid only.
+The storefront is a static Next.js site, built and deployed automatically by GitHub Actions to GitHub Pages on every push to `master`. The order backend is a FastAPI service on Render (free tier) with a Postgres database; it owns all pricing, creates order numbers (MP-XXXX), sends emails through Resend, and serves order tracking. The cart lives in the shopper's browser (localStorage). No accounts, guest checkout only, prepaid only.
+
+## How an order flows
+
+1. Customer checks out → order stored as **received**; customer sees an on-screen receipt with the MP number but gets **no email yet**
+2. **Admin email** arrives at contact@ — packing slip + a one-click **Confirm order** button (secure per-order link)
+3. Admin clicks Confirm → customer gets the **branded confirmation email** (from orders@, replies go to contact@) and the **one-week delivery clock starts** from that moment
+4. Track page (`/track`): needs order number **+ the phone used on the order** (privacy gate). Shows "waiting for kitchen confirmation" until confirmed, then a six-stage timeline anchored to confirmation (delivered day 7)
+5. When Razorpay is live: payment happens before step 2 — the admin email is sent only after successful payment
+
+Stage timings are calendar estimates (confirm+1 preparing, +3 packed, +4 shipped, +6 out for delivery, +7 delivered), not courier data.
 
 ## Accounts that own things
 
 | Service | Owns | Notes |
 |---------|------|-------|
-| GoDaddy | Domain + DNS + mailbox | Renewals: domain ~$12/yr after year 1, email $7/yr promo |
-| GitHub (Nikhil-AI-Dev) | Code + hosting + deploys | Pages is free |
-| Render | API + database | Free tier: API sleeps when idle (first request ~30s), **free Postgres expires after 30 days** — see Costs |
+| GoDaddy | Domain + DNS + M365 mailbox | Domain ~$12/yr after year 1; email $7 first year. "Websites+Marketing Lite" ($20.88) is unused — refundable |
+| GitHub (Nikhil-AI-Dev) | Code + hosting + deploys | Pages free; HTTPS cert auto-renews (current one to Oct 2026) |
+| Render | API + database | Free web service sleeps when idle (first request ~30s). **Free Postgres expires 30 days after creation (~mid-Aug 2026)** — see Costs |
+| Resend | Outbound email | Free 100/day; domain verified via DNS (send + resend._domainkey records at GoDaddy) |
 
 ## Changing everyday things
 
-All product data lives in one file: `src/lib/products.ts` — prices, weights, descriptions, spice levels, ingredients, nutrition. FAQs: `src/lib/faqs.ts`. Policies: `src/lib/policies.ts`. Edit, commit, push — the site redeploys itself in ~2 minutes.
+Product data: `src/lib/products.ts` (prices, weights, descriptions, ingredients). FAQs: `src/lib/faqs.ts`. Policies: `src/lib/policies.ts`. Contacts (WhatsApp +91 97419 82425, email): `src/app/contact/page.tsx`, `src/components/track/TrackLookup.tsx`. Logo assets: `public/logo.png` (600px) + `public/logo-192.png`. Edit, commit, push — site redeploys in ~2 minutes.
 
 **Prices exist in TWO places** and must match: `src/lib/products.ts` (what shoppers see) and `backend/main.py` `PRODUCT_PRICES`/`BOX_PRICES` (what orders actually charge). The backend is the authority.
 
-## Orders
+## Emails
 
-- Every order gets an MP-XXXX number, stored in Render Postgres.
-- Customers track at `/track` with that number. Stages are time-based estimates (confirmed → preparing day 1 → packed day 3 → shipped day 4 → out for delivery day 6 → delivered day 7).
-- **Order emails**: once `SMTP_PASS` (the contact@ mailbox password) is set in Render → mamayya-api → Environment, every order sends a confirmation to the customer and a notification to contact@mamayyapickles.com. Until then, orders are visible only in the database.
+- Transport: Resend HTTPS API (`RESEND_API_KEY` on the Render service). Render's free tier blocks SMTP, so don't switch back to SMTP settings while hosted there.
+- Customer confirmation: branded card (logo, order stamp, journey strip, track button) sent **on admin confirm**.
+- Admin alert: packing slip + Confirm button, to `ORDER_NOTIFY_TO` (defaults to contact@).
+- Delivery diagnostics without dashboard access: `GET /api/config` → `lastEmailResult` shows "sent" or a sanitized error.
+
+## Payments (Razorpay — built, dormant)
+
+Integration is complete and tested in dormant mode. To activate:
+1. Client signs up at dashboard.razorpay.com (Indian mobile OTP; KYC for live keys: PAN + bank account)
+2. Add `RAZORPAY_KEY_ID` + `RAZORPAY_KEY_SECRET` in Render → mamayya-api → Environment (test keys first — full checkout works with fake money; swap to live keys after KYC)
+3. That's the whole switch. Checkout opens the Razorpay modal (UPI/cards/netbanking), server verifies the payment signature, order marked paid, admin then confirms as usual
+4. International cards: request activation in Razorpay Settings → Payment methods (off by default; ~3% fees vs 2% domestic; UPI is India-only)
+
+## Security posture
+
+- All queries parameterized; Pydantic validation on every endpoint; server-side pricing
+- Order lookup requires order number + matching phone (no enumeration)
+- Confirm links use 192-bit tokens, constant-time compared; user-supplied text HTML-escaped in admin email and confirm page
+- CORS locked to the production domains; secrets in env only, masked in diagnostics
+- Full audit run July 2026 (Anthropic security-review rubric): 3 findings, all fixed
 
 ## Before taking real money — launch blockers
 
-1. **FSSAI licence number** — legally required to sell food online in India. Replace the `XXXXXXXXXXXXXX` placeholder in `src/components/Footer.tsx` and `src/lib/policies.ts` (food-safety section). Also goes on jar labels.
-2. **Razorpay** — payment gateway not connected; the site currently records test orders and says so honestly. Client signs up at dashboard.razorpay.com (needs Indian phone OTP, business PAN, bank account). International cards possible after requesting activation in Razorpay settings; UPI is domestic-only.
-3. **Real testimonials** — the "Mamayya Wall" on the home page shows sample reactions marked as placeholders (`src/components/home/ReactionWall.tsx`). Replace with real customer content or remove the section. Fake reviews violate consumer protection rules.
-4. **Price + copy sign-off** — every price, weight, delivery promise (7 days, ₹99 shipping, free above ₹1,200, 12-hour cancellation window) was drafted for the client to confirm, not confirmed by them.
-5. **Grievance contact** — Indian e-commerce rules require a named grievance officer + contact; add to Terms page once known.
+1. **FSSAI licence number** — legally required. Replace placeholder in `src/components/Footer.tsx` and `src/lib/policies.ts` (food-safety). Also goes on jar labels
+2. **Razorpay activation** — see Payments above
+3. **Real testimonials** — home "Mamayya Wall" shows sample reactions (`src/components/home/ReactionWall.tsx`). Replace or remove; fake reviews violate consumer protection rules
+4. **Price + copy sign-off** — all prices, weights, shipping (₹99, free above ₹1,200), 12-hour cancellation window, one-week delivery promise: drafted, not client-confirmed
+5. **Grievance contact** — Indian e-commerce rules require a named grievance officer; add to Terms once known
 
 ## Costs to expect
 
 | Item | Cost | When |
 |------|------|------|
-| Domain renewal | ~$12/yr | Yearly (first year was $1 promo) |
-| Email renewal | ~$7-70/yr | Yearly (promo pricing first year) |
-| Render Postgres | $7/mo OR migrate to Neon.tech free tier | **Within 30 days of DB creation** (free DB expires) |
-| Render API always-on | $7/mo (optional) | Only if the ~30s cold-start on first visit becomes annoying |
-| Razorpay | 2% per domestic transaction, ~3% international | Per transaction, no fixed fee |
+| Domain renewal | ~$12/yr | Yearly |
+| Email renewal | ~$7-70/yr | Yearly (promo first year) |
+| Render Postgres | $7/mo OR migrate to Neon.tech free | **Before ~mid-Aug 2026** (free DB expiry) |
+| Render always-on API | $7/mo (optional) | If ~30s cold start annoys |
+| Razorpay | 2% domestic / ~3% international | Per transaction |
+| Resend | Free to 100 emails/day | Upgrade only at volume |
 | GitHub Pages | Free | — |
-
-## Known placeholder/temporary items
-
-- GoDaddy "Websites + Marketing Lite" ($20.88) was purchased but is unused — the site is hosted free on GitHub Pages. Refundable within 30 days.
-- HTTP origins are allowed in the API CORS config only until the HTTPS certificate finishes provisioning; remove `http://` entries from `render.yaml` ALLOWED_ORIGINS after "Enforce HTTPS" is on.
-- Sample reactions on the home page (see blockers).
 
 ## Operating runbook
 
-- **Site down?** Check https://www.githubstatus.com (Pages) and Render dashboard.
-- **Deploy failed?** GitHub repo → Actions tab → open the red run.
-- **See orders**: Render dashboard → mamayya-db → Connect → run `SELECT order_id, created_at, name, phone, total FROM orders ORDER BY rowid_pk DESC;`
-- **Change support contacts**: WhatsApp number + email live in `src/app/contact/page.tsx` and `src/components/track/TrackLookup.tsx`.
-- **Local development**: `npm run dev -- -p 3001` for the site, `python -m uvicorn main:app --port 8001` inside `backend/` for the API (uses SQLite locally, no setup).
+- **Site down?** githubstatus.com (Pages) / Render dashboard
+- **Deploy failed?** GitHub repo → Actions tab → open the red run
+- **Emails not arriving?** `GET https://mamayya-api.onrender.com/api/config` → `lastEmailResult` has the error; check Resend dashboard → Emails for delivery log
+- **See orders:** Render dashboard → mamayya-db → Connect → `SELECT order_id, created_at, name, phone, total, payment_status, confirmed_at FROM orders ORDER BY rowid_pk DESC;`
+- **Confirm an order without the email:** the Confirm link format is `https://mamayya-api.onrender.com/api/orders/MP-XXXX/confirm?token=...` — token is in the orders table
+- **Local development:** `npm run dev -- -p 3001` for the site; `python -m uvicorn main:app --port 8001` inside `backend/` for the API (SQLite locally, no setup)
+- **Test orders in production DB:** MP-1001 through MP-1020 are test data from development — clear before launch: `DELETE FROM orders WHERE order_id <= 'MP-1020';` (string compare works for the MP-10xx range; verify with a SELECT first)
