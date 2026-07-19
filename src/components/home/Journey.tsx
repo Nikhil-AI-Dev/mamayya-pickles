@@ -4,15 +4,22 @@ import { useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
+import {
+  CookingPot,
+  Thermometer,
+  ShieldCheck,
+  Package,
+  HouseLine,
+} from "@phosphor-icons/react";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
 const STEPS = [
-  { icon: "🍳", title: "Prepared fresh", detail: "Cooked in small controlled batches, 2-3 days" },
-  { icon: "🌡️", title: "Cooled & packed", detail: "Rested so the oil settles over every piece" },
-  { icon: "🫙", title: "Leak-proof sealed", detail: "Double-sealed jars, bubble-wrapped" },
-  { icon: "📦", title: "Courier pickup", detail: "Tracked shipment, AWB shared with you" },
-  { icon: "🏠", title: "Delivered across India", detail: "4-6 days in transit" },
+  { Icon: CookingPot, title: "Prepared fresh", detail: "Cooked in small controlled batches, 2-3 days" },
+  { Icon: Thermometer, title: "Cooled & packed", detail: "Rested so the oil settles over every piece" },
+  { Icon: ShieldCheck, title: "Leak-proof sealed", detail: "Double-sealed jars, bubble-wrapped" },
+  { Icon: Package, title: "Courier pickup", detail: "Tracked shipment, AWB shared with you" },
+  { Icon: HouseLine, title: "Delivered across India", detail: "4-6 days in transit" },
 ];
 
 export default function Journey() {
@@ -65,8 +72,8 @@ export default function Journey() {
           <ol className="grid gap-8 md:grid-cols-5">
             {STEPS.map((step, i) => (
               <li key={step.title} className="journey-step relative">
-                <div className="relative z-10 w-16 h-16 rounded-full bg-cream text-3xl grid place-items-center shadow-jar">
-                  <span aria-hidden>{step.icon}</span>
+                <div className="relative z-10 w-16 h-16 rounded-full bg-cream grid place-items-center shadow-jar">
+                  <step.Icon size={30} weight="duotone" color="#a92a1d" aria-hidden />
                 </div>
                 <p className="mt-4 font-display font-bold text-lg">
                   <span className="text-gold mr-1.5">{i + 1}.</span>

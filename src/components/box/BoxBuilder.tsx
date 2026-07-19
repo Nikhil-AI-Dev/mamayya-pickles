@@ -194,7 +194,7 @@ export default function BoxBuilder() {
           type="button"
           onClick={addAllToCart}
           disabled={jarCount === 0}
-          className="mt-5 w-full rounded-full bg-gold text-charcoal px-6 py-3.5 font-extrabold hover:bg-cream transition-colors disabled:opacity-40 disabled:hover:bg-gold"
+          className="mt-5 w-full rounded-full bg-gold text-charcoal px-6 py-3.5 font-extrabold hover:bg-cream active:scale-[0.99] transition-all disabled:opacity-40 disabled:hover:bg-gold"
         >
           Add carton to cart
         </button>

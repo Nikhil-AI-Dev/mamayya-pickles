@@ -137,13 +137,13 @@ export default function Hero() {
           <div className="mt-8 flex flex-wrap gap-3">
             <Link
               href="/shop"
-              className="rounded-full bg-red px-7 py-3.5 font-bold text-cream hover:bg-red-deep transition-colors shadow-jar"
+              className="rounded-full bg-red px-7 py-3.5 font-bold text-cream hover:bg-red-deep active:scale-[0.97] transition-all shadow-jar"
             >
               Taste Mamayya&apos;s Pickles
             </Link>
             <Link
               href="/build-a-box"
-              className="rounded-full border-2 border-gold px-7 py-3.5 font-bold text-gold hover:bg-gold hover:text-charcoal transition-colors"
+              className="rounded-full border-2 border-gold px-7 py-3.5 font-bold text-gold hover:bg-gold hover:text-charcoal active:scale-[0.97] transition-all"
             >
               Build Your Pickle Box
             </Link>

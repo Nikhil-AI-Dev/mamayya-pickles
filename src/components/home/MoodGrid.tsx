@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useCart } from "@/lib/cart";
 import { formatINR, products } from "@/lib/products";
-import JarIllustration from "../JarIllustration";
 import SpiceMeter from "../SpiceMeter";
 
 export default function MoodGrid() {
@@ -32,10 +31,12 @@ export default function MoodGrid() {
                 </p>
                 <h3 className="mt-1 font-display font-bold text-2xl">{p.name}</h3>
 
-                {/* Jar - lid tips open on hover */}
-                <div className="relative mt-4 mx-auto w-28">
-                  <div className="transition-transform duration-500 group-hover:scale-105">
-                    <JarIllustration color={p.color} label={`${p.name} jar`} />
+                <div className="relative mt-4 mx-auto w-24">
+                  <div className="transition-transform duration-500 group-hover:scale-105 group-hover:rotate-[-2deg]">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={p.image} alt={`${p.name} jar`} width={640} height={1180}
+                         loading="lazy" decoding="async"
+                         className="w-full h-auto drop-shadow-lg" />
                   </div>
                 </div>
 
@@ -65,7 +66,7 @@ export default function MoodGrid() {
                   <button
                     type="button"
                     onClick={() => addProduct(p, 250)}
-                    className="rounded-full bg-charcoal text-cream text-xs font-bold px-4 py-2 hover:bg-red transition-colors"
+                    className="rounded-full bg-charcoal text-cream text-xs font-bold px-4 py-2 hover:bg-red active:scale-[0.97] transition-all"
                   >
                     Quick add
                   </button>

@@ -142,7 +142,7 @@ export default function TrackLookup() {
           <button
             type="submit"
             disabled={loading}
-            className="mt-4 w-full rounded-full bg-red text-cream px-6 py-3.5 font-bold hover:bg-red-deep transition-colors disabled:opacity-60"
+            className="mt-4 w-full rounded-full bg-red text-cream px-6 py-3.5 font-bold hover:bg-red-deep active:scale-[0.99] transition-all disabled:opacity-60"
           >
             {loading ? "Looking up..." : "Find my order"}
           </button>

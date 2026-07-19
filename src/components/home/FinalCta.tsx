@@ -27,7 +27,7 @@ export default function FinalCta() {
 
         <Link
           href="/shop"
-          className="mt-9 inline-block rounded-full bg-cream text-red px-10 py-4 font-display font-extrabold text-lg hover:bg-gold hover:text-charcoal transition-colors shadow-jar"
+          className="mt-9 inline-block rounded-full bg-cream text-red px-10 py-4 font-display font-extrabold text-lg hover:bg-gold hover:text-charcoal active:scale-[0.97] transition-all shadow-jar"
         >
           Order Now
         </Link>

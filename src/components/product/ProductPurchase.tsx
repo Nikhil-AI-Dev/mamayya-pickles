@@ -79,7 +79,7 @@ export default function ProductPurchase({ product }: { product: Product }) {
         <button
           type="button"
           onClick={() => addProduct(product, grams, quantity)}
-          className="flex-1 min-w-44 rounded-full bg-red text-cream px-6 py-3.5 font-bold hover:bg-red-deep transition-colors"
+          className="flex-1 min-w-44 rounded-full bg-red text-cream px-6 py-3.5 font-bold hover:bg-red-deep active:scale-[0.98] transition-all"
         >
           Add to cart · {formatINR(lineTotal)}
         </button>

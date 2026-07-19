@@ -295,7 +295,7 @@ export default function CheckoutClient() {
         <button
           type="submit"
           disabled={submitting}
-          className="mt-5 w-full rounded-full bg-gold text-charcoal px-6 py-3.5 font-extrabold hover:bg-cream transition-colors disabled:opacity-60"
+          className="mt-5 w-full rounded-full bg-gold text-charcoal px-6 py-3.5 font-extrabold hover:bg-cream active:scale-[0.99] transition-all disabled:opacity-60"
         >
           {submitting ? "Placing order..." : `Place order · ${formatINR(total)}`}
         </button>
