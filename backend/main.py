@@ -264,15 +264,18 @@ def stage_info(created: datetime) -> dict:
     }
 
 
-# Order emails are optional: configured entirely via env, silently skipped
-# when SMTP_PASS is absent. Microsoft 365 mailbox works with these settings:
-#   SMTP_HOST=smtp.office365.com  SMTP_PORT=587
-#   SMTP_USER=contact@mamayyapickles.com  SMTP_PASS=<mailbox password>
+# Order emails are optional and configured entirely via env.
+# Preferred transport: Resend HTTPS API (RESEND_API_KEY) - required on Render,
+# whose free tier blocks outbound SMTP. SMTP settings remain as a fallback
+# for hosts that allow it.
+RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "")
+EMAIL_FROM = os.environ.get("EMAIL_FROM", "Mamayya Pickles <orders@mamayyapickles.com>")
 SMTP_HOST = os.environ.get("SMTP_HOST", "smtp.office365.com")
 SMTP_PORT = int(os.environ.get("SMTP_PORT", "587"))
 SMTP_USER = os.environ.get("SMTP_USER", "contact@mamayyapickles.com")
 SMTP_PASS = os.environ.get("SMTP_PASS", "")
-ORDER_NOTIFY_TO = os.environ.get("ORDER_NOTIFY_TO", SMTP_USER)
+ORDER_NOTIFY_TO = os.environ.get("ORDER_NOTIFY_TO", "contact@mamayyapickles.com")
+EMAIL_ENABLED = bool(RESEND_API_KEY or SMTP_PASS)
 
 # Last email delivery outcome, surfaced (sanitized) in /api/config so mail
 # problems can be diagnosed without dashboard access. Never contains secrets.
@@ -280,6 +283,27 @@ _email_state: dict = {"lastResult": None, "lastErrorAt": None}
 
 
 def _send_email(to: str, subject: str, body: str) -> None:
+    if RESEND_API_KEY:
+        req = urllib.request.Request(
+            "https://api.resend.com/emails",
+            data=json.dumps(
+                {
+                    "from": EMAIL_FROM,
+                    "to": [to],
+                    "reply_to": ORDER_NOTIFY_TO,
+                    "subject": subject,
+                    "text": body,
+                }
+            ).encode(),
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {RESEND_API_KEY}",
+            },
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=20) as res:
+            res.read()
+        return
     msg = EmailMessage()
     msg["From"] = SMTP_USER
     msg["To"] = to
@@ -293,7 +317,7 @@ def _send_email(to: str, subject: str, body: str) -> None:
 
 def send_order_emails(order_id: str, payload: "OrderCreate", total: int, window: str) -> None:
     """Fire-and-forget: never blocks or fails the order request."""
-    if not SMTP_PASS:
+    if not EMAIL_ENABLED:
         return
 
     customer_body = (
@@ -322,7 +346,10 @@ def send_order_emails(order_id: str, payload: "OrderCreate", total: int, window:
             _email_state["lastResult"] = "sent"
         except Exception as exc:
             logger.exception("order email failed for %s", order_id)
-            detail = str(exc)[:300].replace(SMTP_PASS, "***") if SMTP_PASS else str(exc)[:300]
+            detail = str(exc)[:300]
+            for secret in (SMTP_PASS, RESEND_API_KEY):
+                if secret:
+                    detail = detail.replace(secret, "***")
             _email_state["lastResult"] = f"{type(exc).__name__}: {detail}"
             _email_state["lastErrorAt"] = datetime.now(timezone.utc).isoformat()
 
@@ -457,7 +484,8 @@ def get_config() -> dict:
     return {
         "paymentsEnabled": PAYMENTS_ENABLED,
         "razorpayKeyId": RAZORPAY_KEY_ID,
-        "emailConfigured": bool(SMTP_PASS),
+        "emailConfigured": EMAIL_ENABLED,
+        "emailTransport": "resend" if RESEND_API_KEY else ("smtp" if SMTP_PASS else None),
         "lastEmailResult": _email_state["lastResult"],
     }
 

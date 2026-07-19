@@ -14,9 +14,9 @@ services:
         fromDatabase:
           name: mamayya-db
           property: connectionString
-      # Mailbox password for order emails; set in the Render dashboard.
-      # Leave unset to skip emails entirely.
-      - key: SMTP_PASS
+      # Order emails: Resend HTTPS API key (required on Render - free tier
+      # blocks outbound SMTP). Leave unset to skip emails entirely.
+      - key: RESEND_API_KEY
         sync: false
       # Razorpay keys; leave unset to keep orders in test mode (no payment).
       - key: RAZORPAY_KEY_ID
