@@ -332,62 +332,104 @@ def customer_email_html(
 
     safe_name = html_mod.escape(name)
     track_url = f"https://mamayyapickles.com/track?order={order_id}"
+    preheader = f"Order {order_id} confirmed. Estimated delivery {window}."
     items_html = "".join(
-        f'<tr><td style="padding:6px 0;color:#3a2a24;font-size:14px;">{html_mod.escape(i.strip("- ").strip())}</td></tr>'
+        f'''<tr>
+          <td style="padding:9px 0;border-bottom:1px solid #f3e9d8;color:#241713;font-size:15px;font-weight:600;">
+            {html_mod.escape(i.strip("- ").strip())}
+          </td>
+        </tr>'''
         for i in items
     )
-    return f"""\
-<div style="background:#f9e9d2;padding:32px 12px;font-family:Arial,Helvetica,sans-serif;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;margin:0 auto;">
-    <tr><td style="background:#241713;border-radius:16px 16px 0 0;padding:20px 28px;">
-      <span style="color:#a92a1d;font-size:26px;font-weight:800;">Mamayya</span>
-      <span style="color:#fff4e4;font-size:13px;font-weight:700;letter-spacing:3px;"> PICKLES</span>
+    journey = "".join(
+        f'''<td align="center" style="padding:0 2px;">
+          <div style="width:26px;height:26px;line-height:26px;border-radius:50%;margin:0 auto;
+                      background:{'#a92a1d' if idx == 0 else '#efe3cd'};
+                      color:{'#fff4e4' if idx == 0 else '#a89880'};
+                      font-size:12px;font-weight:800;">{'&#10003;' if idx == 0 else idx + 1}</div>
+          <div style="margin-top:6px;font-size:10px;letter-spacing:0.5px;font-weight:700;
+                      color:{'#a92a1d' if idx == 0 else '#a89880'};text-transform:uppercase;">{label}</div>
+        </td>'''
+        for idx, label in enumerate(["Confirmed", "Preparing", "Packed", "Shipped", "Delivered"])
+    )
+    return f'''<div style="background:#f3e6d0;padding:36px 12px;font-family:Arial,Helvetica,sans-serif;">
+  <div style="display:none;max-height:0;overflow:hidden;mso-hide:all;">{preheader}</div>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;">
+
+    <tr><td style="background:#241713;border-radius:18px 18px 0 0;padding:26px 32px 22px;" align="center">
+      <div style="font-size:34px;font-weight:900;color:#e05545;letter-spacing:-1px;">Mamayya
+        <span style="font-size:14px;font-weight:800;color:#fff4e4;letter-spacing:5px;">PICKLES</span></div>
+      <div style="margin-top:6px;font-size:11px;font-weight:700;letter-spacing:3px;color:#e6a62f;">
+        HANDMADE &nbsp;&bull;&nbsp; SMALL BATCHES &nbsp;&bull;&nbsp; ALL INDIA</div>
     </td></tr>
-    <tr><td style="background:#fff4e4;padding:28px;">
-      <p style="margin:0 0 6px;color:#3a2a24;font-size:15px;">Namaste {safe_name},</p>
-      <h1 style="margin:0 0 18px;color:#a92a1d;font-size:24px;font-weight:800;">
-        Order {order_id} is confirmed.
-      </h1>
+
+    <tr><td style="background:#a92a1d;padding:34px 32px;" align="center">
+      <div style="font-size:15px;color:#fdd9c4;">Namaste {safe_name},</div>
+      <div style="margin-top:8px;font-size:30px;line-height:1.15;font-weight:900;color:#fff4e4;">
+        Your jars are<br>on the way to the kitchen.</div>
+      <div style="display:inline-block;margin-top:18px;background:#fff4e4;border-radius:999px;padding:9px 22px;
+                  font-size:15px;font-weight:900;color:#241713;letter-spacing:1px;">ORDER &nbsp;{order_id}</div>
+    </td></tr>
+
+    <tr><td style="background:#fff4e4;padding:28px 32px 8px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>{journey}</tr></table>
+    </td></tr>
+
+    <tr><td style="background:#fff4e4;padding:22px 32px 6px;">
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
-             style="background:#ffffff;border:1px solid #e8dcc8;border-radius:12px;padding:0;">
-        <tr><td style="padding:16px 20px 8px;">
-          <p style="margin:0 0 8px;color:#8a7a6d;font-size:11px;font-weight:700;letter-spacing:2px;">YOUR JARS</p>
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0">{items_html}</table>
-        </td></tr>
-        <tr><td style="padding:8px 20px 16px;">
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid #e8dcc8;">
+             style="background:#ffffff;border:1px solid #eadfc8;border-radius:14px;">
+        <tr><td style="padding:18px 22px 6px;">
+          <div style="font-size:11px;font-weight:800;letter-spacing:2.5px;color:#b3a086;">YOUR JARS</div>
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:6px;">
+            {items_html}
+          </table>
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:12px 0 14px;">
             <tr>
-              <td style="padding-top:10px;color:#3a2a24;font-size:14px;">Total</td>
-              <td style="padding-top:10px;color:#241713;font-size:18px;font-weight:800;" align="right">Rs. {total:,}</td>
+              <td style="font-size:15px;color:#241713;padding-top:8px;font-weight:700;">Total</td>
+              <td align="right" style="font-size:24px;font-weight:900;color:#a92a1d;padding-top:8px;">Rs. {total:,}</td>
             </tr>
             <tr>
-              <td style="padding-top:4px;color:#3a2a24;font-size:14px;">Estimated delivery</td>
-              <td style="padding-top:4px;color:#241713;font-size:14px;font-weight:700;" align="right">{window}</td>
+              <td style="font-size:14px;color:#6f5d4e;padding-top:2px;">Estimated delivery</td>
+              <td align="right" style="font-size:14px;font-weight:800;color:#241713;padding-top:2px;">{window}</td>
             </tr>
           </table>
         </td></tr>
       </table>
-      <p style="margin:20px 0 8px;color:#3a2a24;font-size:14px;line-height:1.6;">
-        Fresh preparation starts now and takes 2-3 days, then 4-6 days of shipping.
-      </p>
-      <table role="presentation" cellpadding="0" cellspacing="0" style="margin:18px 0 6px;">
-        <tr><td style="background:#a92a1d;border-radius:999px;">
+    </td></tr>
+
+    <tr><td style="background:#fff4e4;padding:18px 32px 6px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+             style="background:#fbf3e2;border-left:4px solid #e6a62f;border-radius:0 10px 10px 0;">
+        <tr><td style="padding:14px 18px;font-size:13px;line-height:1.6;color:#5c4a3a;">
+          Every batch is cooked fresh after you order - 2-3 days in the kitchen,
+          then 4-6 days with the courier. Good pickle takes a little time.
+        </td></tr>
+      </table>
+    </td></tr>
+
+    <tr><td style="background:#fff4e4;padding:24px 32px 30px;" align="center">
+      <table role="presentation" cellpadding="0" cellspacing="0">
+        <tr><td style="background:#241713;border-radius:999px;" align="center">
           <a href="{track_url}"
-             style="display:inline-block;padding:13px 30px;color:#fff4e4;font-size:15px;font-weight:700;text-decoration:none;">
-            Track your order
+             style="display:inline-block;padding:15px 42px;color:#fff4e4;font-size:16px;font-weight:800;text-decoration:none;">
+            Track your order &rarr;
           </a>
         </td></tr>
       </table>
-      <p style="margin:16px 0 0;color:#8a7a6d;font-size:12px;">
-        Questions? Just reply to this email.
-      </p>
+      <div style="margin-top:14px;font-size:12px;color:#9c8a76;">
+        Keep your phone handy - the tracking page asks for the number used on this order.
+      </div>
     </td></tr>
-    <tr><td style="background:#241713;border-radius:0 0 16px 16px;padding:18px 28px;">
-      <p style="margin:0;color:#fff4e4;font-size:13px;font-weight:700;">Big pieces. Bold spice. Proper non-veg pickle.</p>
-      <p style="margin:4px 0 0;color:#e6a62f;font-size:12px;">Intlo chesina ruchi. India motham delivery.</p>
+
+    <tr><td style="background:#241713;border-radius:0 0 18px 18px;padding:22px 32px;" align="center">
+      <div style="font-size:14px;font-weight:800;color:#fff4e4;">Big pieces. Bold spice. Proper non-veg pickle.</div>
+      <div style="margin-top:5px;font-size:12px;color:#e6a62f;">Intlo chesina ruchi. India motham delivery.</div>
+      <div style="margin-top:12px;font-size:11px;color:#8d7b6c;">
+        Questions? Reply to this email or write to contact@mamayyapickles.com</div>
     </td></tr>
+
   </table>
-</div>"""
+</div>'''
 
 
 def send_order_emails(order_id: str, payload: "OrderCreate", total: int, window: str) -> None:
