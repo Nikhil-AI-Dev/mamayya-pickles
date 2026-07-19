@@ -123,9 +123,9 @@ export default function ProductStories() {
                     className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-[130%] h-8 rounded-[50%] bg-black/35 blur-lg"
                   />
                   {/* eslint-disable @next/next/no-img-element */}
-                  <img src="/ing-chicken.webp" alt="Fresh chicken pieces" width={470} height={341}
+                  <img src="/ing-garlic.webp" alt="Garlic" width={394} height={322}
                        loading="lazy" decoding="async"
-                       className="story-ingredient absolute bottom-10 -left-14 md:-left-20 w-32 md:w-44 z-0" />
+                       className="story-ingredient absolute bottom-10 -left-10 md:-left-16 w-24 md:w-32 rotate-[-5deg] z-0" />
                   <img src="/ing-chilli.webp" alt="Dried red chillies" width={416} height={416}
                        loading="lazy" decoding="async"
                        className="story-ingredient absolute bottom-12 -right-12 md:-right-16 w-28 md:w-40 rotate-[6deg] z-0" />
@@ -134,9 +134,9 @@ export default function ProductStories() {
                          loading="lazy" decoding="async"
                          className="w-full h-auto drop-shadow-2xl" />
                   </div>
-                  <img src="/ing-garlic.webp" alt="Garlic" width={394} height={322}
+                  <img src="/ing-chicken.webp" alt="Fresh chicken pieces" width={470} height={341}
                        loading="lazy" decoding="async"
-                       className="story-ingredient absolute -bottom-1 -left-7 md:-left-10 w-22 md:w-28 rotate-[-5deg] z-20 drop-shadow-lg" />
+                       className="story-ingredient absolute -bottom-2 -left-10 md:-left-16 w-32 md:w-44 z-20 drop-shadow-lg" />
                   <img src="/ing-curry.webp" alt="Curry leaves" width={417} height={341}
                        loading="lazy" decoding="async"
                        className="story-ingredient absolute -bottom-2 -right-5 md:-right-8 w-22 md:w-28 rotate-[10deg] z-20 drop-shadow-lg" />
