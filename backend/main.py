@@ -338,12 +338,35 @@ def send_order_emails(order_id: str, payload: "OrderCreate", total: int, window:
         "Mamayya Pickles\n"
         "Big pieces. Bold spice. Proper non-veg pickle."
     )
+    item_names = {
+        "chicken-pickle": "Chicken Pickle",
+        "mutton-pickle": "Mutton Pickle",
+        "fish-pickle": "Fish Pickle",
+        "shrimp-pickle": "Shrimp Pickle",
+        "tasting-box": "Mamayya Tasting Box",
+        "family-box": "Family Box",
+        "coastal-box": "Coastal Box",
+        "full-mamayya-box": "Full Mamayya Box",
+    }
+    item_lines = []
+    for line in payload.lines:
+        if isinstance(line, BoxLine):
+            name = item_names.get(line.boxSlug, line.boxSlug)
+            item_lines.append(f"  - {line.quantity} x {name}")
+        else:
+            name = item_names.get(line.productSlug, line.productSlug)
+            weight = f"{line.grams // 1000} kg" if line.grams >= 1000 else f"{line.grams} g"
+            item_lines.append(f"  - {line.quantity} x {name} ({weight})")
+
     owner_body = (
         f"New order {order_id}\n\n"
-        f"Name: {payload.name}\nPhone: {payload.phone}\nEmail: {payload.email}\n"
-        f"Address: {payload.address}, {payload.city} - {payload.pincode}\n"
+        f"Name: {payload.name}\n"
+        f"Phone: {payload.phone}\n"
+        f"Email: {payload.email}\n"
+        f"Address: {payload.address}, {payload.city} - {payload.pincode}\n\n"
+        "Items:\n" + "\n".join(item_lines) + "\n\n"
         f"Total: Rs. {total:,}\n"
-        f"Lines: {json.dumps([line.model_dump() for line in payload.lines], indent=2)}"
+        f"Estimated delivery: {window}"
     )
 
     def worker() -> None:
