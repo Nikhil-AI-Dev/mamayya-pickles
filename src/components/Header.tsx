@@ -23,9 +23,9 @@ export default function Header() {
           <img
             src="/logo-192.png"
             alt="Mamayya Pickles - Taste of Rayalaseema"
-            width={56}
-            height={56}
-            className="w-14 h-14 rounded-full"
+            width={64}
+            height={64}
+            className="w-16 h-16 rounded-full"
           />
           <span className="flex items-baseline gap-1.5">
             <span className="font-display font-extrabold text-2xl text-red leading-none">
