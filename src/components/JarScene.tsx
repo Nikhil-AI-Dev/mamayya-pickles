@@ -10,13 +10,18 @@ type JarSceneProps = {
 
 /**
  * Grounded still-life: the real jar with recipe ingredients seated around
- * its base. Chilli, garlic and curry leaves are in every recipe; the meat
- * plate exists only for chicken (the only meat photographed so far).
+ * its base. Chilli, garlic and curry leaves are in every recipe; flavours
+ * with a photographed meat plate show it back-left (prawn still pending).
  */
 export default function JarScene({ product, story = false, wide = false }: JarSceneProps) {
   const ing = story ? "story-ingredient " : "";
   const lazy = story ? { loading: "lazy" as const, decoding: "async" as const } : {};
-  const isChicken = product.slug === "chicken-pickle";
+  const MEAT_PLATES: Record<string, { src: string; alt: string }> = {
+    "chicken-pickle": { src: "/ing-chicken.webp", alt: "Fresh chicken pieces" },
+    "mutton-pickle": { src: "/ing-mutton.webp", alt: "Fresh mutton pieces" },
+    "fish-pickle": { src: "/ing-fish.webp", alt: "Fresh fish pieces" },
+  };
+  const plate = MEAT_PLATES[product.slug];
 
   return (
     <div className={`relative ${wide ? "w-64 md:w-80" : "w-56 md:w-72"} pb-8`}>
@@ -36,8 +41,8 @@ export default function JarScene({ product, story = false, wide = false }: JarSc
       />
       {/* eslint-disable @next/next/no-img-element */}
       {/* Back row */}
-      {isChicken ? (
-        <img src="/ing-chicken.webp" alt="Fresh chicken pieces" width={470} height={341}
+      {plate ? (
+        <img src={plate.src} alt={plate.alt} width={470} height={341}
              {...lazy}
              className={`${ing}absolute bottom-10 -left-12 md:-left-20 w-32 md:w-44 z-0`} />
       ) : (
@@ -55,7 +60,7 @@ export default function JarScene({ product, story = false, wide = false }: JarSc
              className="w-full h-auto drop-shadow-2xl" />
       </div>
       {/* Front row, leaning against the jar's base */}
-      {isChicken && (
+      {plate && (
         <img src="/ing-garlic.webp" alt="Garlic" width={394} height={322}
              {...lazy}
              className={`${ing}absolute -bottom-1 -left-7 md:-left-10 w-22 md:w-28 rotate-[-5deg] z-20 drop-shadow-lg`} />

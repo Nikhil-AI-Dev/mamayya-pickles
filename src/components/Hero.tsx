@@ -148,7 +148,7 @@ export default function Hero() {
           {/* The four jars, standing under the promise */}
           <div className="mt-10 flex gap-4 sm:gap-6">
             {products.map((p, i) => (
-              <div key={p.slug} className={`hero-flavour-${i} opacity-0 w-14 sm:w-16`}>
+              <div key={p.slug} className={`hero-flavour-${i} opacity-0 w-16 sm:w-20`}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={p.image} alt={`${p.name} jar`} width={640} height={1180}
                      className="w-full h-auto drop-shadow-lg" />
