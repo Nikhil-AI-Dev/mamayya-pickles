@@ -507,6 +507,9 @@ def send_admin_new_order_email(
         "delivery clock and send their confirmation email:\n"
         f"{confirm_url}"
     )
+    import html as html_mod
+
+    esc = html_mod.escape
     html = f"""\
 <div style="background:#f3e6d0;padding:28px 12px;font-family:Arial,Helvetica,sans-serif;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;margin:0 auto;">
@@ -523,9 +526,9 @@ def send_admin_new_order_email(
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
              style="background:#ffffff;border:1px solid #eadfc8;border-radius:10px;">
         <tr><td style="padding:14px 18px;font-size:14px;line-height:1.8;color:#241713;">
-          <strong>{payload.name}</strong><br>
-          {payload.phone} &nbsp;&bull;&nbsp; {payload.email}<br>
-          {payload.address}, {payload.city} - {payload.pincode}<br><br>
+          <strong>{esc(payload.name)}</strong><br>
+          {esc(payload.phone)} &nbsp;&bull;&nbsp; {esc(payload.email)}<br>
+          {esc(payload.address)}, {esc(payload.city)} - {esc(payload.pincode)}<br><br>
           {"<br>".join(line.strip("- ").strip() for line in item_lines)}<br><br>
           <strong style="color:#a92a1d;font-size:17px;">Total: Rs. {total:,}</strong>
         </td></tr>
@@ -671,7 +674,12 @@ def confirm_order(order_id: str, token: str = "") -> str:
             _sql("SELECT * FROM orders WHERE order_id = %s"),
             (order_id.strip().upper(),),
         ).fetchone()
-    if row is None or not token or row["confirm_token"] != token:
+    if (
+        row is None
+        or not token
+        or not row["confirm_token"]
+        or not hmac.compare_digest(str(row["confirm_token"]), token)
+    ):
         raise HTTPException(404, "Unknown order or invalid confirmation link.")
 
     def page(title: str, detail: str) -> str:
@@ -712,10 +720,12 @@ def confirm_order(order_id: str, token: str = "") -> str:
     send_customer_confirmation_email(
         row["order_id"], order_payload, row["total"], delivery_window(confirmed)
     )
+    import html as html_mod
+
     return page(
         f"{row['order_id']} confirmed",
-        f"{row['name']} has been emailed. The one-week delivery clock "
-        f"started now - door delivery by {delivery_window(confirmed)}.",
+        f"{html_mod.escape(row['name'])} has been emailed. The one-week delivery "
+        f"clock started now - door delivery by {delivery_window(confirmed)}.",
     )
 
 
