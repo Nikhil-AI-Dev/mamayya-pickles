@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
-import { ApiError, TrackedOrder, getOrder } from "@/lib/api";
+import { ApiError, TrackedOrder, getOrder, warmApi } from "@/lib/api";
 import { formatINR } from "@/lib/products";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
@@ -50,6 +50,7 @@ export default function TrackLookup() {
   useEffect(() => {
     const fromLink = new URLSearchParams(window.location.search).get("order");
     if (fromLink) setOrderId(fromLink);
+    warmApi();
   }, []);
 
   useGSAP(

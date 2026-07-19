@@ -43,6 +43,11 @@ export type TrackedOrder = {
   stages: OrderStage[];
 };
 
+/** Fire-and-forget wake-up for the free-tier API (cold starts take ~30s). */
+export function warmApi(): void {
+  fetch(`${API_BASE}/health`).catch(() => {});
+}
+
 export class ApiError extends Error {
   constructor(
     message: string,

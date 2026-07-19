@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { lineTitle, lineUnitPrice, useCart } from "@/lib/cart";
 import { deliveryWindow, formatINR } from "@/lib/products";
 import {
@@ -10,6 +10,7 @@ import {
   OrderDetails,
   createOrder,
   verifyPayment,
+  warmApi,
 } from "@/lib/api";
 
 type RazorpayHandlerResponse = {
@@ -50,6 +51,11 @@ export default function CheckoutClient() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirmation, setConfirmation] = useState<OrderConfirmation | null>(null);
+
+  // Wake the free-tier API while the shopper fills the form.
+  useEffect(() => {
+    warmApi();
+  }, []);
 
   if (confirmation) {
     return (

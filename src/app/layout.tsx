@@ -10,23 +10,28 @@ import CartDrawer from "@/components/CartDrawer";
 const bricolage = Bricolage_Grotesque({
   variable: "--font-bricolage",
   subsets: ["latin"],
-  weight: ["400", "600", "700", "800"],
+  weight: ["600", "700", "800"],
 });
 
 const manrope = Manrope({
   variable: "--font-manrope",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
+  weight: ["400", "600", "700", "800"],
 });
 
 const notoTelugu = Noto_Sans_Telugu({
   variable: "--font-noto-telugu",
   subsets: ["telugu"],
-  weight: ["400", "600", "700"],
+  weight: ["400"],
 });
+
+export const viewport = {
+  themeColor: "#241713",
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://mamayyapickles.com"),
+  manifest: "/site.webmanifest",
   title: "Mamayya Pickles - Big pieces. Bold spice. Proper non-veg pickle.",
   description:
     "Handmade non-veg pickles - chicken, mutton, fish and shrimp - packed with bold spices and delivered across India. Freshly prepared, online payment only.",
@@ -57,6 +62,10 @@ export default function RootLayout({
       lang="en"
       className={`${bricolage.variable} ${manrope.variable} ${notoTelugu.variable} h-full antialiased`}
     >
+      <head>
+        {/* Warm the connection to the order API before checkout/track need it. */}
+        <link rel="preconnect" href="https://mamayya-api.onrender.com" />
+      </head>
       <body className="min-h-full flex flex-col">
         <CartProvider>
           <Header />

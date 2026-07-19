@@ -70,6 +70,8 @@ export default function OurStoryPage() {
               alt="Mamayya Pickles stamp - Taste of Rayalaseema, with Mamayya's portrait"
               width={208}
               height={208}
+              loading="lazy"
+              decoding="async"
               className="w-52 h-52 rounded-full"
             />
             <p className="mt-5 text-cream/70 text-sm font-semibold">

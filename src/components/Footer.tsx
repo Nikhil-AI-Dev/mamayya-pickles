@@ -21,6 +21,8 @@ export default function Footer() {
               alt="Mamayya Pickles - Taste of Rayalaseema"
               width={104}
               height={104}
+              loading="lazy"
+              decoding="async"
               className="w-26 h-26 rounded-full"
             />
             <div>
