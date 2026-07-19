@@ -23,29 +23,14 @@ export default function Hero() {
           scrollTrigger: {
             trigger: sectionRef.current,
             start: "top top",
-            end: "+=180%",
+            end: "+=130%",
             scrub: 0.6,
             pin: true,
           },
         });
 
-        // 1. Lid lifts off
-        tl.to(".hero-lid", { y: -90, rotation: -14, ease: "power2.out" }, 0)
-          // Spice particles drift up as the jar opens
-          .to(
-            ".hero-particle",
-            { y: -70, opacity: 0.9, stagger: 0.04, ease: "power1.out" },
-            0.05
-          )
-          // 2. Spoon rises with a chunk
-          .fromTo(
-            ".hero-spoon",
-            { y: 90, rotation: 6, opacity: 0 },
-            { y: -30, rotation: -8, opacity: 1, ease: "power2.out" },
-            0.15
-          )
-          // 3. Headline swap
-          .to(".hero-headline-1", { yPercent: -30, opacity: 0, ease: "power1.in" }, 0.35)
+        // Headline swap
+        tl.to(".hero-headline-1", { yPercent: -30, opacity: 0, ease: "power1.in" }, 0.35)
           .fromTo(
             ".hero-headline-2",
             { yPercent: 30, opacity: 0 },
@@ -82,11 +67,10 @@ export default function Hero() {
       // Mobile and reduced motion: everything visible, no pin, no scrub.
       mm.add("(max-width: 767px), (prefers-reduced-motion: reduce)", () => {
         gsap.set(
-          [".hero-headline-2", ".hero-spoon", ".hero-flavour-0", ".hero-flavour-1", ".hero-flavour-2", ".hero-flavour-3"],
+          [".hero-headline-2", ".hero-flavour-0", ".hero-flavour-1", ".hero-flavour-2", ".hero-flavour-3"],
           { opacity: 1, x: 0, y: 0 }
         );
         gsap.set(".hero-headline-1", { opacity: 0 });
-        gsap.set(".hero-lid", { y: -60, rotation: -10 });
       });
     },
     { scope: sectionRef }
@@ -154,77 +138,23 @@ export default function Hero() {
 
         {/* Jar scene */}
         <div className="relative order-1 md:order-2 grid place-items-center">
-          <div className="relative w-56 sm:w-72 lg:w-80">
-            {/* Spice particles */}
-            {[...Array(7)].map((_, i) => (
-              <span
-                key={i}
-                aria-hidden
-                className="hero-particle absolute rounded-full opacity-0"
-                style={{
-                  width: 5 + (i % 3) * 3,
-                  height: 5 + (i % 3) * 3,
-                  left: `${18 + i * 10}%`,
-                  top: `${8 + (i % 4) * 6}%`,
-                  background: i % 2 ? "#e6a62f" : "#c65b32",
-                }}
+          <div className="relative w-64 sm:w-80 lg:w-[26rem]">
+            {/* Gold offset ring around the arch */}
+            <div
+              aria-hidden
+              className="absolute -inset-3 rounded-t-full rounded-b-[2.5rem] border-2 border-gold/40"
+            />
+            {/* Arch window onto the spice table */}
+            <div className="overflow-hidden rounded-t-full rounded-b-[2rem] shadow-jar">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/hero-jar.webp"
+                alt="Mamayya pickle jar on the spice table with brass pots and dried chillies"
+                width={1672}
+                height={941}
+                className="w-full h-auto object-cover aspect-[3/4] object-[62%_center]"
               />
-            ))}
-
-            {/* Main jar with animatable lid */}
-            <svg viewBox="0 0 160 200" className="w-full drop-shadow-2xl" role="img" aria-label="Mamayya pickle jar opening">
-              <defs>
-                <linearGradient id="hero-oil" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#c65b32" stopOpacity="0.85" />
-                  <stop offset="60%" stopColor="#a92a1d" />
-                  <stop offset="100%" stopColor="#8a2015" />
-                </linearGradient>
-                <clipPath id="hero-jarclip">
-                  <path d="M38 56 Q30 60 30 74 L30 156 Q30 176 52 176 L108 176 Q130 176 130 156 L130 74 Q130 60 122 56 Z" />
-                </clipPath>
-              </defs>
-
-              {/* Lid - GSAP target */}
-              <g className="hero-lid">
-                <rect x="42" y="30" width="76" height="18" rx="6" fill="#3a2a24" />
-                <rect x="42" y="42" width="76" height="6" rx="3" fill="#241713" />
-                <rect x="52" y="24" width="56" height="10" rx="5" fill="#241713" />
-                <text x="80" y="41" textAnchor="middle" fontSize="9" fill="#e6a62f" fontWeight="bold">
-                  MAMAYYA
-                </text>
-              </g>
-
-              {/* Spoon rising with chunk - GSAP target */}
-              <g className="hero-spoon" opacity="0">
-                <rect x="76" y="-40" width="7" height="95" rx="3.5" fill="#e6a62f" transform="rotate(14 80 40)" />
-                <ellipse cx="70" cy="58" rx="16" ry="11" fill="#e6a62f" transform="rotate(14 70 58)" />
-                <circle cx="70" cy="54" r="9" fill="#8a2015" />
-                <circle cx="77" cy="58" r="5" fill="#a92a1d" />
-              </g>
-
-              {/* Glass body */}
-              <path
-                d="M38 56 Q30 60 30 74 L30 156 Q30 176 52 176 L108 176 Q130 176 130 156 L130 74 Q130 60 122 56 Z"
-                fill="#fffdf8"
-                fillOpacity="0.9"
-                stroke="#fff4e4"
-                strokeWidth="3"
-              />
-
-              <g clipPath="url(#hero-jarclip)">
-                <rect className="animate-oil" x="28" y="72" width="104" height="110" fill="url(#hero-oil)" />
-                <ellipse cx="80" cy="74" rx="50" ry="5" fill="#c65b32" opacity="0.7" />
-                <circle cx="58" cy="102" r="12" fill="#241713" opacity="0.35" />
-                <circle cx="94" cy="122" r="14" fill="#241713" opacity="0.3" />
-                <circle cx="68" cy="146" r="11" fill="#241713" opacity="0.32" />
-                <circle cx="106" cy="152" r="9" fill="#241713" opacity="0.28" />
-                <ellipse cx="82" cy="92" rx="9" ry="3" fill="#31533b" opacity="0.6" transform="rotate(-18 82 92)" />
-                <ellipse cx="52" cy="128" rx="8" ry="3" fill="#31533b" opacity="0.55" transform="rotate(28 52 128)" />
-                <rect x="40" y="62" width="8" height="104" rx="4" fill="#ffffff" opacity="0.3" />
-              </g>
-
-              <rect x="36" y="52" width="88" height="8" rx="4" fill="#fff4e4" opacity="0.25" />
-            </svg>
+            </div>
 
             {/* Four flavour jars flying in */}
             <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 flex gap-2 sm:gap-3">
