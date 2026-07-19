@@ -68,7 +68,7 @@ export default function TrackLookup() {
           scrollTrigger: {
             trigger: stagesRef.current,
             start: "top 75%",
-            toggleActions: "play none none none",
+            once: true,
           },
         });
       });
