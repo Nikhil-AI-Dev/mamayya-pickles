@@ -19,7 +19,7 @@ export const faqs: Faq[] = [
   },
   {
     q: "What about allergens?",
-    a: "Fish pickle contains fish; shrimp pickle contains crustacean shellfish. All varieties use gingelly (sesame) oil and mustard. Full allergen lists appear on each product page and every jar label.",
+    a: "Fish pickle contains fish; prawn pickle contains crustacean shellfish. All varieties use gingelly (sesame) oil and mustard. Full allergen lists appear on each product page and every jar label.",
   },
   {
     q: "Can I track my order?",

@@ -6,7 +6,7 @@ import { DELIVERY_NOTE } from "@/lib/products";
 export const metadata: Metadata = {
   title: "Shop | Mamayya Pickles",
   description:
-    "Chicken, mutton, fish and shrimp pickle in 250 g to 5 kg jars, plus ready-made boxes. Freshly prepared, shipped across India.",
+    "Chicken, mutton, fish and prawn pickle in 250 g to 5 kg jars, plus ready-made boxes. Freshly prepared, shipped across India.",
 };
 
 export default function ShopPage() {

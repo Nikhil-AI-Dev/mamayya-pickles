@@ -30,7 +30,7 @@ const MEAT_TO_SLUG: Record<string, string> = {
   Chicken: "chicken-pickle",
   Mutton: "mutton-pickle",
   Fish: "fish-pickle",
-  Shrimp: "shrimp-pickle",
+  Prawn: "shrimp-pickle",
 };
 
 function recommend(answers: Record<AnswerKey, string>) {
