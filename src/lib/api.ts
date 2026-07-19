@@ -18,7 +18,10 @@ export type OrderConfirmation = {
   total: number;
   deliveryWindow: string;
   status: string;
+  paymentStatus: "test" | "pending" | "paid";
   paymentNote: string;
+  razorpayOrderId?: string;
+  razorpayKeyId?: string;
 };
 
 export type OrderStage = {
@@ -85,4 +88,16 @@ export function createOrder(
 
 export function getOrder(orderId: string): Promise<TrackedOrder> {
   return request<TrackedOrder>(`/api/orders/${encodeURIComponent(orderId.trim())}`);
+}
+
+export function verifyPayment(
+  orderId: string,
+  razorpayOrderId: string,
+  razorpayPaymentId: string,
+  razorpaySignature: string
+): Promise<{ orderId: string; paymentStatus: string }> {
+  return request(`/api/orders/${encodeURIComponent(orderId)}/verify-payment`, {
+    method: "POST",
+    body: JSON.stringify({ razorpayOrderId, razorpayPaymentId, razorpaySignature }),
+  });
 }

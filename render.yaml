@@ -18,6 +18,11 @@ services:
       # Leave unset to skip emails entirely.
       - key: SMTP_PASS
         sync: false
+      # Razorpay keys; leave unset to keep orders in test mode (no payment).
+      - key: RAZORPAY_KEY_ID
+        sync: false
+      - key: RAZORPAY_KEY_SECRET
+        sync: false
 
 databases:
   - name: mamayya-db

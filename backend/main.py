@@ -7,12 +7,17 @@ integrated; orders are stored as test orders.
 Run:  uvicorn main:app --port 8001 --reload  (from the backend/ directory)
 """
 
+import base64
+import hashlib
+import hmac
 import json
 import logging
 import os
 import smtplib
 import sqlite3
 import threading
+import urllib.error
+import urllib.request
 from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
 from email.message import EmailMessage
@@ -40,6 +45,46 @@ if IS_PG:
 def _sql(query: str) -> str:
     """SQL is written with %s placeholders; SQLite wants ?."""
     return query if IS_PG else query.replace("%s", "?")
+
+
+# Razorpay: payments switch on when both keys are present, otherwise every
+# order is stored as a test order exactly as before.
+RAZORPAY_KEY_ID = os.environ.get("RAZORPAY_KEY_ID", "")
+RAZORPAY_KEY_SECRET = os.environ.get("RAZORPAY_KEY_SECRET", "")
+PAYMENTS_ENABLED = bool(RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET)
+
+
+def razorpay_create_order(amount_inr: int, receipt: str) -> str:
+    """Create a Razorpay order, return its id. Amount is rupees; API wants paise."""
+    auth = base64.b64encode(
+        f"{RAZORPAY_KEY_ID}:{RAZORPAY_KEY_SECRET}".encode()
+    ).decode()
+    req = urllib.request.Request(
+        "https://api.razorpay.com/v1/orders",
+        data=json.dumps(
+            {"amount": amount_inr * 100, "currency": "INR", "receipt": receipt}
+        ).encode(),
+        headers={
+            "Content-Type": "application/json",
+            "Authorization": f"Basic {auth}",
+        },
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=15) as res:
+            return json.loads(res.read())["id"]
+    except urllib.error.URLError as exc:
+        logger.exception("razorpay order create failed")
+        raise HTTPException(502, "Payment service is unavailable. Try again.") from exc
+
+
+def razorpay_signature_valid(order_id: str, payment_id: str, signature: str) -> bool:
+    expected = hmac.new(
+        RAZORPAY_KEY_SECRET.encode(),
+        f"{order_id}|{payment_id}".encode(),
+        hashlib.sha256,
+    ).hexdigest()
+    return hmac.compare_digest(expected, signature)
 
 # Prices mirror src/lib/products.ts. The server is the pricing authority:
 # client-sent prices are ignored, totals are recomputed here.
@@ -121,7 +166,9 @@ def init_db() -> None:
             lines_json TEXT NOT NULL,
             subtotal INTEGER NOT NULL,
             shipping INTEGER NOT NULL,
-            total INTEGER NOT NULL
+            total INTEGER NOT NULL,
+            payment_status TEXT NOT NULL DEFAULT 'test',
+            razorpay_order_id TEXT
         )
         """,
         f"""
@@ -137,6 +184,16 @@ def init_db() -> None:
     with db() as conn:
         for statement in ddl:
             conn.execute(statement)
+    # Columns added after the first production deploy; harmless when present.
+    for column_ddl in (
+        "ALTER TABLE orders ADD COLUMN payment_status TEXT NOT NULL DEFAULT 'test'",
+        "ALTER TABLE orders ADD COLUMN razorpay_order_id TEXT",
+    ):
+        try:
+            with db() as conn:
+                conn.execute(column_ddl)
+        except Exception:
+            pass  # column already exists
 
 
 init_db()
@@ -276,14 +333,16 @@ def create_order(payload: OrderCreate) -> dict:
     total = subtotal + shipping
     created = datetime.now(timezone.utc)
 
+    payment_status = "pending" if PAYMENTS_ENABLED else "test"
+
     with db() as conn:
         cur = conn.execute(
             _sql(
                 """
                 INSERT INTO orders
                     (created_at, name, phone, email, address, city, pincode,
-                     lines_json, subtotal, shipping, total)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                     lines_json, subtotal, shipping, total, payment_status)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 RETURNING rowid_pk
                 """
             ),
@@ -299,6 +358,7 @@ def create_order(payload: OrderCreate) -> dict:
                 subtotal,
                 shipping,
                 total,
+                payment_status,
             ),
         )
         row_id = cur.fetchone()["rowid_pk"]
@@ -309,17 +369,84 @@ def create_order(payload: OrderCreate) -> dict:
         )
 
     window = delivery_window(created)
-    send_order_emails(order_id, payload, total, window)
 
-    return {
+    response = {
         "orderId": order_id,
         "subtotal": subtotal,
         "shipping": shipping,
         "total": total,
         "deliveryWindow": window,
         "status": "confirmed",
-        "paymentNote": "Test order. Payment gateway is not live; no money has moved.",
+        "paymentStatus": payment_status,
     }
+
+    if PAYMENTS_ENABLED:
+        rzp_order_id = razorpay_create_order(total, order_id)
+        with db() as conn:
+            conn.execute(
+                _sql("UPDATE orders SET razorpay_order_id = %s WHERE order_id = %s"),
+                (rzp_order_id, order_id),
+            )
+        response["razorpayOrderId"] = rzp_order_id
+        response["razorpayKeyId"] = RAZORPAY_KEY_ID
+        response["paymentNote"] = "Complete the payment to confirm your order."
+        # Confirmation email waits for successful payment (see verify endpoint).
+    else:
+        response["paymentNote"] = (
+            "Test order. Payment gateway is not live; no money has moved."
+        )
+        send_order_emails(order_id, payload, total, window)
+
+    return response
+
+
+class PaymentVerify(BaseModel):
+    razorpayOrderId: str = Field(min_length=5, max_length=64)
+    razorpayPaymentId: str = Field(min_length=5, max_length=64)
+    razorpaySignature: str = Field(min_length=10, max_length=256)
+
+
+@app.post("/api/orders/{order_id}/verify-payment")
+def verify_payment(order_id: str, payload: PaymentVerify) -> dict:
+    if not PAYMENTS_ENABLED:
+        raise HTTPException(400, "Payments are not enabled.")
+    with db() as conn:
+        row = conn.execute(
+            _sql("SELECT * FROM orders WHERE order_id = %s"),
+            (order_id.strip().upper(),),
+        ).fetchone()
+    if row is None:
+        raise HTTPException(404, "No order found with that number.")
+    if row["razorpay_order_id"] != payload.razorpayOrderId:
+        raise HTTPException(400, "Payment does not match this order.")
+    if not razorpay_signature_valid(
+        payload.razorpayOrderId, payload.razorpayPaymentId, payload.razorpaySignature
+    ):
+        raise HTTPException(400, "Payment verification failed.")
+
+    with db() as conn:
+        conn.execute(
+            _sql("UPDATE orders SET payment_status = 'paid' WHERE order_id = %s"),
+            (row["order_id"],),
+        )
+
+    created = datetime.fromisoformat(row["created_at"])
+    order_payload = OrderCreate(
+        name=row["name"],
+        phone=row["phone"],
+        email=row["email"],
+        address=row["address"],
+        city=row["city"],
+        pincode=row["pincode"],
+        lines=json.loads(row["lines_json"]),
+    )
+    send_order_emails(row["order_id"], order_payload, row["total"], delivery_window(created))
+    return {"orderId": row["order_id"], "paymentStatus": "paid"}
+
+
+@app.get("/api/config")
+def get_config() -> dict:
+    return {"paymentsEnabled": PAYMENTS_ENABLED, "razorpayKeyId": RAZORPAY_KEY_ID}
 
 
 @app.get("/api/orders/{order_id}")
@@ -339,6 +466,7 @@ def get_order(order_id: str) -> dict:
         "total": row["total"],
         "deliveryWindow": delivery_window(created),
         "lines": json.loads(row["lines_json"]),
+        "paymentStatus": row["payment_status"],
         **stage_info(created),
     }
 
