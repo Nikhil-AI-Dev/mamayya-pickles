@@ -274,6 +274,10 @@ SMTP_USER = os.environ.get("SMTP_USER", "contact@mamayyapickles.com")
 SMTP_PASS = os.environ.get("SMTP_PASS", "")
 ORDER_NOTIFY_TO = os.environ.get("ORDER_NOTIFY_TO", SMTP_USER)
 
+# Last email delivery outcome, surfaced (sanitized) in /api/config so mail
+# problems can be diagnosed without dashboard access. Never contains secrets.
+_email_state: dict = {"lastResult": None, "lastErrorAt": None}
+
 
 def _send_email(to: str, subject: str, body: str) -> None:
     msg = EmailMessage()
@@ -315,8 +319,12 @@ def send_order_emails(order_id: str, payload: "OrderCreate", total: int, window:
         try:
             _send_email(payload.email, f"Order {order_id} confirmed - Mamayya Pickles", customer_body)
             _send_email(ORDER_NOTIFY_TO, f"New order {order_id} - Rs. {total:,}", owner_body)
-        except Exception:
+            _email_state["lastResult"] = "sent"
+        except Exception as exc:
             logger.exception("order email failed for %s", order_id)
+            detail = str(exc)[:300].replace(SMTP_PASS, "***") if SMTP_PASS else str(exc)[:300]
+            _email_state["lastResult"] = f"{type(exc).__name__}: {detail}"
+            _email_state["lastErrorAt"] = datetime.now(timezone.utc).isoformat()
 
     threading.Thread(target=worker, daemon=True).start()
 
@@ -446,7 +454,12 @@ def verify_payment(order_id: str, payload: PaymentVerify) -> dict:
 
 @app.get("/api/config")
 def get_config() -> dict:
-    return {"paymentsEnabled": PAYMENTS_ENABLED, "razorpayKeyId": RAZORPAY_KEY_ID}
+    return {
+        "paymentsEnabled": PAYMENTS_ENABLED,
+        "razorpayKeyId": RAZORPAY_KEY_ID,
+        "emailConfigured": bool(SMTP_PASS),
+        "lastEmailResult": _email_state["lastResult"],
+    }
 
 
 @app.get("/api/orders/{order_id}")
