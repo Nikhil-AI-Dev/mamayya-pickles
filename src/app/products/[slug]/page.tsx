@@ -48,27 +48,35 @@ export default async function ProductPage({
       >
         <div className="mx-auto max-w-6xl px-4 md:px-6 py-14 md:py-20 grid md:grid-cols-2 gap-10 items-center">
           <div className="relative grid place-items-center">
-            <span className="absolute -top-2 left-8 text-3xl animate-float" aria-hidden>
-              🌶️
-            </span>
-            <span className="absolute bottom-6 right-8 text-3xl" aria-hidden>
-              {product.emoji}
-            </span>
             {product.slug === "chicken-pickle" ? (
-              <div className="w-56 md:w-72 rounded-3xl bg-white p-3 shadow-jar rotate-[-2deg]">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="/jar-chicken.jpg"
-                  alt="Mamayya Chicken Pickle jar"
-                  width={900}
-                  height={1600}
-                  className="w-full h-auto rounded-2xl"
-                />
-              </div>
+              <>
+                {/* eslint-disable @next/next/no-img-element */}
+                <img src="/ing-chicken.webp" alt="Fresh chicken pieces" width={320} height={236}
+                     className="absolute -top-4 left-0 w-24 md:w-32 drop-shadow-lg animate-float" />
+                <img src="/ing-chilli.webp" alt="Dried red chillies" width={320} height={286}
+                     className="absolute top-8 -right-2 w-20 md:w-28 drop-shadow-lg" />
+                <img src="/ing-garlic.webp" alt="Garlic" width={320} height={263}
+                     className="absolute bottom-2 -left-3 w-20 md:w-28 drop-shadow-lg" />
+                <img src="/ing-curry.webp" alt="Curry leaves" width={320} height={263}
+                     className="absolute -bottom-4 right-4 w-20 md:w-28 drop-shadow-lg animate-float" />
+                <div className="w-52 md:w-64 animate-float">
+                  <img src="/jar-chicken.webp" alt="Mamayya Chicken Pickle jar" width={640} height={1153}
+                       className="w-full h-auto drop-shadow-2xl" />
+                </div>
+                {/* eslint-enable @next/next/no-img-element */}
+              </>
             ) : (
-              <div className="w-52 md:w-64 animate-float">
-                <JarIllustration color={product.color} label={`${product.name} jar`} />
-              </div>
+              <>
+                <span className="absolute -top-2 left-8 text-3xl animate-float" aria-hidden>
+                  🌶️
+                </span>
+                <span className="absolute bottom-6 right-8 text-3xl" aria-hidden>
+                  {product.emoji}
+                </span>
+                <div className="w-52 md:w-64 animate-float">
+                  <JarIllustration color={product.color} label={`${product.name} jar`} />
+                </div>
+              </>
             )}
           </div>
           <div>
@@ -122,20 +130,6 @@ export default async function ProductPage({
               What&apos;s inside the jar
             </h2>
 
-            {product.slug === "chicken-pickle" && (
-              <div className="mt-5 rounded-2xl bg-white p-3 border border-charcoal/10">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="/ingredients-chicken.jpg"
-                  alt="Fresh chicken, dried red chillies, garlic and curry leaves - the chicken pickle ingredients"
-                  width={1024}
-                  height={1536}
-                  loading="lazy"
-                  decoding="async"
-                  className="w-full h-auto rounded-xl"
-                />
-              </div>
-            )}
 
             <dl className="mt-5 space-y-5 text-sm">
               <div>

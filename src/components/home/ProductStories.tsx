@@ -107,44 +107,42 @@ export default function ProductStories() {
             }`}
           >
             <div className="[direction:ltr] relative grid place-items-center">
-              {/* Floating ingredient chips */}
-              <span className="story-ingredient absolute -top-4 left-8 text-3xl" aria-hidden>🌶️</span>
-              <span className="story-ingredient absolute top-10 right-6 text-2xl" aria-hidden>🍃</span>
-              <span className="story-ingredient absolute bottom-8 left-4 text-2xl" aria-hidden>🧄</span>
-              <span className="story-ingredient absolute -bottom-2 right-12 text-3xl" aria-hidden>
-                {p.emoji}
-              </span>
               {p.slug === "chicken-pickle" ? (
-                <div className="flex flex-col items-center gap-4">
-                  <div className="story-jar w-52 md:w-60 rounded-3xl bg-cream p-3 shadow-jar rotate-[-2deg]">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src="/jar-chicken.jpg"
-                      alt="Mamayya Chicken Pickle jar"
-                      width={900}
-                      height={1600}
-                      loading="lazy"
-                      decoding="async"
-                      className="w-full h-auto rounded-2xl"
-                    />
+                <>
+                  {/* Real ingredient cutouts float where the emojis do elsewhere */}
+                  {/* eslint-disable @next/next/no-img-element */}
+                  <img src="/ing-chicken.webp" alt="Fresh chicken pieces" width={320} height={236}
+                       loading="lazy" decoding="async"
+                       className="story-ingredient absolute -top-6 -left-2 w-24 md:w-32 drop-shadow-lg" />
+                  <img src="/ing-chilli.webp" alt="Dried red chillies" width={320} height={286}
+                       loading="lazy" decoding="async"
+                       className="story-ingredient absolute top-6 -right-2 w-20 md:w-28 drop-shadow-lg" />
+                  <img src="/ing-garlic.webp" alt="Garlic" width={320} height={263}
+                       loading="lazy" decoding="async"
+                       className="story-ingredient absolute bottom-4 -left-4 w-20 md:w-28 drop-shadow-lg" />
+                  <img src="/ing-curry.webp" alt="Curry leaves" width={320} height={263}
+                       loading="lazy" decoding="async"
+                       className="story-ingredient absolute -bottom-6 right-2 w-20 md:w-28 drop-shadow-lg" />
+                  <div className="story-jar w-44 md:w-56 animate-float">
+                    <img src="/jar-chicken.webp" alt="Mamayya Chicken Pickle jar" width={640} height={1153}
+                         loading="lazy" decoding="async"
+                         className="w-full h-auto drop-shadow-2xl" />
                   </div>
-                  <div className="story-ingredient w-40 rounded-2xl bg-cream p-2 shadow-card rotate-[2deg]">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src="/ingredients-chicken.jpg"
-                      alt="Chicken pickle ingredients: chicken, red chillies, garlic, curry leaves"
-                      width={1024}
-                      height={1536}
-                      loading="lazy"
-                      decoding="async"
-                      className="w-full h-auto rounded-xl"
-                    />
-                  </div>
-                </div>
+                  {/* eslint-enable @next/next/no-img-element */}
+                </>
               ) : (
-                <div className="story-jar w-48 md:w-60 animate-float">
-                  <JarIllustration color={p.color} label={`${p.name} jar`} />
-                </div>
+                <>
+                  {/* Floating ingredient chips */}
+                  <span className="story-ingredient absolute -top-4 left-8 text-3xl" aria-hidden>🌶️</span>
+                  <span className="story-ingredient absolute top-10 right-6 text-2xl" aria-hidden>🍃</span>
+                  <span className="story-ingredient absolute bottom-8 left-4 text-2xl" aria-hidden>🧄</span>
+                  <span className="story-ingredient absolute -bottom-2 right-12 text-3xl" aria-hidden>
+                    {p.emoji}
+                  </span>
+                  <div className="story-jar w-48 md:w-60 animate-float">
+                    <JarIllustration color={p.color} label={`${p.name} jar`} />
+                  </div>
+                </>
               )}
             </div>
 

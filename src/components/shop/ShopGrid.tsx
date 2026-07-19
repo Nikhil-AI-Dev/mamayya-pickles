@@ -42,16 +42,16 @@ function ProductCard({ product }: { product: Product }) {
           {product.mood}
         </span>
         {product.slug === "chicken-pickle" ? (
-          <div className="w-32 rounded-2xl bg-white p-1.5 shadow-card transition-transform duration-300 group-hover:-translate-y-1">
+          <div className="w-24 transition-transform duration-300 group-hover:-translate-y-1">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/jar-chicken.jpg"
+              src="/jar-chicken.webp"
               alt="Mamayya Chicken Pickle jar"
-              width={900}
-              height={1600}
+              width={640}
+              height={1153}
               loading="lazy"
               decoding="async"
-              className="w-full h-auto rounded-xl"
+              className="w-full h-auto drop-shadow-lg"
             />
           </div>
         ) : (
