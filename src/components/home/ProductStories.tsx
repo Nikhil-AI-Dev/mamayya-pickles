@@ -123,12 +123,9 @@ export default function ProductStories() {
                     className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-[130%] h-8 rounded-[50%] bg-black/35 blur-lg"
                   />
                   {/* eslint-disable @next/next/no-img-element */}
-                  <img src="/ing-garlic.webp" alt="Garlic" width={394} height={322}
-                       loading="lazy" decoding="async"
-                       className="story-ingredient absolute bottom-10 -left-10 md:-left-16 w-24 md:w-32 rotate-[-5deg] z-0" />
                   <img src="/ing-chilli.webp" alt="Dried red chillies" width={416} height={416}
                        loading="lazy" decoding="async"
-                       className="story-ingredient absolute bottom-12 -right-12 md:-right-16 w-28 md:w-40 rotate-[6deg] z-0" />
+                       className="story-ingredient absolute bottom-0 -right-10 md:-right-16 w-28 md:w-36 rotate-[4deg] z-0" />
                   <div className="story-jar relative z-10 animate-float">
                     <img src="/jar-chicken.webp" alt="Mamayya Chicken Pickle jar" width={640} height={1153}
                          loading="lazy" decoding="async"
@@ -136,10 +133,13 @@ export default function ProductStories() {
                   </div>
                   <img src="/ing-chicken.webp" alt="Fresh chicken pieces" width={470} height={341}
                        loading="lazy" decoding="async"
-                       className="story-ingredient absolute -bottom-3 -left-12 md:-left-20 w-36 md:w-52 z-20 drop-shadow-lg" />
+                       className="story-ingredient absolute -bottom-2 -left-16 md:-left-28 w-36 md:w-48 z-20 drop-shadow-lg" />
+                  <img src="/ing-garlic.webp" alt="Garlic" width={394} height={322}
+                       loading="lazy" decoding="async"
+                       className="story-ingredient absolute -bottom-1 left-2 md:left-0 w-16 md:w-20 z-30 drop-shadow-md" />
                   <img src="/ing-curry.webp" alt="Curry leaves" width={417} height={341}
                        loading="lazy" decoding="async"
-                       className="story-ingredient absolute -bottom-2 -right-5 md:-right-8 w-22 md:w-28 rotate-[10deg] z-20 drop-shadow-lg" />
+                       className="story-ingredient absolute -bottom-2 right-0 md:right-1 w-20 md:w-24 rotate-[12deg] z-20 drop-shadow-lg" />
                   {/* eslint-enable @next/next/no-img-element */}
                 </div>
               ) : (

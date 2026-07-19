@@ -66,10 +66,8 @@ export default async function ProductPage({
                 />
                 {/* eslint-disable @next/next/no-img-element */}
                 {/* Back row, standing on the same line as the jar */}
-                <img src="/ing-garlic.webp" alt="Garlic" width={394} height={322}
-                     className="absolute bottom-10 -left-12 md:-left-20 w-28 md:w-36 rotate-[-5deg] z-0" />
                 <img src="/ing-chilli.webp" alt="Dried red chillies" width={416} height={416}
-                     className="absolute bottom-12 -right-14 md:-right-20 w-32 md:w-44 rotate-[6deg] z-0" />
+                     className="absolute bottom-0 -right-12 md:-right-20 w-32 md:w-40 rotate-[4deg] z-0" />
                 {/* The jar owns the frame */}
                 <div className="relative z-10 animate-float">
                   <img src="/jar-chicken.webp" alt="Mamayya Chicken Pickle jar" width={640} height={1153}
@@ -77,9 +75,11 @@ export default async function ProductPage({
                 </div>
                 {/* Front row, leaning against the jar's base */}
                 <img src="/ing-chicken.webp" alt="Fresh chicken pieces" width={470} height={341}
-                     className="absolute -bottom-3 -left-14 md:-left-24 w-40 md:w-56 z-20 drop-shadow-lg" />
+                     className="absolute -bottom-2 -left-20 md:-left-32 w-40 md:w-52 z-20 drop-shadow-lg" />
+                <img src="/ing-garlic.webp" alt="Garlic" width={394} height={322}
+                     className="absolute -bottom-1 left-2 md:left-0 w-18 md:w-24 z-30 drop-shadow-md" />
                 <img src="/ing-curry.webp" alt="Curry leaves" width={417} height={341}
-                     className="absolute -bottom-2 -right-6 md:-right-10 w-24 md:w-32 rotate-[10deg] z-20 drop-shadow-lg" />
+                     className="absolute -bottom-2 right-0 md:right-2 w-22 md:w-28 rotate-[12deg] z-20 drop-shadow-lg" />
                 {/* eslint-enable @next/next/no-img-element */}
               </div>
             ) : (
