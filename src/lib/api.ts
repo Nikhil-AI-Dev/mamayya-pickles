@@ -36,6 +36,7 @@ export type TrackedOrder = {
   name: string;
   total: number;
   deliveryWindow: string;
+  paymentStatus: "test" | "pending" | "paid";
   currentStage: string;
   currentStageIndex: number;
   stages: OrderStage[];

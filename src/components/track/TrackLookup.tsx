@@ -160,6 +160,16 @@ export default function TrackLookup() {
                 <dd className="font-bold">{order.deliveryWindow}</dd>
               </div>
               <div className="flex justify-between">
+                <dt className="text-cream/70">Payment</dt>
+                <dd className="font-bold">
+                  {order.paymentStatus === "paid"
+                    ? "Paid"
+                    : order.paymentStatus === "pending"
+                      ? "Payment pending"
+                      : "Test order"}
+                </dd>
+              </div>
+              <div className="flex justify-between">
                 <dt className="text-cream/70">Current stage</dt>
                 <dd className="font-bold text-gold">
                   {STAGE_COPY[order.currentStage]?.name ?? order.currentStage}
