@@ -38,30 +38,23 @@ export default function Hero() {
             0.45
           )
           // 4. Four flavour jars fly in from different directions
-          .fromTo(
-            ".hero-flavour-0",
-            { x: -180, y: 60, opacity: 0, rotation: -18 },
-            { x: 0, y: 0, opacity: 1, rotation: -6, ease: "back.out(1.4)" },
-            0.55
-          )
-          .fromTo(
-            ".hero-flavour-1",
-            { x: 180, y: 60, opacity: 0, rotation: 18 },
-            { x: 0, y: 0, opacity: 1, rotation: 6, ease: "back.out(1.4)" },
-            0.6
-          )
-          .fromTo(
-            ".hero-flavour-2",
-            { x: -140, y: -60, opacity: 0, rotation: -14 },
-            { x: 0, y: 0, opacity: 1, rotation: -3, ease: "back.out(1.4)" },
-            0.65
-          )
-          .fromTo(
-            ".hero-flavour-3",
-            { x: 140, y: -60, opacity: 0, rotation: 14 },
-            { x: 0, y: 0, opacity: 1, rotation: 3, ease: "back.out(1.4)" },
-            0.7
-          );
+;
+
+        // The four jars pop in on load so every visitor sees them,
+        // independent of how far they scroll.
+        gsap.fromTo(
+          [".hero-flavour-0", ".hero-flavour-1", ".hero-flavour-2", ".hero-flavour-3"],
+          { y: 40, opacity: 0, rotation: -6 },
+          {
+            y: 0,
+            opacity: 1,
+            rotation: 0,
+            stagger: 0.1,
+            duration: 0.6,
+            delay: 0.5,
+            ease: "back.out(1.4)",
+          }
+        );
       });
 
       // Mobile and reduced motion: everything visible, no pin, no scrub.
