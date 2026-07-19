@@ -106,6 +106,16 @@ export default function Hero() {
         }}
       />
 
+      {/* Brand stamp - the one place the full badge shows at readable size */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/logo.png"
+        alt="Mamayya Pickles stamp - Taste of Rayalaseema"
+        width={208}
+        height={208}
+        className="hidden md:block absolute top-10 right-10 w-44 lg:w-52 rotate-[-7deg] drop-shadow-[0_10px_30px_rgba(0,0,0,0.45)]"
+      />
+
       <div className="relative mx-auto max-w-6xl px-4 md:px-6 min-h-dvh grid md:grid-cols-2 items-center gap-8 py-20">
         {/* Copy */}
         <div className="relative z-10 order-2 md:order-1">
