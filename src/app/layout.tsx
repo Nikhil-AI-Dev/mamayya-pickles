@@ -70,6 +70,20 @@ export default function RootLayout({
         <link rel="preconnect" href="https://mamayya-api.onrender.com" />
       </head>
       <body className="min-h-full flex flex-col">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              name: "Mamayya Pickles",
+              url: "https://mamayyapickles.com",
+              logo: "https://mamayyapickles.com/logo-512.png",
+              email: "contact@mamayyapickles.com",
+              sameAs: ["https://www.instagram.com/mamayyapickle/"],
+            }),
+          }}
+        />
         <CartProvider>
           <Header />
           <main className="flex-1 pb-16 md:pb-0">{children}</main>

@@ -80,6 +80,7 @@ export default function Hero() {
         src="/hero-jar.webp"
         alt=""
         aria-hidden
+        fetchPriority="high"
         className="absolute inset-0 w-full h-full object-cover object-[70%_center]"
       />
       {/* Extra darkening on small screens where copy overlaps the jar */}

@@ -37,8 +37,30 @@ export default async function ProductPage({
 
   const others = products.filter((p) => p.slug !== product.slug);
 
+  const productSchema = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.name,
+    description: `${product.tagline} ${product.story}`,
+    image: `https://mamayyapickles.com${product.image}`,
+    brand: { "@type": "Brand", name: "Mamayya Pickles" },
+    offers: {
+      "@type": "AggregateOffer",
+      priceCurrency: "INR",
+      lowPrice: product.weights[0].price,
+      highPrice: product.weights[product.weights.length - 1].price,
+      offerCount: product.weights.length,
+      availability: "https://schema.org/InStock",
+      url: `https://mamayyapickles.com/products/${product.slug}/`,
+    },
+  };
+
   return (
     <div className="bg-cream">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
+      />
       {/* Flavour scene */}
       <section
         className="text-cream overflow-hidden"

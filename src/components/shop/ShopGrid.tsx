@@ -31,9 +31,10 @@ function ProductCard({ product }: { product: Product }) {
         className="relative grid place-items-center pt-10 pb-6 group"
         style={{ background: product.colorSoft }}
       >
-        <span className="absolute top-4 left-4 text-2xl" aria-hidden>
-          {product.emoji}
-        </span>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={product.ingredientImage} alt="" aria-hidden width={470} height={341}
+             loading="lazy" decoding="async"
+             className="absolute top-3 left-3 w-14 h-auto rotate-[-6deg] drop-shadow" />
         <span
           className="absolute top-4 right-3 text-[10px] font-extrabold uppercase tracking-[0.18em] px-2.5 py-1 rounded-lg text-cream rotate-[3deg] shadow-[2px_2px_0_rgba(36,23,19,0.35)]"
           style={{ background: product.color }}
@@ -117,9 +118,15 @@ function BoxTicket({ box }: { box: Box }) {
 
   return (
     <article className="relative rounded-2xl border-2 border-dashed border-charcoal/25 bg-cream-deep/60 p-5 flex flex-col">
-      <span className="absolute -top-3 left-5 rounded-full bg-gold text-charcoal text-[11px] font-extrabold uppercase tracking-wider px-3 py-1">
+      <span className="absolute -top-3 left-5 z-10 rounded-full bg-gold text-charcoal text-[11px] font-extrabold uppercase tracking-wider px-3 py-1">
         Save {formatINR(savings)}
       </span>
+      {box.image && (
+        /* eslint-disable-next-line @next/next/no-img-element */
+        <img src={box.image} alt={`${box.name} packaging`} width={900} height={1125}
+             loading="lazy" decoding="async"
+             className="mb-3 w-full aspect-[4/3] object-cover rounded-xl" />
+      )}
       <h3 className="mt-1 font-display font-extrabold text-lg text-charcoal">{box.name}</h3>
       <p className="mt-1 text-sm text-charcoal/70">{box.description}</p>
 
@@ -197,7 +204,7 @@ export default function ShopGrid() {
         >
           Ready-made boxes, priced kinder.
         </h2>
-        <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-6 grid gap-6 sm:grid-cols-2 max-w-3xl">
           {boxes.map((b) => (
             <BoxTicket key={b.slug} box={b} />
           ))}
