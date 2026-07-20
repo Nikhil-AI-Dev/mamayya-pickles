@@ -4,13 +4,11 @@ import { DELIVERY_NOTE, deliveryWindow } from "@/lib/products";
 export default function FinalCta() {
   return (
     <section className="relative bg-red text-cream py-24 md:py-32 overflow-hidden">
-      {/* Marquee backdrop */}
-      <div aria-hidden className="absolute inset-x-0 top-6 opacity-10 whitespace-nowrap overflow-hidden">
-        <div className="animate-marquee inline-block font-display font-extrabold text-7xl">
-          {Array(6)
-            .fill("MAMAYYA · CHICKEN · MUTTON · FISH · PRAWN · ")
-            .join("")}
-        </div>
+      {/* Flavour roll-call backdrop, sized to always fit the viewport */}
+      <div aria-hidden className="absolute inset-x-0 top-8 overflow-hidden">
+        <p className="text-center font-display font-extrabold whitespace-nowrap opacity-10 text-[3.4vw] leading-none tracking-wide">
+          MAMAYYA · CHICKEN · MUTTON · FISH · PRAWN
+        </p>
       </div>
 
       <div className="relative mx-auto max-w-3xl px-4 md:px-6 text-center">

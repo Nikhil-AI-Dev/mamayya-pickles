@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useCart } from "@/lib/cart";
 import { WeightGrams, formatINR, products } from "@/lib/products";
-import JarIllustration from "../JarIllustration";
 
 /** Jar render width per weight - the size story told visually. */
 const JAR_SCALE: Record<WeightGrams, number> = {
@@ -36,14 +35,22 @@ export default function WeightVisualizer() {
               key={p.slug}
               type="button"
               onClick={() => setProductIdx(i)}
-              className={`rounded-full px-5 py-2 text-sm font-bold border-2 transition-colors ${
+              className={`flex items-center gap-2 rounded-full pl-2 pr-5 py-1.5 text-sm font-bold border-2 transition-all ${
                 i === productIdx
-                  ? "text-cream border-transparent"
-                  : "border-charcoal/20 text-charcoal/70 hover:border-charcoal/50"
+                  ? "text-cream border-transparent shadow-card scale-105"
+                  : "border-charcoal/20 bg-white/60 text-charcoal/70 hover:border-charcoal/50 hover:bg-white"
               }`}
               style={i === productIdx ? { background: p.color } : undefined}
               aria-pressed={i === productIdx}
             >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={p.image}
+                alt=""
+                width={640}
+                height={1180}
+                className="w-5 h-auto drop-shadow"
+              />
               {p.shortName}
             </button>
           ))}
@@ -53,12 +60,16 @@ export default function WeightVisualizer() {
           {/* Jar that grows */}
           <div className="grid place-items-center min-h-72">
             <div
-              className="transition-transform duration-500 ease-out w-52"
+              className="transition-transform duration-500 ease-out w-40 md:w-44"
               style={{ transform: `scale(${JAR_SCALE[grams]})` }}
             >
-              <JarIllustration
-                color={product.color}
-                label={`${product.name} ${weight.label} jar`}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={product.image}
+                alt={`${product.name} ${weight.label} jar`}
+                width={640}
+                height={1180}
+                className="w-full h-auto drop-shadow-2xl"
               />
             </div>
             <p className="mt-2 text-sm text-charcoal/60">{weight.packaging}</p>

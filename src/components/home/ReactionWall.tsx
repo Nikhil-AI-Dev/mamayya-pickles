@@ -102,14 +102,22 @@ export default function ReactionWall() {
               key={p.slug}
               type="button"
               onClick={() => setFilter(p.slug)}
-              className={`rounded-full px-5 py-2 text-sm font-bold border-2 transition-colors ${
+              className={`flex items-center gap-2 rounded-full pl-2 pr-5 py-1.5 text-sm font-bold border-2 transition-all ${
                 filter === p.slug
-                  ? "text-cream border-transparent"
-                  : "border-charcoal/20 text-charcoal/70 hover:border-charcoal/50"
+                  ? "text-cream border-transparent shadow-card scale-105"
+                  : "border-charcoal/20 bg-white/60 text-charcoal/70 hover:border-charcoal/50 hover:bg-white"
               }`}
               style={filter === p.slug ? { background: p.color } : undefined}
               aria-pressed={filter === p.slug}
             >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={p.image}
+                alt=""
+                width={640}
+                height={1180}
+                className="w-5 h-auto drop-shadow"
+              />
               {p.shortName}
             </button>
           ))}
