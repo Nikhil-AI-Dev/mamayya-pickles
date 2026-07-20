@@ -97,4 +97,4 @@ Operational notes:
 - **See orders:** Render dashboard → mamayya-db → Connect → `SELECT order_id, created_at, name, phone, total, payment_status, confirmed_at FROM orders ORDER BY rowid_pk DESC;`
 - **Confirm an order without the email:** the Confirm link format is `https://mamayya-api.onrender.com/api/orders/MP-XXXX/confirm?token=...` — token is in the orders table
 - **Local development:** `npm run dev -- -p 3001` for the site; `python -m uvicorn main:app --port 8001` inside `backend/` for the API (SQLite locally, no setup)
-- **Test orders in production DB:** MP-1001 through MP-1051 are test data from development and the payment dress-run — clear before launch: `DELETE FROM orders WHERE order_id <= 'MP-1051';` (string compare works for the MP-10xx range; verify with a SELECT first)
+- **Test orders in production DB:** MP-1001 through MP-1055 are test data from development and the payment dress-run — clear before launch: `DELETE FROM orders WHERE order_id <= 'MP-1055';` (string compare works for the MP-10xx range; verify with a SELECT first — any real customer order will have a higher number)
