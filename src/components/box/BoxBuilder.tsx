@@ -68,7 +68,8 @@ export default function BoxBuilder() {
   );
 
   return (
-    <div className="mx-auto max-w-6xl px-4 md:px-6 pb-20 grid gap-10 lg:grid-cols-[1.2fr_1fr] items-start">
+    <div className="mx-auto max-w-6xl px-4 md:px-6 pb-20">
+      <div className="grid gap-10 lg:grid-cols-[1.2fr_1fr] items-start">
       {/* Jar pickers */}
       <div className="space-y-4">
         {products.map((p) => (
@@ -205,17 +206,25 @@ export default function BoxBuilder() {
         )}
       </aside>
 
-      {/* Ready-made shortcut */}
-      <section className="lg:col-span-2 mt-6">
+      </div>
+
+      {/* Ready-made shortcut: outside the grid so the sticky carton never overlaps it */}
+      <section className="mt-12">
         <h2 className="font-display font-extrabold text-2xl text-charcoal">
           Or skip the thinking - ready-made boxes
         </h2>
-        <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-5 grid gap-5 sm:grid-cols-2 max-w-3xl">
           {boxes.map((b) => (
             <article
               key={b.slug}
               className="rounded-2xl border-2 border-dashed border-charcoal/25 bg-cream-deep/60 p-4 flex flex-col"
             >
+              {b.image && (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img src={b.image} alt={`${b.name} packaging`} width={900} height={1125}
+                     loading="lazy" decoding="async"
+                     className="mb-3 w-full aspect-square object-cover rounded-xl" />
+              )}
               <h3 className="font-display font-extrabold text-charcoal">{b.name}</h3>
               <p className="mt-1 text-xs text-charcoal/70 flex-1">{b.description}</p>
               <div className="mt-3 flex items-center justify-between gap-2">

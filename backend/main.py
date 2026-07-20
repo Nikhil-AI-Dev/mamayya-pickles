@@ -450,6 +450,8 @@ ITEM_IMAGES = {
     "mutton-pickle": "https://mamayyapickles.com/jar-mutton.webp",
     "fish-pickle": "https://mamayyapickles.com/jar-fish.webp",
     "shrimp-pickle": "https://mamayyapickles.com/jar-shrimp.webp",
+    "tasting-box": "https://mamayyapickles.com/box-tasting.webp",
+    "family-box": "https://mamayyapickles.com/box-family.webp",
 }
 
 ITEM_NAMES = {
@@ -486,7 +488,9 @@ def format_item_pairs(payload: "OrderCreate") -> list[tuple[str, str]]:
     for line in payload.lines:
         if isinstance(line, BoxLine):
             name = ITEM_NAMES.get(line.boxSlug, line.boxSlug)
-            pairs.append((f"{line.quantity} x {name}", LOGO_URL))
+            pairs.append(
+                (f"{line.quantity} x {name}", ITEM_IMAGES.get(line.boxSlug, LOGO_URL))
+            )
         else:
             name = ITEM_NAMES.get(line.productSlug, line.productSlug)
             weight = f"{line.grams // 1000} kg" if line.grams >= 1000 else f"{line.grams} g"

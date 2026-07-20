@@ -129,7 +129,7 @@ export default function CartDrawer() {
                 const image =
                   line.kind === "product"
                     ? getProduct(line.productSlug)?.image ?? "/logo.webp"
-                    : "/logo.webp";
+                    : getBox(line.boxSlug)?.image ?? "/logo.webp";
                 const sub =
                   line.kind === "box"
                     ? getBox(line.boxSlug)

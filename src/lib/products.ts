@@ -27,6 +27,8 @@ export type Product = {
   color: string;
   colorSoft: string;
   emoji: string;
+  /** Ingredient still-life cutout used as the card accent. */
+  ingredientImage: string;
   /** Background-keyed product photo (WebP with alpha). */
   image: string;
   weights: WeightOption[];
@@ -102,6 +104,7 @@ export const products: Product[] = [
     color: "#a92a1d",
     colorSoft: "#f3ded9",
     emoji: "🍗",
+    ingredientImage: "/ing-chicken.webp",
     image: "/jar-chicken.webp",
     weights: weights({ 250: 349, 500: 649, 1000: 1249, 2000: 2399, 5000: 5799 }),
     ingredients: [
@@ -146,6 +149,7 @@ export const products: Product[] = [
     color: "#5c1220",
     colorSoft: "#ecdadd",
     emoji: "🥩",
+    ingredientImage: "/ing-mutton.webp",
     image: "/jar-mutton.webp",
     weights: weights({ 250: 449, 500: 849, 1000: 1649, 2000: 3199, 5000: 7799 }),
     ingredients: [
@@ -191,6 +195,7 @@ export const products: Product[] = [
     color: "#1f5f63",
     colorSoft: "#dcebe9",
     emoji: "🐟",
+    ingredientImage: "/ing-fish.webp",
     image: "/jar-fish.webp",
     weights: weights({ 250: 399, 500: 749, 1000: 1449, 2000: 2799, 5000: 6799 }),
     ingredients: [
@@ -236,6 +241,7 @@ export const products: Product[] = [
     color: "#e8603c",
     colorSoft: "#fbe3da",
     emoji: "🦐",
+    ingredientImage: "/ing-prawn.webp",
     image: "/jar-shrimp.webp",
     weights: weights({ 250: 449, 500: 849, 1000: 1649, 2000: 3199, 5000: 7799 }),
     ingredients: [
@@ -275,6 +281,8 @@ export type Box = {
   contents: { productSlug: string; grams: WeightGrams; count: number }[];
   price: number;
   compareAt: number;
+  /** Real box photography; boxes without a shoot yet render the text card. */
+  image?: string;
 };
 
 export const boxes: Box[] = [
@@ -290,6 +298,7 @@ export const boxes: Box[] = [
     ],
     price: 1499,
     compareAt: 1646,
+    image: "/box-tasting.webp",
   },
   {
     slug: "family-box",
@@ -301,30 +310,7 @@ export const boxes: Box[] = [
     ],
     price: 1399,
     compareAt: 1498,
-  },
-  {
-    slug: "coastal-box",
-    name: "Coastal Box",
-    description: "Fish and prawn, 500 g each. For the seafood loyalists.",
-    contents: [
-      { productSlug: "fish-pickle", grams: 500, count: 1 },
-      { productSlug: "shrimp-pickle", grams: 500, count: 1 },
-    ],
-    price: 1499,
-    compareAt: 1598,
-  },
-  {
-    slug: "full-mamayya-box",
-    name: "Full Mamayya Box",
-    description: "All four flavours, 500 g each. Maximum commitment.",
-    contents: [
-      { productSlug: "chicken-pickle", grams: 500, count: 1 },
-      { productSlug: "mutton-pickle", grams: 500, count: 1 },
-      { productSlug: "fish-pickle", grams: 500, count: 1 },
-      { productSlug: "shrimp-pickle", grams: 500, count: 1 },
-    ],
-    price: 2799,
-    compareAt: 3096,
+    image: "/box-family.webp",
   },
 ];
 

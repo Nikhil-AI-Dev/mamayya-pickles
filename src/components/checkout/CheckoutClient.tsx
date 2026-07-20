@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { lineTitle, lineUnitPrice, useCart } from "@/lib/cart";
-import { deliveryWindow, formatINR, getProduct } from "@/lib/products";
+import { deliveryWindow, formatINR, getBox, getProduct } from "@/lib/products";
 import {
   ApiError,
   OrderConfirmation,
@@ -230,7 +230,7 @@ export default function CheckoutClient() {
                 src={
                   line.kind === "product"
                     ? getProduct(line.productSlug)?.image ?? "/logo.webp"
-                    : "/logo.webp"
+                    : getBox(line.boxSlug)?.image ?? "/logo.webp"
                 }
                 alt=""
                 width={640}
