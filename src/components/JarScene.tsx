@@ -10,8 +10,8 @@ type JarSceneProps = {
 
 /**
  * Grounded still-life: the real jar with recipe ingredients seated around
- * its base. Chilli, garlic and curry leaves are in every recipe; flavours
- * with a photographed meat plate show it back-left (prawn still pending).
+ * its base. Chilli, garlic and curry leaves are in every recipe; each
+ * flavour's photographed meat plate sits back-left.
  */
 export default function JarScene({ product, story = false, wide = false }: JarSceneProps) {
   const ing = story ? "story-ingredient " : "";
@@ -20,6 +20,7 @@ export default function JarScene({ product, story = false, wide = false }: JarSc
     "chicken-pickle": { src: "/ing-chicken.webp", alt: "Fresh chicken pieces" },
     "mutton-pickle": { src: "/ing-mutton.webp", alt: "Fresh mutton pieces" },
     "fish-pickle": { src: "/ing-fish.webp", alt: "Fresh fish pieces" },
+    "shrimp-pickle": { src: "/ing-prawn.webp", alt: "Fresh prawns" },
   };
   const plate = MEAT_PLATES[product.slug];
 
