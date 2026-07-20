@@ -1,25 +1,32 @@
+import { Pepper } from "@phosphor-icons/react/dist/ssr";
+
 type SpiceMeterProps = {
   level: 1 | 2 | 3;
   label: string;
+  /** "light" = red peppers for cream cards, "dark" = cream peppers for tinted heroes. */
+  tone?: "light" | "dark";
   className?: string;
 };
 
-export default function SpiceMeter({ level, label, className }: SpiceMeterProps) {
+export default function SpiceMeter({ level, label, tone = "light", className }: SpiceMeterProps) {
   return (
     <span
       className={`inline-flex items-center gap-1.5 ${className ?? ""}`}
       title={`Spice: ${label}`}
     >
-      <span aria-hidden className="inline-flex items-end gap-0.5">
+      <span aria-hidden className="inline-flex items-center gap-0.5">
         {[1, 2, 3].map((i) => (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <Pepper
             key={i}
-            src="/chilli-meter.webp"
-            alt=""
-            width={160}
-            height={160}
-            className={`h-6 w-auto drop-shadow-sm ${i <= level ? "" : "opacity-30 grayscale"}`}
+            size={24}
+            weight={i <= level ? "fill" : "regular"}
+            className={
+              i <= level
+                ? tone === "dark"
+                  ? "text-cream drop-shadow"
+                  : "text-red drop-shadow-sm"
+                : "opacity-40"
+            }
           />
         ))}
       </span>

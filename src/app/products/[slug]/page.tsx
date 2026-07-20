@@ -60,7 +60,7 @@ export default async function ProductPage({
             <p className="mt-4 text-cream/85 text-lg max-w-md">{product.story}</p>
             <p className="mt-3 font-telugu text-gold/90">{product.teluguLine}</p>
             <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
-              <SpiceMeter level={product.spiceLevel} label={product.spiceLabel} />
+              <SpiceMeter level={product.spiceLevel} label={product.spiceLabel} tone="dark" />
               <span>
                 <span className="text-cream/50">Texture:</span>{" "}
                 <strong>{product.texture}</strong>
