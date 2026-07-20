@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { House, Storefront, Package, Truck, Tote } from "@phosphor-icons/react";
 import { useCart } from "@/lib/cart";
 
 const TABS = [
-  { href: "/", label: "Home", icon: "🏠" },
-  { href: "/shop", label: "Shop", icon: "🫙" },
-  { href: "/build-a-box", label: "Build Box", icon: "📦" },
-  { href: "/track", label: "Track", icon: "🚚" },
+  { href: "/", label: "Home", Icon: House },
+  { href: "/shop", label: "Shop", Icon: Storefront },
+  { href: "/build-a-box", label: "Build a Box", Icon: Package },
+  { href: "/track", label: "Track", Icon: Truck },
 ];
 
 export default function MobileNav() {
@@ -32,9 +33,11 @@ export default function MobileNav() {
                 active ? "text-gold" : "text-cream/70"
               }`}
             >
-              <span aria-hidden className="text-lg leading-none">
-                {tab.icon}
-              </span>
+              <tab.Icon
+                aria-hidden
+                size={20}
+                weight={active ? "duotone" : "regular"}
+              />
               {tab.label}
             </Link>
           );
@@ -45,7 +48,7 @@ export default function MobileNav() {
           className="relative flex flex-col items-center justify-center gap-0.5 text-[11px] font-semibold text-cream/70"
           aria-label={`Open cart, ${itemCount} items`}
         >
-          <span aria-hidden className="text-lg leading-none">🛒</span>
+          <Tote aria-hidden size={20} weight="regular" />
           Cart
           {itemCount > 0 && (
             <span className="absolute top-1.5 right-1/2 translate-x-4 grid place-items-center min-w-4 h-4 px-0.5 rounded-full bg-red text-cream text-[10px] font-extrabold">
