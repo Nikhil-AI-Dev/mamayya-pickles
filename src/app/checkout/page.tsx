@@ -3,7 +3,7 @@ import PageHeader from "@/components/PageHeader";
 import CheckoutClient from "@/components/checkout/CheckoutClient";
 
 export const metadata: Metadata = {
-  title: "Checkout | Mamayya Pickles",
+  title: "Checkout",
   description: "Guest checkout - delivery details, order summary and prepaid payment.",
 };
 

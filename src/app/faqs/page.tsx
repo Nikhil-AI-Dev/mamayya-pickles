@@ -5,7 +5,7 @@ import PageHeader from "@/components/PageHeader";
 import { faqs } from "@/lib/faqs";
 
 export const metadata: Metadata = {
-  title: "FAQs | Mamayya Pickles",
+  title: "FAQs",
   description:
     "Delivery times, payment, shipping safety, shelf life, allergens and replacements - answered straight.",
 };

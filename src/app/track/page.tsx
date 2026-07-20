@@ -3,7 +3,7 @@ import PageHeader from "@/components/PageHeader";
 import TrackLookup from "@/components/track/TrackLookup";
 
 export const metadata: Metadata = {
-  title: "Track Order | Mamayya Pickles",
+  title: "Track Order",
   description:
     "Follow your pickle order through all six stages - confirmed, preparing, packed, shipped, out for delivery, delivered.",
 };

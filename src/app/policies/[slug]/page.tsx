@@ -16,9 +16,9 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const policy = getPolicy(slug);
-  if (!policy) return { title: "Not found | Mamayya Pickles" };
+  if (!policy) return { title: "Not found" };
   return {
-    title: `${policy.title} | Mamayya Pickles`,
+    title: `${policy.title}`,
     description: policy.intro,
   };
 }

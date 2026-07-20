@@ -15,11 +15,11 @@ export default function SpiceMeter({ level, label, className }: SpiceMeterProps)
           // eslint-disable-next-line @next/next/no-img-element
           <img
             key={i}
-            src="/ing-chilli.webp"
+            src="/chilli-meter.webp"
             alt=""
-            width={416}
-            height={416}
-            className={`h-4 w-auto ${i <= level ? "" : "opacity-25 grayscale"}`}
+            width={160}
+            height={160}
+            className={`h-6 w-auto drop-shadow-sm ${i <= level ? "" : "opacity-30 grayscale"}`}
           />
         ))}
       </span>

@@ -3,7 +3,7 @@ import PageHeader from "@/components/PageHeader";
 import BoxBuilder from "@/components/box/BoxBuilder";
 
 export const metadata: Metadata = {
-  title: "Build a Box | Mamayya Pickles",
+  title: "Build a Box",
   description:
     "Mix chicken, mutton, fish and prawn pickle jars into your own box. Watch the carton fill as you pick.",
 };

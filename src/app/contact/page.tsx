@@ -3,7 +3,7 @@ import Link from "next/link";
 import PageHeader from "@/components/PageHeader";
 
 export const metadata: Metadata = {
-  title: "Contact | Mamayya Pickles",
+  title: "Contact",
   description:
     "Reach Mamayya Pickles on WhatsApp or email for order help, bulk and gifting enquiries, or anything about your jar.",
 };

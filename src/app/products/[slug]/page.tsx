@@ -19,9 +19,9 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const product = getProduct(slug);
-  if (!product) return { title: "Not found | Mamayya Pickles" };
+  if (!product) return { title: "Not found" };
   return {
-    title: `${product.name} | Mamayya Pickles`,
+    title: `${product.name}`,
     description: `${product.tagline} ${product.story}`,
   };
 }

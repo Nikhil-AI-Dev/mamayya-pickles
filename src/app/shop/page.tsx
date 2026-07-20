@@ -4,7 +4,7 @@ import ShopGrid from "@/components/shop/ShopGrid";
 import { DELIVERY_NOTE } from "@/lib/products";
 
 export const metadata: Metadata = {
-  title: "Shop | Mamayya Pickles",
+  title: "Shop",
   description:
     "Chicken, mutton, fish and prawn pickle in 250 g to 5 kg jars, plus ready-made boxes. Freshly prepared, shipped across India.",
 };

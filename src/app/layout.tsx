@@ -32,7 +32,10 @@ export const viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL("https://mamayyapickles.com"),
   manifest: "/site.webmanifest",
-  title: "Mamayya Pickles - Big pieces. Bold spice. Proper non-veg pickle.",
+  title: {
+    default: "Mamayya Pickles - Taste of Rayalaseema",
+    template: "%s | Mamayya Pickles",
+  },
   description:
     "Handmade non-veg pickles - chicken, mutton, fish and prawn - packed with bold spices and delivered across India. Freshly prepared, online payment only.",
   openGraph: {
@@ -40,13 +43,13 @@ export const metadata: Metadata = {
     siteName: "Mamayya Pickles",
     locale: "en_IN",
     url: "https://mamayyapickles.com",
-    title: "Mamayya Pickles - Big pieces. Bold spice. Proper non-veg pickle.",
+    title: "Mamayya Pickles - Taste of Rayalaseema",
     description:
       "Handmade chicken, mutton, fish and prawn pickles, prepared fresh per order and delivered across India.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Mamayya Pickles - Big pieces. Bold spice.",
+    title: "Mamayya Pickles - Taste of Rayalaseema",
     description:
       "Handmade non-veg pickles, prepared fresh per order and delivered across India.",
   },

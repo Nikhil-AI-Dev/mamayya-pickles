@@ -3,7 +3,7 @@ import Link from "next/link";
 import PageHeader from "@/components/PageHeader";
 
 export const metadata: Metadata = {
-  title: "Our Story | Mamayya Pickles",
+  title: "Our Story",
   description:
     "How one uncle's jar of chicken pickle became Mamayya Pickles - small batches, gingelly oil, and no shortcuts, shipped across India.",
 };
