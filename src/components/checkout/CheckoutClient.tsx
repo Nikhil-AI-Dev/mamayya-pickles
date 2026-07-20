@@ -243,7 +243,7 @@ export default function CheckoutClient() {
                   <button
                     type="button"
                     onClick={() => updateQuantity(line.id, line.quantity - 1)}
-                    className="w-6 h-6 grid place-items-center rounded-full border border-cream/30 hover:border-gold hover:text-gold transition-colors"
+                    className="w-9 h-9 grid place-items-center rounded-full border border-cream/30 hover:border-gold hover:text-gold active:scale-90 transition-all"
                     aria-label={`Decrease quantity of ${lineTitle(line)}`}
                   >
                     −
@@ -252,7 +252,7 @@ export default function CheckoutClient() {
                   <button
                     type="button"
                     onClick={() => updateQuantity(line.id, line.quantity + 1)}
-                    className="w-6 h-6 grid place-items-center rounded-full border border-cream/30 hover:border-gold hover:text-gold transition-colors"
+                    className="w-9 h-9 grid place-items-center rounded-full border border-cream/30 hover:border-gold hover:text-gold active:scale-90 transition-all"
                     aria-label={`Increase quantity of ${lineTitle(line)}`}
                   >
                     +

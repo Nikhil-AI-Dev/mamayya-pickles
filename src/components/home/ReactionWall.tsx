@@ -88,7 +88,7 @@ export default function ReactionWall() {
           <button
             type="button"
             onClick={() => setFilter(null)}
-            className={`rounded-full px-5 py-2 text-sm font-bold border-2 transition-colors ${
+            className={`rounded-full px-5 py-2 text-sm font-bold border-2 transition-all active:scale-95 ${
               filter === null
                 ? "bg-charcoal text-cream border-charcoal"
                 : "border-charcoal/20 text-charcoal/70 hover:border-charcoal/50"
@@ -102,7 +102,7 @@ export default function ReactionWall() {
               key={p.slug}
               type="button"
               onClick={() => setFilter(p.slug)}
-              className={`flex items-center gap-2 rounded-full pl-2 pr-5 py-1.5 text-sm font-bold border-2 transition-all ${
+              className={`flex items-center gap-2 rounded-full pl-2 pr-5 py-1.5 text-sm font-bold border-2 transition-all active:scale-95 ${
                 filter === p.slug
                   ? "text-cream border-transparent shadow-card scale-105"
                   : "border-charcoal/20 text-charcoal/70 hover:border-charcoal/50"

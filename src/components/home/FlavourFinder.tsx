@@ -106,7 +106,7 @@ export default function FlavourFinder() {
                     key={opt}
                     type="button"
                     onClick={() => pick(QUESTIONS[step].key, opt)}
-                    className="rounded-full border-2 border-cream/40 px-6 py-3 font-bold hover:bg-cream hover:text-leaf transition-colors"
+                    className="rounded-full border-2 border-cream/40 px-6 py-3 font-bold hover:bg-cream hover:text-leaf active:scale-95 transition-all"
                   >
                     {opt}
                   </button>

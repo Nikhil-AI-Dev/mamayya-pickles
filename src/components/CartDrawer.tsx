@@ -167,7 +167,7 @@ export default function CartDrawer() {
                         <div className="flex items-center rounded-full border border-charcoal/15">
                           <button
                             type="button"
-                            className="w-7 h-7 grid place-items-center font-bold hover:text-red"
+                            className="w-9 h-9 grid place-items-center font-bold hover:text-red active:scale-90 transition-all"
                             onClick={() => updateQuantity(line.id, line.quantity - 1)}
                             aria-label="Decrease quantity"
                           >
@@ -178,7 +178,7 @@ export default function CartDrawer() {
                           </span>
                           <button
                             type="button"
-                            className="w-7 h-7 grid place-items-center font-bold hover:text-red"
+                            className="w-9 h-9 grid place-items-center font-bold hover:text-red active:scale-90 transition-all"
                             onClick={() => updateQuantity(line.id, line.quantity + 1)}
                             aria-label="Increase quantity"
                           >
