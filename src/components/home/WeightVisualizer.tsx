@@ -84,9 +84,10 @@ export default function WeightVisualizer() {
                 onClick={() => setGrams(w.grams)}
                 className={`w-full text-left rounded-xl border-2 px-5 py-4 transition-all flex items-center justify-between gap-4 ${
                   w.grams === grams
-                    ? "border-red bg-cream shadow-card"
+                    ? "border-red shadow-card scale-[1.02]"
                     : "border-charcoal/10 bg-cream/60 hover:border-charcoal/30 hover:bg-cream"
                 }`}
+                style={w.grams === grams ? { background: product.colorSoft } : undefined}
                 aria-pressed={w.grams === grams}
               >
                 <div>
@@ -102,7 +103,11 @@ export default function WeightVisualizer() {
                     {w.note} · {w.servings}
                   </p>
                 </div>
-                <p className="font-display font-bold text-xl shrink-0">
+                <p
+                  className={`font-display font-bold text-xl shrink-0 ${
+                    w.grams === grams ? "text-red" : ""
+                  }`}
+                >
                   {formatINR(w.price)}
                 </p>
               </button>
