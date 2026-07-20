@@ -205,7 +205,9 @@ export default function CartDrawer() {
               {/* Add-on suggestion */}
               {suggestion && (
                 <div className="rounded-xl bg-cream-deep p-3 flex items-center gap-3">
-                  <JarIllustration color={suggestion.color} className="w-10 shrink-0" />
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={suggestion.image} alt="" width={640} height={1180}
+                       className="w-10 h-auto shrink-0 drop-shadow" />
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-bold">
                       Haven&apos;t tried {suggestion.shortName}?
