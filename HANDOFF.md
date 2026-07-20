@@ -49,13 +49,17 @@ Product data: `src/lib/products.ts` (prices, weights, descriptions, ingredients)
 - Admin alert: packing slip + Confirm button, to `ORDER_NOTIFY_TO` (defaults to contact@).
 - Delivery diagnostics without dashboard access: `GET /api/config` → `lastEmailResult` shows "sent" or a sanitized error.
 
-## Payments (Razorpay — built, dormant)
+## Payments (Razorpay — LIVE since 20 Jul 2026)
 
-Integration is complete and tested in dormant mode. To activate:
-1. Client signs up at dashboard.razorpay.com (Indian mobile OTP; KYC for live keys: PAN + bank account)
-2. Add `RAZORPAY_KEY_ID` + `RAZORPAY_KEY_SECRET` in Render → mamayya-api → Environment (test keys first — full checkout works with fake money; swap to live keys after KYC)
-3. That's the whole switch. Checkout opens the Razorpay modal (UPI/cards/netbanking), server verifies the payment signature, order marked paid, admin then confirms as usual
-4. International cards: request activation in Razorpay Settings → Payment methods (off by default; ~3% fees vs 2% domestic; UPI is India-only)
+Account: created with the owner's details, login contact@mamayyapickles.com. Live keys are set in Render → mamayya-api → Environment (`RAZORPAY_KEY_ID` + `RAZORPAY_KEY_SECRET`). Customers pay real money; settlements land in the owner's bank T+2 working days, minus ~2% Razorpay fee.
+
+Verified end-to-end on 20 Jul 2026 (test-mode dress run, order MP-1050): checkout → card payment → signature verification → order marked paid → admin email → confirm click → customer email.
+
+Operational notes:
+1. Key rotation: dashboard.razorpay.com → Account & Settings → API keys → Regenerate; paste the new pair into Render. Key Secret is shown only once at generation
+2. Refunds: Razorpay dashboard → Payments → select payment → Refund (5-7 days to customer)
+3. International cards: request activation in Razorpay Settings → Payment methods (off by default; ~3% fees vs 2% domestic; UPI is India-only)
+4. Env gotchas seen in practice: a typo'd variable name (`RAZORPAY_KEY_SECRETt`) silently disables payments, and editing env vars can drop `RESEND_API_KEY` (kills all order emails). After any env change, place a test order and check the response includes `razorpayOrderId`
 
 ## Security posture
 
@@ -68,7 +72,7 @@ Integration is complete and tested in dormant mode. To activate:
 ## Before taking real money — launch blockers
 
 1. **FSSAI licence number** — legally required. Replace placeholder in `src/components/Footer.tsx` and `src/lib/policies.ts` (food-safety). Also goes on jar labels
-2. **Razorpay activation** — see Payments above
+2. ~~Razorpay activation~~ — DONE 20 Jul 2026, live keys active, flow verified (see Payments)
 3. **Real testimonials** — home "Mamayya Wall" shows sample reactions (`src/components/home/ReactionWall.tsx`). Replace or remove; fake reviews violate consumer protection rules
 4. **Price + copy sign-off** — all prices, weights, shipping (₹99, free above ₹1,200), 12-hour cancellation window, one-week delivery promise: drafted, not client-confirmed
 5. **Grievance contact** — Indian e-commerce rules require a named grievance officer; add to Terms once known
@@ -93,4 +97,4 @@ Integration is complete and tested in dormant mode. To activate:
 - **See orders:** Render dashboard → mamayya-db → Connect → `SELECT order_id, created_at, name, phone, total, payment_status, confirmed_at FROM orders ORDER BY rowid_pk DESC;`
 - **Confirm an order without the email:** the Confirm link format is `https://mamayya-api.onrender.com/api/orders/MP-XXXX/confirm?token=...` — token is in the orders table
 - **Local development:** `npm run dev -- -p 3001` for the site; `python -m uvicorn main:app --port 8001` inside `backend/` for the API (SQLite locally, no setup)
-- **Test orders in production DB:** MP-1001 through MP-1020 are test data from development — clear before launch: `DELETE FROM orders WHERE order_id <= 'MP-1020';` (string compare works for the MP-10xx range; verify with a SELECT first)
+- **Test orders in production DB:** MP-1001 through MP-1051 are test data from development and the payment dress-run — clear before launch: `DELETE FROM orders WHERE order_id <= 'MP-1051';` (string compare works for the MP-10xx range; verify with a SELECT first)
