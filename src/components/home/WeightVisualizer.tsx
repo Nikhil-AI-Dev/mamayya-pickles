@@ -38,9 +38,9 @@ export default function WeightVisualizer() {
               className={`flex items-center gap-2 rounded-full pl-2 pr-5 py-1.5 text-sm font-bold border-2 transition-all ${
                 i === productIdx
                   ? "text-cream border-transparent shadow-card scale-105"
-                  : "border-charcoal/20 bg-white/60 text-charcoal/70 hover:border-charcoal/50 hover:bg-white"
+                  : "border-charcoal/20 text-charcoal/70 hover:border-charcoal/50"
               }`}
-              style={i === productIdx ? { background: p.color } : undefined}
+              style={i === productIdx ? { background: p.color } : { background: p.colorSoft }}
               aria-pressed={i === productIdx}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -84,8 +84,8 @@ export default function WeightVisualizer() {
                 onClick={() => setGrams(w.grams)}
                 className={`w-full text-left rounded-xl border-2 px-5 py-4 transition-all flex items-center justify-between gap-4 ${
                   w.grams === grams
-                    ? "border-red bg-white shadow-card"
-                    : "border-charcoal/10 bg-white/50 hover:border-charcoal/30"
+                    ? "border-red bg-cream shadow-card"
+                    : "border-charcoal/10 bg-cream/60 hover:border-charcoal/30 hover:bg-cream"
                 }`}
                 aria-pressed={w.grams === grams}
               >

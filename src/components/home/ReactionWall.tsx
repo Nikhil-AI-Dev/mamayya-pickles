@@ -105,9 +105,9 @@ export default function ReactionWall() {
               className={`flex items-center gap-2 rounded-full pl-2 pr-5 py-1.5 text-sm font-bold border-2 transition-all ${
                 filter === p.slug
                   ? "text-cream border-transparent shadow-card scale-105"
-                  : "border-charcoal/20 bg-white/60 text-charcoal/70 hover:border-charcoal/50 hover:bg-white"
+                  : "border-charcoal/20 text-charcoal/70 hover:border-charcoal/50"
               }`}
-              style={filter === p.slug ? { background: p.color } : undefined}
+              style={filter === p.slug ? { background: p.color } : { background: p.colorSoft }}
               aria-pressed={filter === p.slug}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -130,7 +130,8 @@ export default function ReactionWall() {
             return (
               <figure
                 key={r.quote}
-                className={`mb-5 rounded-2xl bg-white/90 border-2 border-charcoal/15 p-6 shadow-card ${tilt} hover:rotate-0 hover:scale-[1.02] transition-transform duration-300`}
+                className={`mb-5 rounded-2xl border-2 border-charcoal/15 p-6 shadow-card ${tilt} hover:rotate-0 hover:scale-[1.02] transition-transform duration-300`}
+                style={{ background: product.colorSoft }}
               >
                 <div
                   className="h-1.5 w-12 rounded-full"

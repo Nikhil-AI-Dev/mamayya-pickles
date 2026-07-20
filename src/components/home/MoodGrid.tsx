@@ -21,7 +21,8 @@ export default function MoodGrid() {
             return (
               <div
                 key={p.slug}
-                className="group relative rounded-2xl border border-charcoal/10 bg-white/70 p-5 shadow-card transition-transform duration-300 hover:-translate-y-2 focus-within:-translate-y-2"
+                className="group relative rounded-2xl border border-charcoal/10 p-5 shadow-card transition-transform duration-300 hover:-translate-y-2 focus-within:-translate-y-2"
+                style={{ background: p.colorSoft }}
               >
                 <p
                   className="text-xs font-extrabold uppercase tracking-widest"
