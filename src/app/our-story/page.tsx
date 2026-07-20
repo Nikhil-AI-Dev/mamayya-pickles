@@ -66,7 +66,7 @@ export default function OurStoryPage() {
           <div className="relative grid place-items-center rounded-3xl bg-charcoal py-10 shadow-jar overflow-hidden">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/logo.png"
+              src="/logo.webp"
               alt="Mamayya Pickles stamp - Taste of Rayalaseema, with Mamayya's portrait"
               width={208}
               height={208}

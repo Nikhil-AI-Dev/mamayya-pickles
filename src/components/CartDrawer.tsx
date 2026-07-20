@@ -128,8 +128,8 @@ export default function CartDrawer() {
               {lines.map((line) => {
                 const image =
                   line.kind === "product"
-                    ? getProduct(line.productSlug)?.image ?? "/logo-192.png"
-                    : "/logo-192.png";
+                    ? getProduct(line.productSlug)?.image ?? "/logo.webp"
+                    : "/logo.webp";
                 const sub =
                   line.kind === "box"
                     ? getBox(line.boxSlug)

@@ -17,7 +17,7 @@ export default function Footer() {
           <div className="flex items-center gap-4">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/logo-192.png"
+              src="/logo.webp"
               alt="Mamayya Pickles - Taste of Rayalaseema"
               width={104}
               height={104}

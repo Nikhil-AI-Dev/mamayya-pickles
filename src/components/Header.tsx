@@ -21,7 +21,7 @@ export default function Header() {
         <Link href="/" className="flex items-center gap-2.5 shrink-0">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/logo-192.png"
+            src="/logo.webp"
             alt="Mamayya Pickles - Taste of Rayalaseema"
             width={64}
             height={64}

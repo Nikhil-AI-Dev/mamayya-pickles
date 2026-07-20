@@ -229,8 +229,8 @@ export default function CheckoutClient() {
               <img
                 src={
                   line.kind === "product"
-                    ? getProduct(line.productSlug)?.image ?? "/logo-192.png"
-                    : "/logo-192.png"
+                    ? getProduct(line.productSlug)?.image ?? "/logo.webp"
+                    : "/logo.webp"
                 }
                 alt=""
                 width={640}
