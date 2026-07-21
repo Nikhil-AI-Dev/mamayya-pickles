@@ -84,6 +84,18 @@ export default function RootLayout({
             }),
           }}
         />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              name: "Mamayya Pickles",
+              alternateName: "Mamayya Pickles - Taste of Rayalaseema",
+              url: "https://mamayyapickles.com",
+            }),
+          }}
+        />
         <CartProvider>
           <Header />
           <main className="flex-1 pb-16 md:pb-0">{children}</main>
