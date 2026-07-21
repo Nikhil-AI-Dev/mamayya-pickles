@@ -39,7 +39,7 @@ Stage timings are calendar estimates (confirm+1 preparing, +3 packed, +4 shipped
 
 ## Changing everyday things
 
-Product data: `src/lib/products.ts` (prices, weights, descriptions, ingredients). FAQs: `src/lib/faqs.ts`. Policies: `src/lib/policies.ts`. Contacts (WhatsApp +91 97419 82425, email): `src/app/contact/page.tsx`, `src/components/track/TrackLookup.tsx`. Logo assets: `public/logo.png` (600px) + `public/logo-192.png`. Edit, commit, push — site redeploys in ~2 minutes.
+Product data: `src/lib/products.ts` (prices, weights, descriptions, ingredients). FAQs: `src/lib/faqs.ts`. Policies: `src/lib/policies.ts`. Contacts (WhatsApp +91 90358 43899 - owner's number, also Razorpay login; email): `src/app/contact/page.tsx`, `src/components/track/TrackLookup.tsx`. Logo assets: `public/logo.png` (600px) + `public/logo-192.png`. Edit, commit, push — site redeploys in ~2 minutes.
 
 **Prices exist in TWO places** and must match: `src/lib/products.ts` (what shoppers see) and `backend/main.py` `PRODUCT_PRICES`/`BOX_PRICES` (what orders actually charge). The backend is the authority.
 

@@ -11,9 +11,9 @@ export const metadata: Metadata = {
 const CHANNELS = [
   {
     title: "WhatsApp",
-    detail: "Fastest for order issues. Send your order number and we reply within a few hours, 10am-7pm IST.",
+    detail: "Order directly on WhatsApp or get help with an existing order. We reply within a few hours, 10am-7pm IST.",
     action: "Message on WhatsApp",
-    href: "https://wa.me/919741982425",
+    href: "https://wa.me/919035843899?text=Namaste%20Mamayya%20Pickles%21%20I%27d%20like%20to%20place%20an%20order.",
     external: true,
   },
   {
