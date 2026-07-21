@@ -332,13 +332,19 @@ def _send_email(to: str, subject: str, body: str, html: str | None = None) -> No
 
 
 def customer_email_html(
-    name: str, order_id: str, total: int, window: str, items: list[tuple[str, str]]
+    name: str,
+    order_id: str,
+    total: int,
+    window: str,
+    items: list[tuple[str, str]],
+    address: str = "",
 ) -> str:
     import html as html_mod
 
     safe_name = html_mod.escape(name)
+    safe_address = html_mod.escape(address)
     track_url = f"https://mamayyapickles.com/track?order={order_id}"
-    preheader = f"Order {order_id} confirmed. Estimated delivery {window}."
+    preheader = f"Mamayya confirmed it - mee jars kitchen lo. Delivery {window}."
     items_html = "".join(
         f'''<tr>
           <td width="34" style="padding:8px 0;border-bottom:1px solid #f3e9d8;" valign="middle">
@@ -375,9 +381,11 @@ def customer_email_html(
     </td></tr>
 
     <tr><td style="background:#a92a1d;padding:34px 32px;" align="center">
-      <div style="font-size:15px;color:#fdd9c4;">Namaste {safe_name},</div>
+      <div style="font-size:15px;color:#fdd9c4;">Namaste {safe_name} garu,</div>
       <div style="margin-top:8px;font-size:30px;line-height:1.15;font-weight:900;color:#fff4e4;">
-        Your jars are<br>on the way to the kitchen.</div>
+        Mee jars kosam<br>kitchen lo pani modalaindi.</div>
+      <div style="margin-top:10px;font-size:14px;color:#fdd9c4;">
+        Mamayya confirmed your order - the stove is already on.</div>
       <div style="display:inline-block;margin-top:18px;background:#fff4e4;border-radius:999px;padding:9px 22px;
                   font-size:15px;font-weight:900;color:#241713;letter-spacing:1px;">ORDER &nbsp;{order_id}</div>
     </td></tr>
@@ -390,7 +398,7 @@ def customer_email_html(
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
              style="background:#ffffff;border:1px solid #eadfc8;border-radius:14px;">
         <tr><td style="padding:18px 22px 6px;">
-          <div style="font-size:11px;font-weight:800;letter-spacing:2.5px;color:#b3a086;">YOUR JARS</div>
+          <div style="font-size:11px;font-weight:800;letter-spacing:2.5px;color:#b3a086;">MEE JARS</div>
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:6px;">
             {items_html}
           </table>
@@ -408,12 +416,27 @@ def customer_email_html(
       </table>
     </td></tr>
 
+    <tr><td style="background:#fff4e4;padding:16px 32px 0;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+             style="background:#ffffff;border:1px solid #eadfc8;border-radius:14px;">
+        <tr><td style="padding:16px 22px 18px;">
+          <div style="font-size:11px;font-weight:800;letter-spacing:2.5px;color:#b3a086;">DELIVERING TO</div>
+          <div style="margin-top:7px;font-size:14px;line-height:1.6;color:#241713;font-weight:600;">{safe_address}</div>
+          <div style="margin-top:8px;font-size:12px;line-height:1.5;color:#9c8a76;">
+            Something wrong in the address? Just reply to this email within 24 hours -
+            we will fix it before your jars are packed.</div>
+        </td></tr>
+      </table>
+    </td></tr>
+
     <tr><td style="background:#fff4e4;padding:18px 32px 6px;">
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
              style="background:#fbf3e2;border-left:4px solid #e6a62f;border-radius:0 10px 10px 0;">
         <tr><td style="padding:14px 18px;font-size:13px;line-height:1.6;color:#5c4a3a;">
-          Every batch is cooked fresh after you order - 2-3 days in the kitchen,
-          then 4-6 days with the courier. Good pickle takes a little time.
+          Amma chethi vanta laaga - every batch is cooked fresh only after you order.
+          2-3 days the kadai does its work, then the courier carries the ghumaghuma
+          to your door. Manchi pickle ki konchem time padutundi - good pickle takes
+          a little time.
         </td></tr>
       </table>
     </td></tr>
@@ -430,6 +453,10 @@ def customer_email_html(
       <div style="margin-top:14px;font-size:12px;color:#9c8a76;">
         Keep your phone handy - the tracking page asks for the number used on this order.
       </div>
+      <div style="margin-top:20px;font-size:15px;color:#5c4a3a;font-style:italic;">
+        Rice ready pettukondi. Ruchi dari lo undi.
+      </div>
+      <div style="margin-top:4px;font-size:14px;font-weight:800;color:#a92a1d;">- Mee Mamayya</div>
     </td></tr>
 
     <tr><td style="background:#241713;border-radius:0 0 18px 18px;padding:22px 32px;" align="center">
@@ -597,22 +624,34 @@ def send_customer_confirmation_email(
         return
     item_lines = format_item_lines(payload)
     body = (
-        f"Namaste {payload.name},\n\n"
-        f"Your Mamayya Pickles order {order_id} is confirmed.\n\n"
-        "Your jars:\n" + "\n".join(item_lines) + "\n\n"
+        f"Namaste {payload.name} garu,\n\n"
+        f"Mamayya confirmed your order {order_id} - kitchen lo pani modalaindi.\n\n"
+        "Mee jars:\n" + "\n".join(item_lines) + "\n\n"
         f"Total: Rs. {total:,}\n"
-        f"Estimated delivery: {window}\n\n"
-        "Fresh preparation starts now - your jars reach your door within a week.\n"
+        f"Estimated delivery: {window}\n"
+        f"Delivering to: {payload.address}, {payload.city} - {payload.pincode}\n\n"
+        "Wrong address? Reply within 24 hours - we fix it before packing.\n\n"
+        "Amma chethi vanta laaga - cooked fresh only after you order.\n"
+        "Manchi pickle ki konchem time padutundi - good pickle takes a little time.\n"
         f"Track any time: https://mamayyapickles.com/track?order={order_id}\n\n"
         "Questions? Just reply to this email.\n\n"
-        "Mamayya Pickles\n"
+        "Rice ready pettukondi. Ruchi dari lo undi.\n"
+        "- Mee Mamayya\n\n"
+        "Mamayya Pickles | Taste of Rayalaseema\n"
         "Big pieces. Bold spice. Proper non-veg pickle."
     )
-    html = customer_email_html(payload.name, order_id, total, window, format_item_pairs(payload))
+    html = customer_email_html(
+        payload.name,
+        order_id,
+        total,
+        window,
+        format_item_pairs(payload),
+        address=f"{payload.address}, {payload.city} - {payload.pincode}",
+    )
     _send_async(
         lambda: _send_email(
             payload.email,
-            f"Order {order_id} confirmed - Mamayya Pickles",
+            f"Order {order_id} confirmed · Mee jars kitchen lo - Mamayya Pickles",
             body,
             html=html,
         )
