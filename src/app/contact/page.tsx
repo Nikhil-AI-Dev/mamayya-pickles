@@ -36,6 +36,7 @@ const QUICK_HELP = [
   { label: "Where is my order?", href: "/track" },
   { label: "Delivery and payment questions", href: "/faqs" },
   { label: "Damaged jar? Replacement policy", href: "/policies/cancellation" },
+  { label: "Complaints - grievance officer", href: "/policies/terms" },
 ];
 
 export default function ContactPage() {

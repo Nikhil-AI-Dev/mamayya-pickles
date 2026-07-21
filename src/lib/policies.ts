@@ -125,6 +125,14 @@ export const policies: Policy[] = [
           "We are not responsible for spoilage caused by storage outside these instructions after delivery.",
         ],
       },
+      {
+        heading: "Grievance officer",
+        body: [
+          "Per the Consumer Protection (E-Commerce) Rules, 2020, complaints and escalations go to our grievance officer:",
+          "Subbarayudu Singanamalla · contact@mamayyapickles.com · +91 90358 43899",
+          "Complaints are acknowledged within 48 hours and resolved within 30 days.",
+        ],
+      },
     ],
   },
   {
