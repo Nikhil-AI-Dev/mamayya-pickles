@@ -23,7 +23,7 @@ The storefront is a static Next.js site, built and deployed automatically by Git
 2. **Admin email** arrives at contact@ — packing slip + a one-click **Confirm order** button (secure per-order link)
 3. Admin clicks Confirm → customer gets the **branded confirmation email** (from orders@, replies go to contact@) and the **one-week delivery clock starts** from that moment
 4. Track page (`/track`): needs order number **+ the phone used on the order** (privacy gate). Shows "waiting for kitchen confirmation" until confirmed, then a six-stage timeline anchored to confirmation (delivered day 7)
-5. When Razorpay is live: payment happens before step 2 — the admin email is sent only after successful payment
+5. Payments are live: the customer pays via Razorpay before step 2 — the admin email is sent only after successful payment
 
 Stage timings are calendar estimates (confirm+1 preparing, +3 packed, +4 shipped, +6 out for delivery, +7 delivered), not courier data.
 
@@ -33,7 +33,8 @@ Stage timings are calendar estimates (confirm+1 preparing, +3 packed, +4 shipped
 |---------|------|-------|
 | GoDaddy | Domain + DNS + M365 mailbox | Domain ~$12/yr after year 1; email $7 first year. "Websites+Marketing Lite" ($20.88) is unused — refundable |
 | GitHub (Nikhil-AI-Dev) | Code + hosting + deploys | Pages free; HTTPS cert auto-renews (current one to Oct 2026) |
-| Render | API + database | Free web service sleeps when idle (first request ~30s). **Free Postgres expires 30 days after creation (~mid-Aug 2026)** — see Costs |
+| Render | API hosting | Free web service sleeps when idle (first request ~30s) |
+| Neon.tech | Database (Postgres) | Free tier, no expiry. Migrated 21 Jul 2026; connection string in Render env `DATABASE_URL`. SQL Editor in the Neon dashboard for manual queries |
 | Resend | Outbound email | Free 100/day; domain verified via DNS (send + resend._domainkey records at GoDaddy) |
 
 ## Changing everyday things
@@ -73,9 +74,9 @@ Operational notes:
 
 1. **FSSAI licence number** — legally required. Replace placeholder in `src/components/Footer.tsx` and `src/lib/policies.ts` (food-safety). Also goes on jar labels
 2. ~~Razorpay activation~~ — DONE 20 Jul 2026, live keys active, flow verified (see Payments)
-3. **Real testimonials** — home "Mamayya Wall" shows sample reactions (`src/components/home/ReactionWall.tsx`). Replace or remove; fake reviews violate consumer protection rules
+3. **Real testimonials** — the sample wall is HIDDEN on the live site (commented out in `src/app/page.tsx`) until genuine reviews exist. When real quotes arrive: replace `REACTIONS` in `src/components/home/ReactionWall.tsx` and restore the one commented line in `page.tsx`
 4. **Price + copy sign-off** — all prices, weights, shipping (₹99, free above ₹1,200), 12-hour cancellation window, one-week delivery promise: drafted, not client-confirmed
-5. **Grievance contact** — Indian e-commerce rules require a named grievance officer; add to Terms once known
+5. ~~Grievance contact~~ — DONE 21 Jul 2026: Subbarayudu Singanamalla named in Terms & Conditions (`src/lib/policies.ts`), linked from Contact page
 
 ## Costs to expect
 
@@ -83,7 +84,7 @@ Operational notes:
 |------|------|------|
 | Domain renewal | ~$12/yr | Yearly |
 | Email renewal | ~$7-70/yr | Yearly (promo first year) |
-| Render Postgres | $7/mo OR migrate to Neon.tech free | **Before ~mid-Aug 2026** (free DB expiry) |
+| Neon Postgres | Free tier (0.5 GB — years of orders) | Done 21 Jul 2026; old Render DB abandoned, expires harmlessly |
 | Render always-on API | $7/mo (optional) | If ~30s cold start annoys |
 | Razorpay | 2% domestic / ~3% international | Per transaction |
 | Resend | Free to 100 emails/day | Upgrade only at volume |
@@ -94,7 +95,7 @@ Operational notes:
 - **Site down?** githubstatus.com (Pages) / Render dashboard
 - **Deploy failed?** GitHub repo → Actions tab → open the red run
 - **Emails not arriving?** `GET https://mamayya-api.onrender.com/api/config` → `lastEmailResult` has the error; check Resend dashboard → Emails for delivery log
-- **See orders:** Render dashboard → mamayya-db → Connect → `SELECT order_id, created_at, name, phone, total, payment_status, confirmed_at FROM orders ORDER BY rowid_pk DESC;`
+- **See orders:** Neon dashboard → project → SQL Editor → `SELECT order_id, created_at, name, phone, total, payment_status, confirmed_at FROM orders ORDER BY rowid_pk DESC;`
 - **Confirm an order without the email:** the Confirm link format is `https://mamayya-api.onrender.com/api/orders/MP-XXXX/confirm?token=...` — token is in the orders table
 - **Local development:** `npm run dev -- -p 3001` for the site; `python -m uvicorn main:app --port 8001` inside `backend/` for the API (SQLite locally, no setup)
-- **Test orders in production DB:** MP-1001 through MP-1055 are test data from development and the payment dress-run — clear before launch: `DELETE FROM orders WHERE order_id <= 'MP-1055';` (string compare works for the MP-10xx range; verify with a SELECT first — any real customer order will have a higher number)
+- **Test orders:** purged via the Neon migration (21 Jul 2026) — the database started fresh. If a stray probe order exists (e.g. MP-1001 'Neon Write Test'), delete it in Neon dashboard → SQL Editor: `DELETE FROM orders WHERE name = 'Neon Write Test';`

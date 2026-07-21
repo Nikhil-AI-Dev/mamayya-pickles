@@ -44,3 +44,4 @@ next-env.d.ts
 backend/mamayya.db
 backend/__pycache__/
 .gstack/
+brag-output/
