@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { lineTitle, lineUnitPrice, useCart } from "@/lib/cart";
 import { deliveryWindow, formatINR, getBox, getProduct } from "@/lib/products";
 import {
@@ -40,10 +40,32 @@ const FIELDS = [
   { id: "name", label: "Full name", type: "text", autoComplete: "name", span: false },
   { id: "phone", label: "Phone (for the courier)", type: "tel", autoComplete: "tel", span: false },
   { id: "email", label: "Email (order updates go here)", type: "email", autoComplete: "email", span: true },
-  { id: "address", label: "Address", type: "text", autoComplete: "street-address", span: true },
-  { id: "city", label: "City", type: "text", autoComplete: "address-level2", span: false },
+  { id: "house", label: "House / Flat / Building", type: "text", autoComplete: "address-line1", span: false },
+  { id: "street", label: "Street / Area", type: "text", autoComplete: "address-line2", span: false },
+  { id: "landmark", label: "Near / Opposite (landmark) - optional", type: "text", autoComplete: "off", span: true, optional: true },
   { id: "pincode", label: "Pincode", type: "text", autoComplete: "postal-code", span: false },
-] as const;
+  { id: "city", label: "City", type: "text", autoComplete: "address-level2", span: false },
+];
+
+/** India Post pincode directory - fills city/state from a 6-digit pin.
+ *  Fail-open: any error or slow response leaves the form fully manual. */
+async function lookupPincode(pin: string): Promise<{ district: string; state: string } | null> {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 3000);
+  try {
+    const res = await fetch(`https://api.postalpincode.in/pincode/${pin}`, {
+      signal: ctrl.signal,
+    });
+    const data = await res.json();
+    const po = data?.[0]?.PostOffice?.[0];
+    if (data?.[0]?.Status !== "Success" || !po) return null;
+    return { district: po.District, state: po.State };
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timer);
+  }
+}
 
 export default function CheckoutClient() {
   const { lines, subtotal, shipping, total, updateQuantity, removeLine, clearCart } =
@@ -51,6 +73,25 @@ export default function CheckoutClient() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirmation, setConfirmation] = useState<OrderConfirmation | null>(null);
+  const [pinHint, setPinHint] = useState<string | null>(null);
+  const [recap, setRecap] = useState<Record<string, string>>({});
+  const cityAutofilled = useRef(false);
+
+  const onPincodeChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const pin = e.target.value.trim();
+    setPinHint(null);
+    if (!/^\d{6}$/.test(pin)) return;
+    const found = await lookupPincode(pin);
+    if (!found) return;
+    setPinHint(`${found.district}, ${found.state}`);
+    const city = document.getElementById("city") as HTMLInputElement | null;
+    if (city && (city.value.trim() === "" || cityAutofilled.current)) {
+      city.value = found.district;
+      cityAutofilled.current = true;
+      // programmatic fill fires no input event; nudge the recap manually
+      city.dispatchEvent(new Event("input", { bubbles: true }));
+    }
+  };
 
   // Wake the free-tier API while the shopper fills the form.
   useEffect(() => {
@@ -162,9 +203,16 @@ export default function CheckoutClient() {
     setError(null);
     setSubmitting(true);
     const data = new FormData(e.currentTarget);
-    const details = Object.fromEntries(
-      FIELDS.map((f) => [f.id, String(data.get(f.id) ?? "").trim()])
-    ) as OrderDetails;
+    const v = (id: string) => String(data.get(id) ?? "").trim();
+    const landmark = v("landmark");
+    const details: OrderDetails = {
+      name: v("name"),
+      phone: v("phone"),
+      email: v("email"),
+      address: `${v("house")}, ${v("street")}${landmark ? `, Near ${landmark}` : ""}`,
+      city: v("city"),
+      pincode: v("pincode"),
+    };
     try {
       const result = await createOrder(details, lines);
       if (result.razorpayOrderId) {
@@ -187,6 +235,17 @@ export default function CheckoutClient() {
     <form
       className="mx-auto max-w-6xl px-4 md:px-6 pb-20 grid gap-10 lg:grid-cols-[1.2fr_1fr] items-start"
       onSubmit={handleSubmit}
+      onInput={(e) => {
+        const data = new FormData(e.currentTarget);
+        setRecap(
+          Object.fromEntries(
+            ["house", "street", "landmark", "city", "pincode", "phone"].map((k) => [
+              k,
+              String(data.get(k) ?? "").trim(),
+            ])
+          )
+        );
+      }}
     >
       {/* Delivery details */}
       <section aria-labelledby="delivery-heading" className="rounded-3xl bg-white/80 border border-charcoal/10 shadow-card p-6">
@@ -204,12 +263,17 @@ export default function CheckoutClient() {
                 name={f.id}
                 type={f.type}
                 autoComplete={f.autoComplete}
-                required
+                required={!("optional" in f && f.optional)}
                 minLength={f.id === "pincode" ? 6 : undefined}
                 maxLength={f.id === "pincode" ? 6 : undefined}
                 pattern={f.id === "pincode" ? "\\d{6}" : undefined}
+                inputMode={f.id === "pincode" ? "numeric" : undefined}
+                onChange={f.id === "pincode" ? onPincodeChange : undefined}
                 className="mt-1.5 w-full rounded-xl border-2 border-charcoal/15 bg-cream/50 px-4 py-2.5 font-semibold focus:border-red focus:outline-none"
               />
+              {f.id === "pincode" && pinHint && (
+                <p className="mt-1 text-xs font-semibold text-leaf">✓ {pinHint}</p>
+              )}
             </div>
           ))}
         </div>
@@ -288,6 +352,21 @@ export default function CheckoutClient() {
           </div>
         </dl>
 
+        {recap.house && recap.street && recap.pincode?.length === 6 && (
+          <div className="mt-4 rounded-2xl bg-cream/10 border border-cream/15 p-4 text-sm">
+            <p className="text-[11px] font-extrabold uppercase tracking-wider text-gold">
+              Delivering to
+            </p>
+            <p className="mt-1.5 leading-relaxed text-cream/90">
+              {recap.house}, {recap.street}
+              {recap.landmark ? `, Near ${recap.landmark}` : ""}
+              {recap.city ? `, ${recap.city}` : ""} - {recap.pincode}
+            </p>
+            {recap.phone && (
+              <p className="mt-1 text-cream/60 text-xs">Courier calls: {recap.phone}</p>
+            )}
+          </div>
+        )}
         <p className="mt-3 text-xs text-cream/60">
           Estimated delivery: <strong className="text-cream/90">{deliveryWindow()}</strong>
         </p>
