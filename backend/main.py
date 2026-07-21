@@ -547,12 +547,48 @@ def _send_async(job) -> None:
     threading.Thread(target=worker, daemon=True).start()
 
 
+def recent_orders_same_phone(order_id: str, phone: str) -> list[tuple[str, str]]:
+    """(order_id, created_at) of other paid orders from this phone in the last
+    24h - so the kitchen can pack one parcel and refund the extra shipping."""
+    digits = phone and "".join(c for c in phone if c.isdigit())[-10:]
+    if not digits:
+        return []
+    cutoff = (datetime.now(timezone.utc) - timedelta(hours=24)).isoformat()
+    try:
+        with db() as conn:
+            rows = conn.execute(
+                _sql(
+                    "SELECT order_id, created_at, phone FROM orders "
+                    "WHERE order_id != %s AND payment_status = 'paid' "
+                    "AND created_at > %s ORDER BY created_at DESC LIMIT 5"
+                ),
+                (order_id, cutoff),
+            ).fetchall()
+        return [
+            (r["order_id"], r["created_at"])
+            for r in rows
+            if "".join(c for c in (r["phone"] or "") if c.isdigit())[-10:] == digits
+        ]
+    except Exception:
+        logger.exception("same-phone lookup failed")
+        return []
+
+
 def send_admin_new_order_email(
     order_id: str, payload: "OrderCreate", total: int, confirm_token: str
 ) -> None:
     """Packing slip + one-click Confirm button. Sent when an order arrives."""
     if not EMAIL_ENABLED:
         return
+    siblings = recent_orders_same_phone(order_id, payload.phone)
+    sibling_note = ""
+    if siblings:
+        ids = ", ".join(o for o, _ in siblings)
+        sibling_note = (
+            "*** SAME CUSTOMER ALERT: this phone also placed " + ids + " in the "
+            "last 24 hours. Consider packing together and refunding the extra "
+            "shipping fee in Razorpay. ***"
+        )
     item_lines = format_item_lines(payload)
     confirm_url = f"{API_PUBLIC_URL}/api/orders/{order_id}/confirm?token={confirm_token}"
     body = (
@@ -562,7 +598,8 @@ def send_admin_new_order_email(
         f"Email: {payload.email}\n"
         f"Address: {payload.address}, {payload.city} - {payload.pincode}\n\n"
         "Items:\n" + "\n".join(item_lines) + "\n\n"
-        f"Total: Rs. {total:,}\n\n"
+        f"Total: Rs. {total:,}\n"
+        + sibling_note + "\n"
         "The customer has NOT been emailed yet. Confirm to start the one-week\n"
         "delivery clock and send their confirmation email:\n"
         f"{confirm_url}"
@@ -583,6 +620,7 @@ def send_admin_new_order_email(
       <h1 style="margin:0 0 4px;color:#241713;font-size:20px;font-weight:900;">New order {order_id}</h1>
       <p style="margin:0 0 16px;color:#a92a1d;font-size:13px;font-weight:700;">
         Awaiting your confirmation - customer not emailed yet.</p>
+      {f'<div style="background:#fbe9c6;border-left:4px solid #e6a62f;border-radius:0 8px 8px 0;padding:12px 16px;margin:0 0 16px;font-size:13px;line-height:1.6;color:#5c4a3a;"><strong>Same customer alert:</strong> this phone also placed <strong>{esc(", ".join(o for o, _ in siblings))}</strong> in the last 24 hours. Consider packing together and refunding the extra shipping fee in Razorpay.</div>' if siblings else ""}
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
              style="background:#ffffff;border:1px solid #eadfc8;border-radius:10px;">
         <tr><td style="padding:14px 18px;font-size:14px;line-height:1.8;color:#241713;">
