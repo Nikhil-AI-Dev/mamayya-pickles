@@ -11,7 +11,7 @@ export const faqs: Faq[] = [
   },
   {
     q: "How is meat pickle shipped safely?",
-    a: "Jars are double-sealed, shrink-wrapped and cushioned inside a rigid carton. The oil layer on top naturally preserves the pieces during transit. Orders of 1 kg and above ship as multiple sealed 500 g jars.",
+    a: "Jars are double-sealed, shrink-wrapped and cushioned inside a rigid carton. The oil layer on top naturally preserves the pieces during transit.",
   },
   {
     q: "How long does the pickle last?",
@@ -31,6 +31,6 @@ export const faqs: Faq[] = [
   },
   {
     q: "Do you ship everywhere in India?",
-    a: "We ship to most serviceable pincodes across India via courier partners. Enter your pincode on any product page to confirm serviceability and see an estimated delivery window.",
+    a: "We ship across India via courier partners. If a pincode turns out to be unserviceable after you order, we contact you right away and refund in full.",
   },
 ];
