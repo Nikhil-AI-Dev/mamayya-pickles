@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
-import { ApiError, TrackedOrder, getOrder, warmApi } from "@/lib/api";
+import { ApiError, TrackedOrder, getOrder, slowTimer, warmApi } from "@/lib/api";
 import { formatINR } from "@/lib/products";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
@@ -44,6 +44,7 @@ export default function TrackLookup() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [order, setOrder] = useState<TrackedOrder | null>(null);
+  const [slowHint, setSlowHint] = useState(false);
   const stagesRef = useRef<HTMLElement>(null);
 
   // Deep link from the confirmation email: /track?order=MP-1234
@@ -82,6 +83,8 @@ export default function TrackLookup() {
     setLoading(true);
     setError(null);
     setOrder(null);
+    setSlowHint(false);
+    const slow = slowTimer(() => setSlowHint(true));
     try {
       setOrder(await getOrder(orderId, phone));
     } catch (err) {
@@ -89,6 +92,8 @@ export default function TrackLookup() {
         err instanceof ApiError ? err.message : "Something went wrong. Try again."
       );
     } finally {
+      slow.clear();
+      setSlowHint(false);
       setLoading(false);
     }
   };
@@ -146,6 +151,12 @@ export default function TrackLookup() {
           >
             {loading ? "Looking up..." : "Find my order"}
           </button>
+          {loading && slowHint && (
+            <p className="mt-2 text-xs text-charcoal/60" role="status">
+              Taking longer than usual - slow network or our server is waking
+              up. Hang on.
+            </p>
+          )}
 
           {error && (
             <div

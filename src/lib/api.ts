@@ -57,6 +57,12 @@ export class ApiError extends Error {
   }
 }
 
+/** Fires cb if a request is still in flight after ms - drive "slow network" hints. */
+export function slowTimer(cb: () => void, ms = 8000): { clear: () => void } {
+  const id = setTimeout(cb, ms);
+  return { clear: () => clearTimeout(id) };
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   let res: Response;
   try {
@@ -65,8 +71,14 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
       ...init,
     });
   } catch {
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+      throw new ApiError(
+        "You appear to be offline. Check your internet connection and try again - your cart is saved on this device.",
+        0
+      );
+    }
     throw new ApiError(
-      "Can't reach the order service. Check that the backend is running on port 8001.",
+      "Can't reach the order service right now. Give it a few seconds and try again - your cart is safe.",
       0
     );
   }

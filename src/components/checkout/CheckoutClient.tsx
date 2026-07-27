@@ -9,6 +9,7 @@ import {
   OrderConfirmation,
   OrderDetails,
   createOrder,
+  slowTimer,
   verifyPayment,
   warmApi,
 } from "@/lib/api";
@@ -74,6 +75,7 @@ export default function CheckoutClient() {
   const [error, setError] = useState<string | null>(null);
   const [confirmation, setConfirmation] = useState<OrderConfirmation | null>(null);
   const [pinHint, setPinHint] = useState<string | null>(null);
+  const [slowHint, setSlowHint] = useState(false);
   const [recap, setRecap] = useState<Record<string, string>>({});
   const cityAutofilled = useRef(false);
 
@@ -202,6 +204,8 @@ export default function CheckoutClient() {
     e.preventDefault();
     setError(null);
     setSubmitting(true);
+    setSlowHint(false);
+    const slow = slowTimer(() => setSlowHint(true));
     const data = new FormData(e.currentTarget);
     const v = (id: string) => String(data.get(id) ?? "").trim();
     const landmark = v("landmark");
@@ -227,6 +231,8 @@ export default function CheckoutClient() {
         err instanceof ApiError ? err.message : "Something went wrong. Try again."
       );
     } finally {
+      slow.clear();
+      setSlowHint(false);
       setSubmitting(false);
     }
   };
@@ -378,6 +384,12 @@ export default function CheckoutClient() {
         >
           {submitting ? "Placing order..." : `Place order · ${formatINR(total)}`}
         </button>
+        {submitting && slowHint && (
+          <p className="mt-3 text-xs text-cream/70" role="status">
+            Taking longer than usual - slow network or our kitchen server is
+            waking up. Hang on, don&apos;t refresh.
+          </p>
+        )}
 
         {error && (
           <div

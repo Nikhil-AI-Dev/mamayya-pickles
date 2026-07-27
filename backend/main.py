@@ -784,14 +784,6 @@ def confirm_order(order_id: str, token: str = "") -> str:
             _sql("SELECT * FROM orders WHERE order_id = %s"),
             (order_id.strip().upper(),),
         ).fetchone()
-    if (
-        row is None
-        or not token
-        or not row["confirm_token"]
-        or not hmac.compare_digest(str(row["confirm_token"]), token)
-    ):
-        raise HTTPException(404, "Unknown order or invalid confirmation link.")
-
     def page(title: str, detail: str) -> str:
         return f"""<!doctype html><html><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -804,6 +796,20 @@ def confirm_order(order_id: str, token: str = "") -> str:
   <h1 style="margin:22px 0 8px;font-size:22px;color:#241713;">{title}</h1>
   <p style="margin:0;color:#6f5d4e;font-size:15px;line-height:1.6;">{detail}</p>
 </div></body></html>"""
+
+    if (
+        row is None
+        or not token
+        or not row["confirm_token"]
+        or not hmac.compare_digest(str(row["confirm_token"]), token)
+    ):
+        return page(
+            "This link isn't valid",
+            "This confirmation link doesn't match any order - it may be old, "
+            "already replaced, or copied incompletely. Open the latest order "
+            "email and use its Confirm button, or check the orders list in "
+            "the database.",
+        )
 
     if row["confirmed_at"]:
         return page(

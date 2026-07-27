@@ -100,6 +100,16 @@ body {
   }
 }
 
+/* Form validation: mark fields invalid only after the user has touched them */
+input:user-invalid,
+textarea:user-invalid {
+  border-color: #a92a1d;
+}
+input:user-invalid:focus,
+textarea:user-invalid:focus {
+  outline-color: #a92a1d;
+}
+
 /* Buttons behave like buttons */
 button:not(:disabled),
 [role="button"]:not([aria-disabled="true"]) {
