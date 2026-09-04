@@ -26,8 +26,8 @@ const CHANNELS = [
   {
     title: "Instagram",
     detail: "Kitchen photos, new batch announcements and behind-the-jar stories. DMs open.",
-    action: "@mamayyapickle",
-    href: "https://www.instagram.com/mamayyapickle/",
+    action: "@mamayyapickles",
+    href: "https://www.instagram.com/mamayyapickles/",
     external: true,
   },
 ];

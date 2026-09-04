@@ -43,7 +43,7 @@ export default function Footer() {
           </p>
           <div className="mt-4 flex gap-3">
           <a
-            href="https://www.instagram.com/mamayyapickle/"
+            href="https://www.instagram.com/mamayyapickles/"
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Mamayya Pickles on Instagram"

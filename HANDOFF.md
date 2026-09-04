@@ -11,7 +11,7 @@ Everything about how this store runs, what's live, and what's left before taking
 | Code | https://github.com/Nikhil-AI-Dev/mamayya-pickles |
 | Support email | contact@mamayyapickles.com (Microsoft 365 via GoDaddy, webmail at outlook.office.com) |
 | Sending email | orders@mamayyapickles.com via Resend (free tier, 100/day) |
-| Instagram | https://www.instagram.com/mamayyapickle/ |
+| Instagram | https://www.instagram.com/mamayyapickles/ |
 
 ## Architecture in one paragraph
 

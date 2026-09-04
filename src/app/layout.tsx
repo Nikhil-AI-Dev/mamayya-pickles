@@ -86,7 +86,7 @@ export default function RootLayout({
               url: "https://mamayyapickles.com",
               logo: "https://mamayyapickles.com/logo-512.png",
               email: "contact@mamayyapickles.com",
-              sameAs: ["https://www.instagram.com/mamayyapickle/"],
+              sameAs: ["https://www.instagram.com/mamayyapickles/"],
             }),
           }}
         />
