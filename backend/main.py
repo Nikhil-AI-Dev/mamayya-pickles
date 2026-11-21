@@ -105,6 +105,13 @@ BOX_PRICES: dict[str, int] = {
 FREE_SHIPPING_THRESHOLD = 1200
 SHIPPING_FEE = 99
 
+# 14-digit FSSAI number (first digit 2 = Registration). FSSAI's order of
+# 8 Dec 2020 requires it on every receipt/invoice, so it goes on the
+# confirmation email. Mirrors src/lib/business.ts; override via env if renewed
+# under a new number.
+FSSAI_REG_NO = os.environ.get("FSSAI_REG_NO", "21226184001414")
+FSSAI_LINE = f"FSSAI Reg. No. {FSSAI_REG_NO}"
+
 # Order lifecycle: stage begins N days after the order was placed.
 STAGES = [
     ("confirmed", 0),
@@ -464,6 +471,7 @@ def customer_email_html(
       <div style="margin-top:5px;font-size:12px;color:#e6a62f;">Intlo chesina ruchi. India motham delivery.</div>
       <div style="margin-top:12px;font-size:11px;color:#8d7b6c;">
         Questions? Reply to this email or write to contact@mamayyapickles.com</div>
+      <div style="margin-top:8px;font-size:11px;color:#8d7b6c;letter-spacing:0.03em;">{FSSAI_LINE}</div>
     </td></tr>
 
   </table>
@@ -676,7 +684,8 @@ def send_customer_confirmation_email(
         "Rice ready pettukondi. Ruchi dari lo undi.\n"
         "- Mee Mamayya\n\n"
         "Mamayya Pickles | Taste of Rayalaseema\n"
-        "Big pieces. Bold spice. Proper non-veg pickle."
+        "Big pieces. Bold spice. Proper non-veg pickle.\n"
+        f"{FSSAI_LINE}"
     )
     html = customer_email_html(
         payload.name,

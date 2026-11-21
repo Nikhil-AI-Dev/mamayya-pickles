@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { products } from "@/lib/products";
+import { FSSAI, FSSAI_ABBR } from "@/lib/business";
 
 const POLICY_LINKS = [
   { href: "/policies/shipping", label: "Shipping Policy" },
   { href: "/policies/cancellation", label: "Cancellation & Replacement" },
   { href: "/policies/privacy", label: "Privacy Policy" },
   { href: "/policies/terms", label: "Terms & Conditions" },
-  { href: "/policies/food-safety", label: "Food Safety & Licence" },
+  { href: "/policies/food-safety", label: "Food Safety & FSSAI" },
 ];
 
 export default function Footer() {
@@ -67,9 +68,23 @@ export default function Footer() {
           </div>
           <div className="mt-6 rounded-lg border border-cream/20 px-4 py-3 text-xs text-cream/70 max-w-sm">
             <p className="font-bold text-cream">FSSAI Registration</p>
-            <p className="mt-1">
-              Lic. No. XXXXXXXXXXXXXX (placeholder - replace with the actual
-              FSSAI licence/registration number before launch).
+            <p className="mt-1 font-mono text-sm tracking-wider text-cream">
+              {FSSAI_ABBR} No. {FSSAI.number}
+            </p>
+            <p className="mt-1.5">
+              Verify at{" "}
+              <a
+                href={FSSAI.verifyUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline hover:text-gold"
+              >
+                foscos.fssai.gov.in
+              </a>
+              {" · "}
+              <Link href="/policies/food-safety" className="underline hover:text-gold">
+                Food safety
+              </Link>
             </p>
           </div>
         </div>

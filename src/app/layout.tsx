@@ -6,6 +6,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import MobileNav from "@/components/MobileNav";
 import CartDrawer from "@/components/CartDrawer";
+import { FSSAI } from "@/lib/business";
 
 const bricolage = Bricolage_Grotesque({
   variable: "--font-bricolage",
@@ -87,6 +88,11 @@ export default function RootLayout({
               logo: "https://mamayyapickles.com/logo-512.png",
               email: "contact@mamayyapickles.com",
               sameAs: ["https://www.instagram.com/mamayyapickles/"],
+              identifier: {
+                "@type": "PropertyValue",
+                propertyID: "FSSAI",
+                value: FSSAI.number,
+              },
             }),
           }}
         />

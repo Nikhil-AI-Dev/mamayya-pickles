@@ -5,6 +5,7 @@ import JarScene from "@/components/JarScene";
 import SpiceMeter from "@/components/SpiceMeter";
 import ProductPurchase from "@/components/product/ProductPurchase";
 import { getProduct, products } from "@/lib/products";
+import { FSSAI_SHORT } from "@/lib/business";
 
 type Params = { slug: string };
 
@@ -190,6 +191,22 @@ export default async function ProductPage({
                     {product.shelfLife}
                   </dd>
                 </div>
+              </div>
+
+              <div className="border-t border-charcoal/15 pt-4">
+                <dt className="font-extrabold uppercase tracking-wider text-xs text-charcoal/60">
+                  Food safety
+                </dt>
+                <dd className="mt-1.5 text-charcoal/80 leading-relaxed">
+                  <span className="font-bold text-charcoal">{FSSAI_SHORT}</span>
+                  {" · printed on every jar · "}
+                  <Link
+                    href="/policies/food-safety"
+                    className="font-bold text-red hover:underline"
+                  >
+                    Food safety policy
+                  </Link>
+                </dd>
               </div>
             </dl>
           </article>

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { lineTitle, lineUnitPrice, useCart } from "@/lib/cart";
 import { deliveryWindow, formatINR, getBox, getProduct } from "@/lib/products";
+import { FSSAI_SHORT } from "@/lib/business";
 import {
   ApiError,
   OrderConfirmation,
@@ -127,6 +128,7 @@ export default function CheckoutClient() {
             </div>
           </dl>
           <p className="mt-5 text-xs text-cream/60">{confirmation.paymentNote}</p>
+          <p className="mt-2 text-[11px] tracking-wide text-cream/50">{FSSAI_SHORT}</p>
           <div className="mt-7 flex flex-wrap justify-center gap-3">
             <Link
               href="/track"

@@ -1,3 +1,5 @@
+import { FSSAI, FSSAI_SHORT } from "@/lib/business";
+
 export type PolicySection = { heading: string; body: string[] };
 
 export type Policy = {
@@ -137,14 +139,20 @@ export const policies: Policy[] = [
   },
   {
     slug: "food-safety",
-    title: "Food Safety & Licence",
+    title: "Food Safety & FSSAI",
     intro:
       "Handmade does not mean casual. Every batch follows the same hygiene rules a licensed kitchen must.",
     sections: [
       {
         heading: "FSSAI registration",
         body: [
-          "Mamayya Pickles operates under FSSAI Lic. No. XXXXXXXXXXXXXX (placeholder - the actual licence number appears here and on every jar label before launch).",
+          `Mamayya Pickles is registered with the Food Safety and Standards Authority of India (FSSAI). ${FSSAI_SHORT}.`,
+          ...(FSSAI.holder ? [`Registered to: ${FSSAI.holder}.`] : []),
+          ...(FSSAI.validUntil
+            ? [`Registration valid until ${FSSAI.validUntil}; renewed before expiry.`]
+            : []),
+          "The same number is printed on every jar label and appears in the footer of every page, on each product page, on your on-screen receipt and on your order confirmation email.",
+          "Any FSSAI number can be checked on the authority's public register, FoSCoS, at foscos.fssai.gov.in.",
         ],
       },
       {

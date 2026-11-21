@@ -39,7 +39,7 @@ Stage timings are calendar estimates (confirm+1 preparing, +3 packed, +4 shipped
 
 ## Changing everyday things
 
-Product data: `src/lib/products.ts` (prices, weights, descriptions, ingredients). FAQs: `src/lib/faqs.ts`. Policies: `src/lib/policies.ts`. Contacts (WhatsApp +91 90358 43899 - owner's number, also Razorpay login; email): `src/app/contact/page.tsx`, `src/components/track/TrackLookup.tsx`. Logo assets: `public/logo.png` (600px) + `public/logo-192.png`. Edit, commit, push — site redeploys in ~2 minutes.
+Product data: `src/lib/products.ts` (prices, weights, descriptions, ingredients). FAQs: `src/lib/faqs.ts`. Policies: `src/lib/policies.ts`. Contacts (WhatsApp +91 90358 43899 - owner's number, also Razorpay login; email): `src/app/contact/page.tsx`, `src/components/track/TrackLookup.tsx`. Logo assets: `public/logo.png` (600px) + `public/logo-192.png`. Statutory IDs (FSSAI number, type, holder, validity): `src/lib/business.ts`; the order API mirrors the number via `FSSAI_REG_NO` in Render env (defaults to the same number in `backend/main.py`). Edit, commit, push — site redeploys in ~2 minutes.
 
 **Prices exist in TWO places** and must match: `src/lib/products.ts` (what shoppers see) and `backend/main.py` `PRODUCT_PRICES`/`BOX_PRICES` (what orders actually charge). The backend is the authority.
 
@@ -72,7 +72,7 @@ Operational notes:
 
 ## Before taking real money — launch blockers
 
-1. **FSSAI licence number** — legally required. Replace placeholder in `src/components/Footer.tsx` and `src/lib/policies.ts` (food-safety). Also goes on jar labels
+1. ~~FSSAI number~~ — DONE 21 Nov 2026: FSSAI **Registration** No. 21226184001414 (first digit 2 = registration, so the site says "Reg. No.", not "Lic. No."). Lives in `src/lib/business.ts` (footer, product pages, food-safety policy, on-screen receipt, Organization schema) and as the `FSSAI_REG_NO` default in `backend/main.py` (confirmation emails; set the Render env var to override). **Still to do:** print the same number next to the FSSAI logo on every jar label (Labelling & Display Regulations 2020); fill `holder` and `validUntil` in `business.ts` from the certificate; renew at least 30 days before expiry (late renewal fee is ₹100/day)
 2. ~~Razorpay activation~~ — DONE 20 Jul 2026, live keys active, flow verified (see Payments)
 3. **Real testimonials** — the sample wall is HIDDEN on the live site (commented out in `src/app/page.tsx`) until genuine reviews exist. When real quotes arrive: replace `REACTIONS` in `src/components/home/ReactionWall.tsx` and restore the one commented line in `page.tsx`
 4. **Price + copy sign-off** — all prices, weights, shipping (₹99, free above ₹1,200), 12-hour cancellation window, one-week delivery promise: drafted, not client-confirmed
