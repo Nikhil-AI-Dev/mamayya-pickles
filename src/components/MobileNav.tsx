@@ -52,7 +52,10 @@ export default function MobileNav() {
           <Tote aria-hidden size={20} weight="regular" />
           Cart
           {itemCount > 0 && (
-            <span className="absolute top-1.5 right-1/2 translate-x-4 grid place-items-center min-w-4 h-4 px-0.5 rounded-full bg-red text-cream text-[10px] font-extrabold">
+            <span
+              key={itemCount}
+              className="badge-pop absolute top-1.5 right-1/2 translate-x-4 grid place-items-center min-w-4 h-4 px-0.5 rounded-full bg-red text-cream text-[10px] font-extrabold"
+            >
               {itemCount}
             </span>
           )}

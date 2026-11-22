@@ -24,6 +24,14 @@
 
   --shadow-jar: 0 24px 48px -16px rgba(36, 23, 19, 0.28);
   --shadow-card: 0 8px 24px -8px rgba(36, 23, 19, 0.16);
+  --shadow-lift: 0 18px 40px -14px rgba(36, 23, 19, 0.28);
+
+  /* Motion. A confident deceleration for every transition utility, so hover,
+     press and open states ease in instead of running on the linear default. */
+  --ease-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --default-transition-timing-function: var(--ease-quint);
+  --default-transition-duration: 200ms;
 }
 
 :root {
@@ -89,14 +97,75 @@ body {
   animation: float-slow 6s ease-in-out infinite;
 }
 
+/* Cart count bump: the badge is remounted with key={itemCount}, so this
+   replays each time the number changes, acknowledging an add without noise. */
+@keyframes badge-pop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.35); }
+  100% { transform: scale(1); }
+}
+.badge-pop {
+  animation: badge-pop 420ms var(--ease-quint);
+}
+
+/* Smooth FAQ open in browsers that support ::details-content; others keep the
+   current instant open. interpolate-size lets the height ease too. */
+@media (prefers-reduced-motion: no-preference) {
+  :root {
+    interpolate-size: allow-keywords;
+  }
+  details::details-content {
+    opacity: 0;
+    transform: translateY(-4px);
+    transition:
+      opacity 280ms var(--ease-quint),
+      transform 280ms var(--ease-quint),
+      block-size 280ms var(--ease-quint),
+      content-visibility 280ms allow-discrete;
+  }
+  details[open]::details-content {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Pressable affordance for interactive elements that opt in. */
+.tap {
+  transition:
+    transform 150ms var(--ease-quint),
+    box-shadow 200ms var(--ease-quint),
+    background-color 200ms var(--ease-quint),
+    color 200ms var(--ease-quint);
+}
+.tap:active {
+  transform: scale(0.96);
+}
+@media (hover: hover) {
+  .lift {
+    transition:
+      transform 220ms var(--ease-quint),
+      box-shadow 220ms var(--ease-quint);
+  }
+  .lift:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lift);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
   }
-  .animate-marquee,
-  .animate-oil,
-  .animate-float {
-    animation: none;
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .lift:hover {
+    transform: none;
   }
 }
 

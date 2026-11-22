@@ -26,7 +26,7 @@ function ProductCard({ product }: { product: Product }) {
     product.weights.find((w) => w.grams === grams) ?? product.weights[0];
 
   return (
-    <article className="shop-card flex flex-col rounded-3xl bg-white/70 border border-charcoal/10 shadow-card overflow-hidden">
+    <article className="shop-card flex flex-col rounded-3xl bg-white/70 border border-charcoal/10 shadow-card overflow-hidden transition-shadow hover:shadow-lift">
       <Link
         href={`/products/${product.slug}`}
         className="relative grid place-items-center pt-10 pb-6 group"
@@ -118,7 +118,7 @@ function BoxTicket({ box }: { box: Box }) {
   const savings = box.compareAt - box.price;
 
   return (
-    <article className="relative rounded-2xl border-2 border-dashed border-charcoal/25 bg-cream-deep/60 p-5 flex flex-col">
+    <article className="relative rounded-2xl border-2 border-dashed border-charcoal/25 bg-cream-deep/60 p-5 flex flex-col transition-shadow hover:shadow-lift">
       <span className="absolute -top-3 left-5 z-10 rounded-full bg-gold text-charcoal text-[11px] font-extrabold uppercase tracking-wider px-3 py-1">
         Save {formatINR(savings)}
       </span>

@@ -57,11 +57,14 @@ export default function Header() {
         <button
           type="button"
           onClick={openCart}
-          className="relative flex items-center gap-2 rounded-full bg-charcoal text-cream px-4 py-2 text-sm font-bold hover:bg-red transition-colors"
+          className="tap relative flex items-center gap-2 rounded-full bg-charcoal text-cream px-4 py-2 text-sm font-bold hover:bg-red"
           aria-label={`Open cart, ${itemCount} items`}
         >
           <span aria-hidden>Cart</span>
-          <span className="grid place-items-center min-w-5 h-5 px-1 rounded-full bg-gold text-charcoal text-xs font-extrabold">
+          <span
+            key={itemCount}
+            className="badge-pop grid place-items-center min-w-5 h-5 px-1 rounded-full bg-gold text-charcoal text-xs font-extrabold"
+          >
             {itemCount}
           </span>
         </button>
