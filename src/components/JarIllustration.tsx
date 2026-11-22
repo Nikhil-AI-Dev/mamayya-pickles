@@ -60,8 +60,8 @@ export default function JarIllustration({
         strokeWidth="3"
       />
 
-      {/* Contents */}
-      <g clipPath={`url(#jarclip-${color.slice(1)})`}>
+      {/* Contents (class lets a scroll scene fill the jar by scaling this group) */}
+      <g className="jar-contents" clipPath={`url(#jarclip-${color.slice(1)})`}>
         <rect
           x="28"
           y={fillY}
