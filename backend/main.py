@@ -13,9 +13,9 @@ import base64
 import hashlib
 import hmac
 import json
-import secrets
 import logging
 import os
+import secrets
 import smtplib
 import sqlite3
 import ssl
@@ -23,32 +23,50 @@ import threading
 import time
 import urllib.error
 import urllib.request
-from urllib.parse import parse_qs, quote
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from email.message import EmailMessage
 from pathlib import Path
 from typing import Literal
+from urllib.parse import parse_qs, quote
+from zoneinfo import ZoneInfo
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel, Field
+from starlette.concurrency import run_in_threadpool
 
+# uvicorn configures its own loggers only; give this module's INFO events a
+# handler so order/payment/confirm events reach the Render log.
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
 logger = logging.getLogger("mamayya")
 
 EMAIL_PATTERN = r"^[^@\s,;<>\"]+@[^@\s,;<>\"]+\.[^@\s,;<>\"]+$"
+# Free-text fields stay on one line so they cannot add lines to an email.
+SINGLE_LINE = r"^[^\r\n]*$"
 
-DB_PATH = Path(__file__).parent / "mamayya.db"
+# Customer-facing dates (emails, confirm page, tracking) are Indian time.
+IST = ZoneInfo("Asia/Kolkata")
 
-# Postgres in production (set DATABASE_URL), SQLite locally.
+# SQLite file for local development; tests point MAMAYYA_DB_PATH at a temp file.
+DB_PATH = Path(os.environ.get("MAMAYYA_DB_PATH") or Path(__file__).parent / "mamayya.db")
+
+# Postgres in production (set DATABASE_URL), SQLite locally. A DATABASE_URL
+# with any other scheme is a configuration error: refuse to start rather than
+# silently serve real orders from an ephemeral SQLite file.
 DATABASE_URL = os.environ.get("DATABASE_URL", "")
 IS_PG = DATABASE_URL.startswith(("postgres://", "postgresql://"))
+if DATABASE_URL and not IS_PG:
+    raise RuntimeError(
+        "DATABASE_URL must start with postgres:// or postgresql://; refusing to fall "
+        "back to SQLite"
+    )
 if IS_PG:
-    import psycopg
     from psycopg.rows import dict_row
+    from psycopg_pool import ConnectionPool
 
 
 def _sql(query: str) -> str:
@@ -58,9 +76,13 @@ def _sql(query: str) -> str:
 
 # Razorpay: payments switch on when both keys are present, otherwise every
 # order is stored as a test order exactly as before.
-RAZORPAY_KEY_ID = os.environ.get("RAZORPAY_KEY_ID", "")
-RAZORPAY_KEY_SECRET = os.environ.get("RAZORPAY_KEY_SECRET", "")
+RAZORPAY_KEY_ID = os.environ.get("RAZORPAY_KEY_ID", "").strip()
+RAZORPAY_KEY_SECRET = os.environ.get("RAZORPAY_KEY_SECRET", "").strip()
 PAYMENTS_ENABLED = bool(RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET)
+# Secret of the Razorpay webhook (dashboard -> Webhooks). When set, Razorpay's
+# own payment.captured / order.paid events mark orders paid even if the
+# shopper's browser never relayed the result. Unset: the webhook route is off.
+RAZORPAY_WEBHOOK_SECRET = os.environ.get("RAZORPAY_WEBHOOK_SECRET", "").strip()
 
 # Production must never silently fall back to free "test" orders. On by default
 # whenever a production database is configured; set REQUIRE_PAYMENTS=false for
@@ -94,7 +116,7 @@ def razorpay_create_order(amount_inr: int, receipt: str) -> str:
     try:
         with urllib.request.urlopen(req, timeout=15) as res:
             return json.loads(res.read())["id"]
-    except urllib.error.URLError as exc:
+    except (urllib.error.URLError, TimeoutError, OSError, ValueError, KeyError) as exc:
         logger.exception("razorpay order create failed")
         raise HTTPException(502, "Payment service is unavailable. Try again.") from exc
 
@@ -178,7 +200,10 @@ async def request_limits(request: Request, call_next):
             return JSONResponse({"detail": "Content-Length required."}, status_code=411)
         if int(length) > MAX_BODY_BYTES:
             return JSONResponse({"detail": "Request body too large."}, status_code=413)
-    if request.method == "POST" or request.url.path.startswith("/api/orders/"):
+    # Razorpay's webhook is authenticated by its own HMAC and must not share a
+    # bucket with shoppers behind the same proxy address.
+    limited = request.method == "POST" or request.url.path.startswith("/api/orders/")
+    if limited and request.url.path != "/api/razorpay/webhook":
         ip = _client_ip(request)
         now = time.monotonic()
         with _rate_lock:
@@ -188,12 +213,23 @@ async def request_limits(request: Request, call_next):
             recent = [t for t in _rate_buckets[ip] if now - t < 60]
             if len(recent) >= RATE_LIMIT_PER_MINUTE:
                 _rate_buckets[ip] = recent
+                logger.warning("event=rate_limited path=%s", request.url.path)
                 return JSONResponse(
                     {"detail": "Too many requests. Try again in a minute."}, status_code=429
                 )
             recent.append(now)
             _rate_buckets[ip] = recent
-    return await call_next(request)
+    response = await call_next(request)
+    response.headers.setdefault("X-Content-Type-Options", "nosniff")
+    response.headers.setdefault("Referrer-Policy", "no-referrer")
+    if response.headers.get("content-type", "").startswith("text/html"):
+        # The confirm pages carry a bearer token and load nothing external.
+        response.headers["Content-Security-Policy"] = (
+            "default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; "
+            "frame-ancestors 'none'; base-uri 'none'"
+        )
+        response.headers["Cache-Control"] = "no-store"
+    return response
 
 ALLOWED_ORIGINS = [
     o.strip()
@@ -214,13 +250,32 @@ app.add_middleware(
 )
 
 
+# One small pool instead of a TLS handshake per query. TLS is required in code,
+# not left to the connection string; connect_timeout keeps a dead database
+# from hanging a request.
+_pool = (
+    ConnectionPool(
+        DATABASE_URL,
+        min_size=0,
+        max_size=4,
+        open=True,
+        kwargs={"row_factory": dict_row, "sslmode": "require", "connect_timeout": 10},
+        check=ConnectionPool.check_connection,
+    )
+    if IS_PG
+    else None
+)
+
+
 @contextmanager
 def db():
-    if IS_PG:
-        conn = psycopg.connect(DATABASE_URL, row_factory=dict_row)
-    else:
-        conn = sqlite3.connect(DB_PATH)
-        conn.row_factory = sqlite3.Row
+    if _pool is not None:
+        with _pool.connection() as conn:
+            yield conn
+            conn.commit()
+        return
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
     try:
         yield conn
         conn.commit()
@@ -262,12 +317,14 @@ def init_db() -> None:
         "ALTER TABLE orders ADD COLUMN razorpay_order_id TEXT",
         "ALTER TABLE orders ADD COLUMN confirmed_at TEXT",
         "ALTER TABLE orders ADD COLUMN confirm_token TEXT",
+        "ALTER TABLE orders ADD COLUMN razorpay_payment_id TEXT",
+        "ALTER TABLE orders ADD COLUMN phone_digits TEXT",
     ):
         try:
             with db() as conn:
                 conn.execute(column_ddl)
-        except Exception:
-            pass  # column already exists
+        except Exception as exc:  # noqa: BLE001 - column already exists; both backends raise different types
+            logger.debug("migration skipped (%s): %s", type(exc).__name__, column_ddl)
 
 
 init_db()
@@ -293,12 +350,12 @@ class BoxLine(BaseModel):
 
 
 class OrderCreate(BaseModel):
-    name: str = Field(min_length=2, max_length=120)
+    name: str = Field(min_length=2, max_length=120, pattern=SINGLE_LINE)
     phone: str = Field(min_length=8, max_length=20)
     email: str = Field(max_length=254, pattern=EMAIL_PATTERN)
-    address: str = Field(min_length=5, max_length=400)
-    city: str = Field(min_length=2, max_length=80)
-    pincode: str = Field(min_length=6, max_length=6, pattern=r"^\d{6}$")
+    address: str = Field(min_length=5, max_length=400, pattern=SINGLE_LINE)
+    city: str = Field(min_length=2, max_length=80, pattern=SINGLE_LINE)
+    pincode: str = Field(min_length=6, max_length=6, pattern=r"^[0-9]{6}$")
     lines: list[ProductLine | BoxLine] = Field(min_length=1, max_length=40)
 
 
@@ -318,15 +375,17 @@ def price_line(line: ProductLine | BoxLine) -> int:
 
 
 def delivery_window(anchor: datetime) -> str:
-    """Door delivery within one week of kitchen confirmation."""
+    """Door delivery within one week of kitchen confirmation (dates in IST)."""
     fmt = "%d %b"
-    start = anchor + timedelta(days=5)
-    end = anchor + timedelta(days=7)
+    local = anchor.astimezone(IST)
+    start = local + timedelta(days=5)
+    end = local + timedelta(days=7)
     return f"{start.strftime(fmt)} to {end.strftime(fmt)}"
 
 
 def stage_info(created: datetime) -> dict:
-    age_days = (datetime.now(timezone.utc) - created).total_seconds() / 86400
+    age_days = (datetime.now(UTC) - created).total_seconds() / 86400
+    local = created.astimezone(IST)
     current = 0
     for i, (_, threshold) in enumerate(STAGES):
         if age_days >= threshold:
@@ -338,7 +397,7 @@ def stage_info(created: datetime) -> dict:
             {
                 "name": name,
                 "reached": age_days >= threshold,
-                "expected": (created + timedelta(days=threshold)).strftime("%d %b"),
+                "expected": (local + timedelta(days=threshold)).strftime("%d %b"),
             }
             for name, threshold in STAGES
         ],
@@ -357,10 +416,6 @@ SMTP_USER = os.environ.get("SMTP_USER", "contact@mamayyapickles.com")
 SMTP_PASS = os.environ.get("SMTP_PASS", "")
 ORDER_NOTIFY_TO = os.environ.get("ORDER_NOTIFY_TO", "contact@mamayyapickles.com")
 EMAIL_ENABLED = bool(RESEND_API_KEY or SMTP_PASS)
-
-# Last email delivery outcome, surfaced (sanitized) in /api/config so mail
-# problems can be diagnosed without dashboard access. Never contains secrets.
-_email_state: dict = {"lastResult": None, "lastErrorAt": None}
 
 
 def _send_email(to: str, subject: str, body: str, html: str | None = None) -> None:
@@ -607,20 +662,16 @@ def format_item_pairs(payload: "OrderCreate") -> list[tuple[str, str]]:
 _email_pool = ThreadPoolExecutor(max_workers=4, thread_name_prefix="email")
 
 
-def _send_async(job) -> None:
-    """Run an email job on the bounded email pool; record outcome, never raise.
-
-    Only the exception class is kept for /api/config. The full error goes to the
-    server log, never to a public response."""
+def _send_async(job, label: str) -> None:
+    """Run an email job on the bounded email pool; log the outcome, never raise.
+    Delivery problems are diagnosed from the server log (Render -> Logs)."""
 
     def worker() -> None:
         try:
             job()
-            _email_state["lastResult"] = "sent"
-        except Exception as exc:
-            logger.exception("email job failed")
-            _email_state["lastResult"] = f"failed: {type(exc).__name__}"
-            _email_state["lastErrorAt"] = datetime.now(timezone.utc).isoformat()
+            logger.info("event=email_sent kind=%s", label)
+        except Exception:
+            logger.exception("event=email_failed kind=%s", label)
 
     _email_pool.submit(worker)
 
@@ -637,22 +688,19 @@ def recent_orders_same_phone(order_id: str, phone: str) -> list[tuple[str, str]]
     digits = _phone_digits(phone)
     if not digits:
         return []
-    cutoff = (datetime.now(timezone.utc) - timedelta(hours=24)).isoformat()
+    cutoff = (datetime.now(UTC) - timedelta(hours=24)).isoformat()
     try:
         with db() as conn:
             rows = conn.execute(
                 _sql(
-                    "SELECT order_id, created_at, phone FROM orders "
-                    "WHERE order_id != %s AND payment_status = 'paid' "
-                    "AND created_at > %s ORDER BY created_at DESC LIMIT 5"
+                    "SELECT order_id, created_at FROM orders "
+                    "WHERE phone_digits = %s AND order_id != %s "
+                    "AND payment_status = 'paid' AND created_at > %s "
+                    "ORDER BY created_at DESC"
                 ),
-                (order_id, cutoff),
+                (digits, order_id, cutoff),
             ).fetchall()
-        return [
-            (r["order_id"], r["created_at"])
-            for r in rows
-            if _phone_digits(r["phone"] or "") == digits
-        ]
+        return [(r["order_id"], r["created_at"]) for r in rows]
     except Exception:
         logger.exception("same-phone lookup failed")
         return []
@@ -741,7 +789,8 @@ def send_admin_new_order_email(
             f"[{tag}] New order {order_id} - Rs. {total:,} - confirm to accept",
             body,
             html=html,
-        )
+        ),
+        "kitchen",
     )
 
 
@@ -753,12 +802,12 @@ def send_customer_confirmation_email(
         return
     item_lines = format_item_lines(payload)
     body = (
-        f"Namaste {payload.name} garu,\n\n"
+        f"Namaste {_one_line(payload.name)} garu,\n\n"
         f"Mamayya confirmed your order {order_id} - kitchen lo pani modalaindi.\n\n"
         "Mee jars:\n" + "\n".join(item_lines) + "\n\n"
         f"Total: Rs. {total:,}\n"
         f"Estimated delivery: {window}\n"
-        f"Delivering to: {payload.address}, {payload.city} - {payload.pincode}\n\n"
+        f"Delivering to: {_one_line(payload.address)}, {_one_line(payload.city)} - {payload.pincode}\n\n"
         "Wrong address? Reply within 24 hours - we fix it before packing.\n\n"
         "Amma chethi vanta laaga - cooked fresh only after you order.\n"
         "Manchi pickle ki konchem time padutundi - good pickle takes a little time.\n"
@@ -784,13 +833,28 @@ def send_customer_confirmation_email(
             f"Order {order_id} confirmed · Mee jars kitchen lo - Mamayya Pickles",
             body,
             html=html,
-        )
+        ),
+        "customer",
     )
 
 
 @app.get("/health")
 def health() -> dict:
+    """Process liveness for Render. Deliberately no database round trip: Render
+    polls this often and Neon's free tier suspends idle compute."""
     return {"status": "ok"}
+
+
+@app.get("/health/db")
+def health_db():
+    """Dependency probe for manual checks and a low-frequency uptime monitor."""
+    try:
+        with db() as conn:
+            conn.execute("SELECT 1").fetchone()
+    except Exception:
+        logger.exception("event=health_db_failed")
+        return JSONResponse({"status": "degraded", "database": "unreachable"}, status_code=503)
+    return {"status": "ok", "database": "ok"}
 
 
 @app.post("/api/orders", status_code=201)
@@ -800,7 +864,7 @@ def create_order(payload: OrderCreate) -> dict:
     subtotal = sum(price_line(line) for line in payload.lines)
     shipping = 0 if subtotal >= FREE_SHIPPING_THRESHOLD else SHIPPING_FEE
     total = subtotal + shipping
-    created = datetime.now(timezone.utc)
+    created = datetime.now(UTC)
 
     payment_status = "pending" if PAYMENTS_ENABLED else "test"
     confirm_token = secrets.token_urlsafe(24)
@@ -810,10 +874,10 @@ def create_order(payload: OrderCreate) -> dict:
             _sql(
                 """
                 INSERT INTO orders
-                    (created_at, name, phone, email, address, city, pincode,
-                     lines_json, subtotal, shipping, total, payment_status,
-                     confirm_token)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    (created_at, name, phone, phone_digits, email, address, city,
+                     pincode, lines_json, subtotal, shipping, total,
+                     payment_status, confirm_token)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 RETURNING rowid_pk
                 """
             ),
@@ -821,6 +885,7 @@ def create_order(payload: OrderCreate) -> dict:
                 created.isoformat(),
                 payload.name,
                 payload.phone,
+                _phone_digits(payload.phone),
                 payload.email,
                 payload.address,
                 payload.city,
@@ -850,7 +915,20 @@ def create_order(payload: OrderCreate) -> dict:
     }
 
     if PAYMENTS_ENABLED:
-        rzp_order_id = razorpay_create_order(total, order_id)
+        try:
+            rzp_order_id = razorpay_create_order(total, order_id)
+        except HTTPException:
+            # No payment can ever attach to this row; drop it instead of
+            # leaving an orphan 'pending' order behind.
+            with db() as conn:
+                conn.execute(
+                    _sql(
+                        "DELETE FROM orders WHERE order_id = %s "
+                        "AND payment_status = 'pending' AND razorpay_order_id IS NULL"
+                    ),
+                    (order_id,),
+                )
+            raise
         with db() as conn:
             conn.execute(
                 _sql("UPDATE orders SET razorpay_order_id = %s WHERE order_id = %s"),
@@ -859,8 +937,10 @@ def create_order(payload: OrderCreate) -> dict:
         response["razorpayOrderId"] = rzp_order_id
         response["razorpayKeyId"] = RAZORPAY_KEY_ID
         response["paymentNote"] = "Complete the payment to place your order."
+        logger.info("event=order_created order=%s total=%s rzp_order=%s", order_id, total, rzp_order_id)
         # Admin is notified after successful payment (see verify endpoint).
     else:
+        logger.info("event=order_created order=%s total=%s mode=test", order_id, total)
         response["paymentNote"] = (
             "Order received. The kitchen will confirm it shortly - "
             "your confirmation email arrives then."
@@ -892,10 +972,12 @@ def _page(title: str, detail: str, extra_html: str = "") -> str:
 
 _INVALID_LINK = (
     "This link isn't valid",
-    "This confirmation link doesn't match any order - it may be old, "
-    "already replaced, or copied incompletely. Open the latest order "
-    "email and use its Confirm button, or check the orders list in "
-    "the database.",
+    (
+        "This confirmation link doesn't match any order - it may be old, "
+        "already replaced, or copied incompletely. Open the latest order "
+        "email and use its Confirm button, or check the orders list in "
+        "the database."
+    ),
 )
 
 
@@ -966,16 +1048,32 @@ def confirm_order_page(order_id: str, token: str = "") -> str:
     )
 
 
+def _mark_confirmed(order_id: str, confirmed_iso: str) -> bool:
+    """confirmed_at transitions at most once; True when this call did it."""
+    with db() as conn:
+        cur = conn.execute(
+            _sql(
+                "UPDATE orders SET confirmed_at = %s "
+                "WHERE order_id = %s AND confirmed_at IS NULL"
+            ),
+            (confirmed_iso, order_id),
+        )
+        return cur.rowcount == 1
+
+
 @app.post("/api/orders/{order_id}/confirm", response_class=HTMLResponse)
 async def confirm_order(order_id: str, request: Request) -> str:
     """Kitchen confirmation, step two: the only writer of confirmed_at.
 
     The token arrives in the form body posted by the page above, so it does
-    not appear in the POST request line or access logs."""
+    not appear in the POST request line or access logs. The handler is async
+    only to read the raw body; database work runs in the threadpool like the
+    other routes so it never blocks the event loop."""
     body = (await request.body()).decode("utf-8", errors="replace")
     token = parse_qs(body).get("token", [""])[0]
-    row = _confirmable_row(order_id, token)
+    row = await run_in_threadpool(_confirmable_row, order_id, token)
     if row is None:
+        logger.warning("event=confirm_rejected reason=invalid_link")
         return _page(*_INVALID_LINK)
     refusal = _confirm_refusal(row)
     if refusal:
@@ -999,22 +1097,17 @@ async def confirm_order(order_id: str, request: Request) -> str:
             "orders table.",
         )
 
-    confirmed = datetime.now(timezone.utc)
-    with db() as conn:
-        cur = conn.execute(
-            _sql(
-                "UPDATE orders SET confirmed_at = %s "
-                "WHERE order_id = %s AND confirmed_at IS NULL"
-            ),
-            (confirmed.isoformat(), row["order_id"]),
-        )
-        transitioned = cur.rowcount == 1
+    confirmed = datetime.now(UTC)
+    transitioned = await run_in_threadpool(
+        _mark_confirmed, row["order_id"], confirmed.isoformat()
+    )
     if not transitioned:
         return _page(
             f"{row['order_id']} was already confirmed",
             "The customer has their confirmation email. Nothing more to do.",
         )
 
+    logger.info("event=order_confirmed order=%s", row["order_id"])
     send_customer_confirmation_email(
         row["order_id"], order_payload, row["total"], delivery_window(confirmed)
     )
@@ -1029,6 +1122,42 @@ class PaymentVerify(BaseModel):
     razorpayOrderId: str = Field(min_length=5, max_length=64)
     razorpayPaymentId: str = Field(min_length=5, max_length=64)
     razorpaySignature: str = Field(min_length=10, max_length=256)
+
+
+def _mark_paid(order_id: str, payment_id: str) -> bool:
+    """pending -> paid happens at most once; True when this call did it. The
+    Razorpay payment id is kept so disputes can be matched without the dashboard."""
+    with db() as conn:
+        cur = conn.execute(
+            _sql(
+                "UPDATE orders SET payment_status = 'paid', razorpay_payment_id = %s "
+                "WHERE order_id = %s AND payment_status = 'pending'"
+            ),
+            (payment_id, order_id),
+        )
+        return cur.rowcount == 1
+
+
+def _notify_kitchen(row) -> None:
+    """Kitchen email for a freshly paid order. The row was validated when it was
+    created; if a legacy row no longer passes today's stricter validation the
+    payment still stands and the failure is logged for the reconciliation check."""
+    try:
+        order_payload = OrderCreate(
+            name=row["name"],
+            phone=row["phone"],
+            email=row["email"],
+            address=row["address"],
+            city=row["city"],
+            pincode=row["pincode"],
+            lines=json.loads(row["lines_json"]),
+        )
+    except Exception:
+        logger.exception("event=kitchen_email_skipped order=%s reason=stored_row_invalid", row["order_id"])
+        return
+    send_admin_new_order_email(
+        row["order_id"], order_payload, row["total"], row["confirm_token"], "paid"
+    )
 
 
 @app.post("/api/orders/{order_id}/verify-payment")
@@ -1047,20 +1176,11 @@ def verify_payment(order_id: str, payload: PaymentVerify) -> dict:
     if not razorpay_signature_valid(
         payload.razorpayOrderId, payload.razorpayPaymentId, payload.razorpaySignature
     ):
+        logger.warning("event=payment_signature_rejected order=%s", row["order_id"])
         raise HTTPException(400, "Payment verification failed.")
 
-    # pending -> paid happens at most once; a replayed or duplicate request
-    # gets the same answer with no side effects.
-    with db() as conn:
-        cur = conn.execute(
-            _sql(
-                "UPDATE orders SET payment_status = 'paid' "
-                "WHERE order_id = %s AND payment_status = 'pending'"
-            ),
-            (row["order_id"],),
-        )
-        transitioned = cur.rowcount == 1
-    if not transitioned:
+    # A replayed or duplicate request gets the same answer with no side effects.
+    if not _mark_paid(row["order_id"], payload.razorpayPaymentId):
         with db() as conn:
             current = conn.execute(
                 _sql("SELECT payment_status FROM orders WHERE order_id = %s"),
@@ -1070,30 +1190,64 @@ def verify_payment(order_id: str, payload: PaymentVerify) -> dict:
             return {"orderId": row["order_id"], "paymentStatus": "paid"}
         raise HTTPException(409, "Order is not awaiting payment.")
 
-    order_payload = OrderCreate(
-        name=row["name"],
-        phone=row["phone"],
-        email=row["email"],
-        address=row["address"],
-        city=row["city"],
-        pincode=row["pincode"],
-        lines=json.loads(row["lines_json"]),
-    )
+    logger.info("event=order_paid order=%s payment=%s via=browser", row["order_id"], payload.razorpayPaymentId)
     # Payment captured: now the kitchen decides. Customer email waits for confirm.
-    send_admin_new_order_email(
-        row["order_id"], order_payload, row["total"], row["confirm_token"], "paid"
-    )
+    _notify_kitchen(row)
     return {"orderId": row["order_id"], "paymentStatus": "paid"}
+
+
+def _apply_webhook_payment(rzp_order_id: str, payment_id: str) -> dict:
+    with db() as conn:
+        row = conn.execute(
+            _sql("SELECT * FROM orders WHERE razorpay_order_id = %s"),
+            (rzp_order_id,),
+        ).fetchone()
+    if row is None:
+        logger.warning("event=webhook_unknown_order rzp_order=%s", rzp_order_id)
+        return {"status": "unknown_order"}
+    if not _mark_paid(row["order_id"], payment_id):
+        return {"status": "already_paid", "orderId": row["order_id"]}
+    logger.info("event=order_paid order=%s payment=%s via=webhook", row["order_id"], payment_id)
+    _notify_kitchen(row)
+    return {"status": "paid", "orderId": row["order_id"]}
+
+
+@app.post("/api/razorpay/webhook")
+async def razorpay_webhook(request: Request) -> dict:
+    """Second, server-to-server proof of payment. Razorpay signs the raw body
+    with the webhook secret; a captured payment marks the order paid and
+    notifies the kitchen even when the shopper's browser never relayed it."""
+    if not RAZORPAY_WEBHOOK_SECRET:
+        raise HTTPException(404, "Not found")
+    raw = await request.body()
+    expected = hmac.new(RAZORPAY_WEBHOOK_SECRET.encode(), raw, hashlib.sha256).hexdigest()
+    signature = request.headers.get("x-razorpay-signature", "")
+    if not hmac.compare_digest(expected.encode("ascii"), signature.encode("utf-8")):
+        logger.warning("event=webhook_bad_signature")
+        raise HTTPException(400, "Invalid signature.")
+    try:
+        event = json.loads(raw)
+    except ValueError as exc:
+        raise HTTPException(400, "Invalid body.") from exc
+    kind = event.get("event") if isinstance(event, dict) else None
+    if kind not in ("payment.captured", "order.paid"):
+        return {"status": "ignored", "event": kind}
+    payment = ((event.get("payload") or {}).get("payment") or {}).get("entity") or {}
+    rzp_order_id = payment.get("order_id")
+    payment_id = payment.get("id")
+    if not isinstance(rzp_order_id, str) or not isinstance(payment_id, str):
+        return {"status": "ignored", "event": kind}
+    return await run_in_threadpool(_apply_webhook_payment, rzp_order_id, payment_id)
 
 
 @app.get("/api/config")
 def get_config() -> dict:
+    """Public, unauthenticated: only what the storefront or a quick status check
+    needs. Email delivery detail lives in the server log."""
     return {
         "paymentsEnabled": PAYMENTS_ENABLED,
         "razorpayKeyId": RAZORPAY_KEY_ID,
         "emailConfigured": EMAIL_ENABLED,
-        "emailTransport": "resend" if RESEND_API_KEY else ("smtp" if SMTP_PASS else None),
-        "lastEmailResult": _email_state["lastResult"],
     }
 
 
@@ -1115,6 +1269,7 @@ def get_order(order_id: str, phone: str = "") -> dict:
         or not stored
         or not hmac.compare_digest(supplied, stored)
     ):
+        logger.warning("event=lookup_rejected")
         raise HTTPException(
             404, "No order found with that number and phone combination."
         )
@@ -1122,7 +1277,7 @@ def get_order(order_id: str, phone: str = "") -> dict:
     confirmed_raw = row["confirmed_at"]
     base = {
         "orderId": row["order_id"],
-        "placedOn": created.strftime("%d %b %Y"),
+        "placedOn": created.astimezone(IST).strftime("%d %b %Y"),
         "name": row["name"],
         "total": row["total"],
         "lines": json.loads(row["lines_json"]),

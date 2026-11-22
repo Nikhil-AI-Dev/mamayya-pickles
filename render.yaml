@@ -8,12 +8,16 @@ services:
     startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /health
     envVars:
+      # Pin the interpreter so a Render default bump never changes what runs.
+      - key: PYTHON_VERSION
+        value: "3.11.9"
       - key: ALLOWED_ORIGINS
         value: https://mamayyapickles.com,https://www.mamayyapickles.com,https://nikhil-ai-dev.github.io
+      # Production database lives on Neon; the connection string is pasted into
+      # this env var by hand (sync: false) so a Blueprint sync can never repoint
+      # the service at an empty or expired database.
       - key: DATABASE_URL
-        fromDatabase:
-          name: mamayya-db
-          property: connectionString
+        sync: false
       # Order emails: Resend HTTPS API key (required on Render - free tier
       # blocks outbound SMTP). Leave unset to skip emails entirely.
       - key: RESEND_API_KEY
@@ -26,7 +30,8 @@ services:
         sync: false
       - key: RAZORPAY_KEY_SECRET
         sync: false
-
-databases:
-  - name: mamayya-db
-    plan: free
+      # Secret of the Razorpay webhook (dashboard -> Webhooks). When set, the
+      # /api/razorpay/webhook route records captured payments even if the
+      # shopper's browser never relayed the result.
+      - key: RAZORPAY_WEBHOOK_SECRET
+        sync: false

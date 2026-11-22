@@ -1,0 +1,4 @@
+# Test-only dependencies (not installed on Render). Pinned for reproducible CI.
+# Install for the API test suite:  pip install -r requirements.txt -r requirements-dev.txt
+pytest==8.4.2
+httpx==0.28.1
