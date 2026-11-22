@@ -14,29 +14,9 @@ import {
   verifyPayment,
   warmApi,
 } from "@/lib/api";
-
-type RazorpayHandlerResponse = {
-  razorpay_order_id: string;
-  razorpay_payment_id: string;
-  razorpay_signature: string;
-};
-
-declare global {
-  interface Window {
-    Razorpay?: new (options: Record<string, unknown>) => { open: () => void };
-  }
-}
-
-function loadRazorpayScript(): Promise<void> {
-  return new Promise((resolve, reject) => {
-    if (window.Razorpay) return resolve();
-    const script = document.createElement("script");
-    script.src = "https://checkout.razorpay.com/v1/checkout.js";
-    script.onload = () => resolve();
-    script.onerror = () => reject(new Error("Payment window failed to load."));
-    document.body.appendChild(script);
-  });
-}
+import { cartKey, detailsKey, useCheckoutSession } from "./checkoutSession";
+import { useRazorpayPayment } from "./useRazorpayPayment";
+import { usePincodeLookup } from "./usePincodeLookup";
 
 const FIELDS = [
   { id: "name", label: "Full name", type: "text", autoComplete: "name", span: false },
@@ -49,25 +29,8 @@ const FIELDS = [
   { id: "city", label: "City", type: "text", autoComplete: "address-level2", span: false },
 ];
 
-/** India Post pincode directory - fills city/state from a 6-digit pin.
- *  Fail-open: any error or slow response leaves the form fully manual. */
-async function lookupPincode(pin: string): Promise<{ district: string; state: string } | null> {
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), 3000);
-  try {
-    const res = await fetch(`https://api.postalpincode.in/pincode/${pin}`, {
-      signal: ctrl.signal,
-    });
-    const data = await res.json();
-    const po = data?.[0]?.PostOffice?.[0];
-    if (data?.[0]?.Status !== "Success" || !po) return null;
-    return { district: po.District, state: po.State };
-  } catch {
-    return null;
-  } finally {
-    clearTimeout(timer);
-  }
-}
+const PAID_UNCONFIRMED_MESSAGE =
+  "Your payment went through, but we could not confirm it with our kitchen server yet. Do not pay again - press the button once more to retry the confirmation, or write to us quoting your order number.";
 
 export default function CheckoutClient() {
   const { lines, subtotal, shipping, total, updateQuantity, removeLine, clearCart } =
@@ -75,37 +38,25 @@ export default function CheckoutClient() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirmation, setConfirmation] = useState<OrderConfirmation | null>(null);
-  const [pinHint, setPinHint] = useState<string | null>(null);
   const [slowHint, setSlowHint] = useState(false);
   const [recap, setRecap] = useState<Record<string, string>>({});
-  // An order whose payment did not complete. Resubmitting re-opens payment for
-  // this order instead of creating (and possibly charging) a second one.
-  const [pendingOrder, setPendingOrder] = useState<{
-    order: OrderConfirmation;
-    details: OrderDetails;
-  } | null>(null);
-  const cityAutofilled = useRef(false);
-
-  const onPincodeChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const pin = e.target.value.trim();
-    setPinHint(null);
-    if (!/^\d{6}$/.test(pin)) return;
-    const found = await lookupPincode(pin);
-    if (!found) return;
-    setPinHint(`${found.district}, ${found.state}`);
-    const city = document.getElementById("city") as HTMLInputElement | null;
-    if (city && (city.value.trim() === "" || cityAutofilled.current)) {
-      city.value = found.district;
-      cityAutofilled.current = true;
-      // programmatic fill fires no input event; nudge the recap manually
-      city.dispatchEvent(new Event("input", { bubbles: true }));
-    }
-  };
+  const [session, updateSession, clearSession] = useCheckoutSession();
+  const cityRef = useRef<HTMLInputElement>(null);
+  const { pinHint, onPincodeChange } = usePincodeLookup(cityRef);
+  const openPayment = useRazorpayPayment();
 
   // Wake the free-tier API while the shopper fills the form.
   useEffect(() => {
     warmApi();
   }, []);
+
+  // A saved order is only reused while the cart it was priced for is unchanged.
+  const currentCartKey = cartKey(lines);
+  const pendingOrder =
+    session.pendingOrder && session.pendingOrder.cartKey === currentCartKey
+      ? session.pendingOrder
+      : null;
+  const pendingVerify = session.pendingVerify;
 
   if (confirmation) {
     return (
@@ -130,7 +81,7 @@ export default function CheckoutClient() {
             </div>
             <div className="flex justify-between">
               <dt className="text-cream/70">Estimated delivery</dt>
-              <dd className="font-bold">{confirmation.deliveryWindow}</dd>
+              <dd className="font-bold">{deliveryWindow()}</dd>
             </div>
           </dl>
           <p className="mt-5 text-xs text-cream/60">{confirmation.paymentNote}</p>
@@ -154,7 +105,7 @@ export default function CheckoutClient() {
     );
   }
 
-  if (lines.length === 0) {
+  if (lines.length === 0 && !pendingVerify) {
     return (
       <div className="mx-auto max-w-2xl px-4 md:px-6 pb-24 text-center">
         <p className="text-6xl" aria-hidden>🫙</p>
@@ -174,38 +125,10 @@ export default function CheckoutClient() {
     );
   }
 
-  const openPayment = async (order: OrderConfirmation, details: OrderDetails) => {
-    await loadRazorpayScript();
-    return new Promise<void>((resolve, reject) => {
-      const rzp = new window.Razorpay!({
-        key: order.razorpayKeyId,
-        order_id: order.razorpayOrderId,
-        name: "Mamayya Pickles",
-        description: `Order ${order.orderId}`,
-        prefill: { name: details.name, email: details.email, contact: details.phone },
-        theme: { color: "#a92a1d" },
-        handler: (response: RazorpayHandlerResponse) => {
-          verifyPayment(
-            order.orderId,
-            response.razorpay_order_id,
-            response.razorpay_payment_id,
-            response.razorpay_signature
-          )
-            .then(() => resolve())
-            .catch(reject);
-        },
-        modal: {
-          ondismiss: () =>
-            reject(
-              new ApiError(
-                `Payment window closed. Your order ${order.orderId} is saved - submit again to retry the payment.`,
-                0
-              )
-            ),
-        },
-      });
-      rzp.open();
-    });
+  const finish = (confirmed: OrderConfirmation) => {
+    clearSession();
+    clearCart();
+    setConfirmation(confirmed);
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -225,30 +148,74 @@ export default function CheckoutClient() {
       city: v("city"),
       pincode: v("pincode"),
     };
-    let result: OrderConfirmation | null = pendingOrder?.order ?? null;
+    let order: OrderConfirmation | null = null;
     try {
-      if (!result) {
-        result = await createOrder(details, lines);
-        if (result.razorpayOrderId) setPendingOrder({ order: result, details });
-      }
-      let confirmed: OrderConfirmation = result;
-      if (result.razorpayOrderId) {
-        await openPayment(result, pendingOrder?.details ?? details);
-        confirmed = {
-          ...result,
+      // Razorpay already took the money for this order: only the relay to our
+      // API is outstanding. Retry that; never open the payment window again.
+      if (pendingVerify) {
+        const paid = pendingOrder?.order ?? null;
+        try {
+          await verifyPayment(
+            pendingVerify.orderId,
+            pendingVerify.razorpayOrderId,
+            pendingVerify.razorpayPaymentId,
+            pendingVerify.razorpaySignature
+          );
+        } catch {
+          setError(`${PAID_UNCONFIRMED_MESSAGE} Order ${pendingVerify.orderId}.`);
+          return;
+        }
+        finish({
+          orderId: pendingVerify.orderId,
+          subtotal: paid?.subtotal ?? subtotal,
+          shipping: paid?.shipping ?? shipping,
+          total: paid?.total ?? total,
+          status: "received",
           paymentStatus: "paid",
           paymentNote: "Payment received. Fresh preparation starts now.",
-        };
+        });
+        return;
       }
-      setPendingOrder(null);
-      clearCart();
-      setConfirmation(confirmed);
+
+      const key = detailsKey(details);
+      order = pendingOrder && pendingOrder.detailsKey === key ? pendingOrder.order : null;
+      if (!order) {
+        order = await createOrder(details, lines);
+        if (order.razorpayOrderId) {
+          updateSession({ pendingOrder: { order, cartKey: currentCartKey, detailsKey: key } });
+        }
+      }
+      if (!order.razorpayOrderId) {
+        finish(order);
+        return;
+      }
+
+      const result = await openPayment(order, details);
+      // From here on the shopper has paid. Remember the signed result before
+      // relaying it, so a lost relay can be retried without a second charge.
+      updateSession({ pendingVerify: result });
+      try {
+        await verifyPayment(
+          result.orderId,
+          result.razorpayOrderId,
+          result.razorpayPaymentId,
+          result.razorpaySignature
+        );
+      } catch {
+        setError(`${PAID_UNCONFIRMED_MESSAGE} Order ${order.orderId}.`);
+        return;
+      }
+      finish({
+        ...order,
+        paymentStatus: "paid",
+        paymentNote: "Payment received. Fresh preparation starts now.",
+      });
     } catch (err) {
       const message =
         err instanceof ApiError ? err.message : "Something went wrong. Try again.";
       setError(
-        result?.razorpayOrderId
-          ? `${message} Your order ${result.orderId} is saved - press the button again to retry its payment.`
+        order?.razorpayOrderId
+          ? `${message} Your order ${order.orderId} is saved - press the button again to retry its payment.`
           : message
       );
     } finally {
@@ -257,6 +224,14 @@ export default function CheckoutClient() {
       setSubmitting(false);
     }
   };
+
+  const buttonLabel = submitting
+    ? "Placing order..."
+    : pendingVerify
+      ? `Confirm payment for ${pendingVerify.orderId}`
+      : pendingOrder
+        ? `Retry payment for ${pendingOrder.order.orderId} · ${formatINR(pendingOrder.order.total)}`
+        : `Place order · ${formatINR(total)}`;
 
   return (
     <form
@@ -289,6 +264,7 @@ export default function CheckoutClient() {
                 id={f.id}
                 name={f.id}
                 type={f.type}
+                ref={f.id === "city" ? cityRef : undefined}
                 autoComplete={f.autoComplete}
                 required={!("optional" in f && f.optional)}
                 minLength={f.id === "pincode" ? 6 : f.id === "phone" ? 10 : undefined}
@@ -300,12 +276,21 @@ export default function CheckoutClient() {
                       ? "([^0-9]*[0-9]){10}[^0-9]*"
                       : undefined
                 }
+                title={
+                  f.id === "pincode"
+                    ? "6-digit pincode"
+                    : f.id === "phone"
+                      ? "10-digit mobile number"
+                      : undefined
+                }
                 inputMode={f.id === "pincode" ? "numeric" : f.id === "phone" ? "tel" : undefined}
                 onChange={f.id === "pincode" ? onPincodeChange : undefined}
                 className="mt-1.5 w-full rounded-xl border-2 border-charcoal/15 bg-cream/50 px-4 py-2.5 font-semibold focus:border-red focus:outline-none"
               />
               {f.id === "pincode" && pinHint && (
-                <p className="mt-1 text-xs font-semibold text-leaf">✓ {pinHint}</p>
+                <p className="mt-1 text-xs font-semibold text-leaf" role="status">
+                  ✓ {pinHint}
+                </p>
               )}
             </div>
           ))}
@@ -319,6 +304,12 @@ export default function CheckoutClient() {
       {/* Order summary */}
       <aside className="lg:sticky lg:top-24 rounded-3xl bg-charcoal text-cream p-6 shadow-jar">
         <h2 className="font-display font-extrabold text-2xl">Your order</h2>
+        {pendingVerify && (
+          <p className="mt-3 rounded-2xl bg-gold/15 border border-gold/40 p-3 text-xs text-cream/90">
+            Payment for <strong>{pendingVerify.orderId}</strong> has been received.
+            Press the button below once to finish confirming it.
+          </p>
+        )}
         <ul className="mt-4 divide-y divide-cream/10">
           {lines.map((line) => (
             <li key={line.id} className="py-3 flex items-center justify-between gap-3">
@@ -336,32 +327,34 @@ export default function CheckoutClient() {
               />
               <div className="min-w-0 flex-1">
                 <p className="font-bold text-sm truncate">{lineTitle(line)}</p>
-                <div className="mt-1 flex items-center gap-2 text-xs">
-                  <button
-                    type="button"
-                    onClick={() => updateQuantity(line.id, line.quantity - 1)}
-                    className="w-9 h-9 grid place-items-center rounded-full border border-cream/30 hover:border-gold hover:text-gold active:scale-90 transition-all"
-                    aria-label={`Decrease quantity of ${lineTitle(line)}`}
-                  >
-                    −
-                  </button>
-                  <span className="font-bold">{line.quantity}</span>
-                  <button
-                    type="button"
-                    onClick={() => updateQuantity(line.id, line.quantity + 1)}
-                    className="w-9 h-9 grid place-items-center rounded-full border border-cream/30 hover:border-gold hover:text-gold active:scale-90 transition-all"
-                    aria-label={`Increase quantity of ${lineTitle(line)}`}
-                  >
-                    +
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => removeLine(line.id)}
-                    className="ml-2 text-cream/50 hover:text-red transition-colors font-bold"
-                  >
-                    Remove
-                  </button>
-                </div>
+                {!pendingVerify && (
+                  <div className="mt-1 flex items-center gap-2 text-xs">
+                    <button
+                      type="button"
+                      onClick={() => updateQuantity(line.id, line.quantity - 1)}
+                      className="w-9 h-9 grid place-items-center rounded-full border border-cream/30 hover:border-gold hover:text-gold active:scale-90 transition-all"
+                      aria-label={`Decrease quantity of ${lineTitle(line)}`}
+                    >
+                      −
+                    </button>
+                    <span className="font-bold">{line.quantity}</span>
+                    <button
+                      type="button"
+                      onClick={() => updateQuantity(line.id, line.quantity + 1)}
+                      className="w-9 h-9 grid place-items-center rounded-full border border-cream/30 hover:border-gold hover:text-gold active:scale-90 transition-all"
+                      aria-label={`Increase quantity of ${lineTitle(line)}`}
+                    >
+                      +
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => removeLine(line.id)}
+                      className="ml-2 text-cream/50 hover:text-red transition-colors font-bold"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                )}
               </div>
               <p className="font-bold shrink-0">
                 {formatINR(lineUnitPrice(line) * line.quantity)}
@@ -409,11 +402,7 @@ export default function CheckoutClient() {
           disabled={submitting}
           className="mt-5 w-full rounded-full bg-gold text-charcoal px-6 py-3.5 font-extrabold hover:bg-cream active:scale-[0.99] transition-all disabled:opacity-60"
         >
-          {submitting
-            ? "Placing order..."
-            : pendingOrder
-              ? `Retry payment for ${pendingOrder.order.orderId} · ${formatINR(pendingOrder.order.total)}`
-              : `Place order · ${formatINR(total)}`}
+          {buttonLabel}
         </button>
         {submitting && slowHint && (
           <p className="mt-3 text-xs text-cream/70" role="status">
@@ -427,7 +416,9 @@ export default function CheckoutClient() {
             role="alert"
             className="mt-4 rounded-2xl border-2 border-gold/60 bg-gold/10 p-4 text-sm leading-relaxed"
           >
-            <p className="font-bold">Order didn&apos;t go through.</p>
+            <p className="font-bold">
+              {pendingVerify ? "Payment received, confirmation pending." : "Order didn't go through."}
+            </p>
             <p className="mt-1 text-cream/80">{error}</p>
           </div>
         )}
