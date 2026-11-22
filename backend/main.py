@@ -105,7 +105,8 @@ def razorpay_signature_valid(order_id: str, payment_id: str, signature: str) -> 
         f"{order_id}|{payment_id}".encode(),
         hashlib.sha256,
     ).hexdigest()
-    return hmac.compare_digest(expected, signature)
+    # Bytes, not str: compare_digest raises TypeError on non-ASCII str input.
+    return hmac.compare_digest(expected.encode("ascii"), signature.encode("utf-8"))
 
 # Prices mirror src/lib/products.ts. The server is the pricing authority:
 # client-sent prices are ignored, totals are recomputed here.
@@ -910,7 +911,9 @@ def _confirmable_row(order_id: str, token: str):
         row is None
         or not token
         or not row["confirm_token"]
-        or not hmac.compare_digest(str(row["confirm_token"]), token)
+        or not hmac.compare_digest(
+            str(row["confirm_token"]).encode("utf-8"), token.encode("utf-8")
+        )
     ):
         return None
     return row
