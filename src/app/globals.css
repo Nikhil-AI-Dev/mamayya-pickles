@@ -129,6 +129,29 @@ body {
   }
 }
 
+/* Nav link: an underline that wipes in from the left on hover/focus. Reads as
+   hand-tuned, not a default color swap, and animates transform (cheap). */
+.navlink {
+  position: relative;
+}
+.navlink::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -5px;
+  height: 2px;
+  border-radius: 2px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 220ms var(--ease-quint);
+}
+.navlink:hover::after,
+.navlink:focus-visible::after {
+  transform: scaleX(1);
+}
+
 /* Pressable affordance for interactive elements that opt in. */
 .tap {
   transition:

@@ -18,7 +18,10 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-40 bg-cream/90 backdrop-blur border-b border-charcoal/10">
       <div className="mx-auto max-w-6xl px-4 md:px-6 h-20 flex items-center justify-between gap-4">
-        <Link href="/" className="flex items-center gap-2.5 shrink-0">
+        <Link
+          href="/"
+          className="flex items-center gap-2.5 shrink-0 transition-transform hover:scale-[1.02]"
+        >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/logo.webp"
@@ -47,7 +50,7 @@ export default function Header() {
             <Link
               key={item.href}
               href={item.href}
-              className="text-sm font-semibold text-charcoal/80 hover:text-red transition-colors"
+              className="navlink text-sm font-semibold text-charcoal/80 hover:text-red transition-colors"
             >
               {item.label}
             </Link>
