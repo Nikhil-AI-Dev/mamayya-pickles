@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import JarScene from "@/components/JarScene";
+import TiltScene from "@/components/product/TiltScene";
 import SpiceMeter from "@/components/SpiceMeter";
 import ProductPurchase from "@/components/product/ProductPurchase";
 import { getProduct, products } from "@/lib/products";
@@ -73,7 +74,9 @@ export default async function ProductPage({
       >
         <div className="mx-auto max-w-6xl px-4 md:px-6 py-14 md:py-20 grid md:grid-cols-2 gap-10 items-center">
           <div className="relative grid place-items-center">
-            <JarScene product={product} wide />
+            <TiltScene>
+              <JarScene product={product} wide />
+            </TiltScene>
           </div>
           <div>
             <p className="text-xs font-extrabold uppercase tracking-[0.25em] text-gold">

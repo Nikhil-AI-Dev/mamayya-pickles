@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useCart } from "@/lib/cart";
 import {
   FREE_SHIPPING_THRESHOLD,
@@ -14,9 +14,35 @@ export default function ProductPurchase({ product }: { product: Product }) {
   const { addProduct } = useCart();
   const [grams, setGrams] = useState<WeightGrams>(500);
   const [quantity, setQuantity] = useState(1);
+  const [justAdded, setJustAdded] = useState(false);
+  const [showSticky, setShowSticky] = useState(false);
+  const addBtnRef = useRef<HTMLButtonElement>(null);
+  const addedTimer = useRef<number | undefined>(undefined);
+
   const weight =
     product.weights.find((w) => w.grams === grams) ?? product.weights[0];
   const lineTotal = weight.price * quantity;
+
+  // Show the sticky mobile buy bar once the main button scrolls out of view.
+  useEffect(() => {
+    const el = addBtnRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      ([entry]) => setShowSticky(!entry.isIntersecting),
+      { rootMargin: "-40% 0px -20% 0px" }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  useEffect(() => () => window.clearTimeout(addedTimer.current), []);
+
+  const add = () => {
+    addProduct(product, grams, quantity);
+    setJustAdded(true);
+    window.clearTimeout(addedTimer.current);
+    addedTimer.current = window.setTimeout(() => setJustAdded(false), 1500);
+  };
 
   return (
     <div className="rounded-3xl bg-white/80 border border-charcoal/10 shadow-card p-6">
@@ -78,11 +104,15 @@ export default function ProductPurchase({ product }: { product: Product }) {
         </div>
 
         <button
+          ref={addBtnRef}
           type="button"
-          onClick={() => addProduct(product, grams, quantity)}
-          className="flex-1 min-w-44 rounded-full bg-red text-cream px-6 py-3.5 font-bold hover:bg-red-deep active:scale-[0.98] transition"
+          onClick={add}
+          className={`tap flex-1 min-w-44 rounded-full px-6 py-3.5 font-bold text-cream ${
+            justAdded ? "bg-leaf" : "bg-red hover:bg-red-deep"
+          }`}
+          aria-live="polite"
         >
-          Add to cart · {formatINR(lineTotal)}
+          {justAdded ? "Added to your jar collection" : `Add to cart · ${formatINR(lineTotal)}`}
         </button>
       </div>
 
@@ -92,7 +122,7 @@ export default function ProductPurchase({ product }: { product: Product }) {
         )}`}
         target="_blank"
         rel="noopener noreferrer"
-        className="mt-3 flex items-center justify-center gap-2 rounded-full border-2 border-leaf/40 text-leaf px-6 py-3 font-bold hover:bg-leaf hover:text-cream active:scale-[0.98] transition"
+        className="tap mt-3 flex items-center justify-center gap-2 rounded-full border-2 border-leaf/40 text-leaf px-6 py-3 font-bold hover:bg-leaf hover:text-cream"
       >
         <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor" aria-hidden>
           <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.297-.497.1-.198.05-.371-.025-.52-.074-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
@@ -104,6 +134,33 @@ export default function ProductPurchase({ product }: { product: Product }) {
         <li>Estimated delivery: <strong>{deliveryWindow()}</strong> (fresh preparation + shipping)</li>
         <li>Free shipping above {formatINR(FREE_SHIPPING_THRESHOLD)} · online payment only</li>
       </ul>
+
+      {/* Sticky mobile buy bar: always one tap from the cart while reading on. */}
+      <div
+        className={`md:hidden fixed inset-x-0 bottom-16 z-30 border-t border-charcoal/10 bg-cream/95 backdrop-blur px-4 py-3 shadow-[0_-8px_24px_-12px_rgba(36,23,19,0.3)] transition-[transform,opacity] duration-300 ${
+          showSticky ? "translate-y-0 opacity-100" : "translate-y-full opacity-0 pointer-events-none"
+        }`}
+      >
+        <div className="mx-auto max-w-6xl flex items-center gap-3">
+          <div className="min-w-0">
+            <p className="text-sm font-bold text-charcoal truncate">
+              {product.shortName} · {weight.label}
+            </p>
+            <p className="font-display font-extrabold text-charcoal leading-none">
+              {formatINR(lineTotal)}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={add}
+            className={`tap ml-auto shrink-0 rounded-full px-6 py-3 font-bold text-cream ${
+              justAdded ? "bg-leaf" : "bg-red hover:bg-red-deep"
+            }`}
+          >
+            {justAdded ? "Added" : "Add to cart"}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
