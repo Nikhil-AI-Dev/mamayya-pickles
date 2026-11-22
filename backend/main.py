@@ -319,6 +319,11 @@ def init_db() -> None:
         "ALTER TABLE orders ADD COLUMN confirm_token TEXT",
         "ALTER TABLE orders ADD COLUMN razorpay_payment_id TEXT",
         "ALTER TABLE orders ADD COLUMN phone_digits TEXT",
+        "ALTER TABLE orders ADD COLUMN idempotency_key TEXT",
+        (
+            "CREATE UNIQUE INDEX IF NOT EXISTS ix_orders_idempotency_key "
+            "ON orders (idempotency_key) WHERE idempotency_key IS NOT NULL"
+        ),
     ):
         try:
             with db() as conn:
@@ -357,6 +362,9 @@ class OrderCreate(BaseModel):
     city: str = Field(min_length=2, max_length=80, pattern=SINGLE_LINE)
     pincode: str = Field(min_length=6, max_length=6, pattern=r"^[0-9]{6}$")
     lines: list[ProductLine | BoxLine] = Field(min_length=1, max_length=40)
+    # Client-generated per-attempt key. Lets a retry after a lost response
+    # return the same order instead of creating a second one.
+    idempotencyKey: str | None = Field(default=None, max_length=64)
 
 
 def price_line(line: ProductLine | BoxLine) -> int:
@@ -857,10 +865,48 @@ def health_db():
     return {"status": "ok", "database": "ok"}
 
 
+def _order_response(row) -> dict:
+    """The create-order response reconstructed from a stored row, so a retry
+    that reuses an idempotency key sees exactly what the first call returned
+    (same order id and, in production, the same Razorpay order to pay)."""
+    response = {
+        "orderId": row["order_id"],
+        "subtotal": row["subtotal"],
+        "shipping": row["shipping"],
+        "total": row["total"],
+        "status": "received",
+        "paymentStatus": row["payment_status"],
+    }
+    if PAYMENTS_ENABLED:
+        response["razorpayOrderId"] = row["razorpay_order_id"]
+        response["razorpayKeyId"] = RAZORPAY_KEY_ID
+        response["paymentNote"] = "Complete the payment to place your order."
+    else:
+        response["paymentNote"] = (
+            "Order received. The kitchen will confirm it shortly - "
+            "your confirmation email arrives then."
+        )
+    return response
+
+
 @app.post("/api/orders", status_code=201)
 def create_order(payload: OrderCreate) -> dict:
     if not _phone_digits(payload.phone):
         raise HTTPException(422, "Phone must contain a 10-digit mobile number.")
+
+    # A retry after a lost response returns the first order instead of making a
+    # second one. Only a fully-prepared row counts (razorpay_order_id present in
+    # production), so a retry after a failed Razorpay call still creates fresh.
+    if payload.idempotencyKey:
+        with db() as conn:
+            existing = conn.execute(
+                _sql("SELECT * FROM orders WHERE idempotency_key = %s"),
+                (payload.idempotencyKey,),
+            ).fetchone()
+        if existing is not None and (not PAYMENTS_ENABLED or existing["razorpay_order_id"]):
+            logger.info("event=order_idempotent_hit order=%s", existing["order_id"])
+            return _order_response(existing)
+
     subtotal = sum(price_line(line) for line in payload.lines)
     shipping = 0 if subtotal >= FREE_SHIPPING_THRESHOLD else SHIPPING_FEE
     total = subtotal + shipping
@@ -876,8 +922,8 @@ def create_order(payload: OrderCreate) -> dict:
                 INSERT INTO orders
                     (created_at, name, phone, phone_digits, email, address, city,
                      pincode, lines_json, subtotal, shipping, total,
-                     payment_status, confirm_token)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                     payment_status, confirm_token, idempotency_key)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 RETURNING rowid_pk
                 """
             ),
@@ -896,6 +942,7 @@ def create_order(payload: OrderCreate) -> dict:
                 total,
                 payment_status,
                 confirm_token,
+                payload.idempotencyKey,
             ),
         )
         row_id = cur.fetchone()["rowid_pk"]

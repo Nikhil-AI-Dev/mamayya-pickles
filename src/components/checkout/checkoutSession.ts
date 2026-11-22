@@ -22,13 +22,27 @@ export type PendingVerify = {
   razorpaySignature: string;
 };
 
+/** An idempotency key generated before createOrder is called, so a retry after
+ *  a lost response reuses the same key and the server returns the first order
+ *  instead of creating a second one. Scoped to the cart + details it is for. */
+export type OrderAttempt = {
+  key: string;
+  cartKey: string;
+  detailsKey: string;
+};
+
 export type CheckoutSession = {
+  attempt: OrderAttempt | null;
   pendingOrder: PendingOrder | null;
   pendingVerify: PendingVerify | null;
 };
 
 const STORAGE_KEY = "mamayya-checkout-v1";
-const EMPTY_SESSION: CheckoutSession = { pendingOrder: null, pendingVerify: null };
+const EMPTY_SESSION: CheckoutSession = {
+  attempt: null,
+  pendingOrder: null,
+  pendingVerify: null,
+};
 
 export function cartKey(lines: CartLine[]): string {
   return lines.map((l) => `${l.id}x${l.quantity}`).join("|");
@@ -69,14 +83,26 @@ function isPendingVerify(value: unknown): value is PendingVerify {
   );
 }
 
+function isAttempt(value: unknown): value is OrderAttempt {
+  return (
+    isRecord(value) &&
+    typeof value.key === "string" &&
+    typeof value.cartKey === "string" &&
+    typeof value.detailsKey === "string"
+  );
+}
+
 function parseSession(raw: string | null): CheckoutSession {
   if (!raw) return EMPTY_SESSION;
   try {
     const parsed: unknown = JSON.parse(raw);
     if (!isRecord(parsed)) return EMPTY_SESSION;
+    const attempt = isAttempt(parsed.attempt) ? parsed.attempt : null;
     const pendingOrder = isPendingOrder(parsed.pendingOrder) ? parsed.pendingOrder : null;
     const pendingVerify = isPendingVerify(parsed.pendingVerify) ? parsed.pendingVerify : null;
-    return pendingOrder || pendingVerify ? { pendingOrder, pendingVerify } : EMPTY_SESSION;
+    return attempt || pendingOrder || pendingVerify
+      ? { attempt, pendingOrder, pendingVerify }
+      : EMPTY_SESSION;
   } catch {
     return EMPTY_SESSION;
   }
@@ -103,7 +129,7 @@ function readSession(): CheckoutSession {
 function writeSession(next: CheckoutSession): void {
   cached = next;
   try {
-    if (next.pendingOrder || next.pendingVerify) {
+    if (next.attempt || next.pendingOrder || next.pendingVerify) {
       sessionStorage.setItem(STORAGE_KEY, JSON.stringify(next));
     } else {
       sessionStorage.removeItem(STORAGE_KEY);

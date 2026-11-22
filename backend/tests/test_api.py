@@ -231,6 +231,30 @@ def test_verify_payment_is_idempotent_and_notifies_kitchen_once(live_mode):
     assert len(sent) == 1
 
 
+def test_create_order_is_idempotent_on_retry(live_mode):
+    module, client, _ = live_mode
+    body = dict(ORDER, idempotencyKey="attempt-abc")
+    first = client.post("/api/orders", json=body).json()
+    second = client.post("/api/orders", json=body).json()
+    assert first["orderId"] == second["orderId"]
+    assert first["razorpayOrderId"] == second["razorpayOrderId"]
+    with module.db() as conn:
+        assert conn.execute("SELECT COUNT(*) AS n FROM orders").fetchone()["n"] == 1
+
+
+def test_verify_then_webhook_does_not_notify_twice(live_mode):
+    _, client, sent = live_mode
+    created = client.post("/api/orders", json=ORDER).json()
+    oid, rzp = created["orderId"], created["razorpayOrderId"]
+    good = {"razorpayOrderId": rzp, "razorpayPaymentId": "pay_1", "razorpaySignature": signature(rzp, "pay_1")}
+    assert client.post(f"/api/orders/{oid}/verify-payment", json=good).status_code == 200
+    assert len(sent) == 1
+    raw = webhook_body(rzp, "pay_1")
+    res = client.post("/api/razorpay/webhook", content=raw, headers={"X-Razorpay-Signature": webhook_sig(raw)})
+    assert res.json() == {"status": "already_paid", "orderId": oid}
+    assert len(sent) == 1
+
+
 def test_razorpay_failure_leaves_no_orphan_row(live_mode, monkeypatch):
     module, client, _ = live_mode
 

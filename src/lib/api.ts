@@ -161,11 +161,12 @@ async function request<T>(
 
 export function createOrder(
   details: OrderDetails,
-  lines: CartLine[]
+  lines: CartLine[],
+  idempotencyKey?: string
 ): Promise<OrderConfirmation> {
   return request("/api/orders", isOrderConfirmation, {
     method: "POST",
-    body: JSON.stringify({ ...details, lines }),
+    body: JSON.stringify({ ...details, lines, idempotencyKey }),
   });
 }
 

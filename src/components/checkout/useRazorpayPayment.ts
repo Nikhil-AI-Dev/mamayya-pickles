@@ -52,13 +52,8 @@ export function useRazorpayPayment() {
               razorpaySignature: response.razorpay_signature,
             }),
           modal: {
-            ondismiss: () =>
-              reject(
-                new ApiError(
-                  `Payment window closed. Your order ${order.orderId} is saved - submit again to retry the payment.`,
-                  0
-                )
-              ),
+            // The handleSubmit catch adds the "order saved, press again" note.
+            ondismiss: () => reject(new ApiError("Payment window closed.", 0)),
           },
         });
         rzp.open();

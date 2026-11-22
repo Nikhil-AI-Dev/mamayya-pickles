@@ -31,6 +31,16 @@ const FIELDS = [
 
 const PAID_UNCONFIRMED_MESSAGE =
   "Your payment went through, but we could not confirm it with our kitchen server yet. Do not pay again - press the button once more to retry the confirmation, or write to us quoting your order number.";
+const PAID_NEEDS_HELP_MESSAGE =
+  "Your payment went through, but we could not match it to this order automatically. Do not pay again - write to contact@mamayyapickles.com quoting your order number and we will sort it out right away.";
+
+// A verify failure is worth retrying when it is a network drop, timeout, rate
+// limit, or server error. A 400/404/409 will never succeed on retry, so the
+// shopper is pointed at support instead of looping on the button.
+function isTransientVerifyFailure(err: unknown): boolean {
+  if (!(err instanceof ApiError)) return true;
+  return err.status === 0 || err.status === 429 || err.status >= 500;
+}
 
 export default function CheckoutClient() {
   const { lines, subtotal, shipping, total, updateQuantity, removeLine, clearCart } =
@@ -161,8 +171,13 @@ export default function CheckoutClient() {
             pendingVerify.razorpayPaymentId,
             pendingVerify.razorpaySignature
           );
-        } catch {
-          setError(`${PAID_UNCONFIRMED_MESSAGE} Order ${pendingVerify.orderId}.`);
+        } catch (err) {
+          if (isTransientVerifyFailure(err)) {
+            setError(`${PAID_UNCONFIRMED_MESSAGE} Order ${pendingVerify.orderId}.`);
+          } else {
+            updateSession({ pendingVerify: null });
+            setError(`${PAID_NEEDS_HELP_MESSAGE} Order ${pendingVerify.orderId}.`);
+          }
           return;
         }
         finish({
@@ -178,9 +193,20 @@ export default function CheckoutClient() {
       }
 
       const key = detailsKey(details);
+      // Reuse the same idempotency key for this cart + details, so a retry
+      // after a lost createOrder response returns the first order rather than
+      // creating a second one.
+      const attemptKey =
+        session.attempt &&
+        session.attempt.cartKey === currentCartKey &&
+        session.attempt.detailsKey === key
+          ? session.attempt.key
+          : crypto.randomUUID();
+      updateSession({ attempt: { key: attemptKey, cartKey: currentCartKey, detailsKey: key } });
+
       order = pendingOrder && pendingOrder.detailsKey === key ? pendingOrder.order : null;
       if (!order) {
-        order = await createOrder(details, lines);
+        order = await createOrder(details, lines, attemptKey);
         if (order.razorpayOrderId) {
           updateSession({ pendingOrder: { order, cartKey: currentCartKey, detailsKey: key } });
         }
@@ -201,8 +227,13 @@ export default function CheckoutClient() {
           result.razorpayPaymentId,
           result.razorpaySignature
         );
-      } catch {
-        setError(`${PAID_UNCONFIRMED_MESSAGE} Order ${order.orderId}.`);
+      } catch (err) {
+        if (isTransientVerifyFailure(err)) {
+          setError(`${PAID_UNCONFIRMED_MESSAGE} Order ${order.orderId}.`);
+        } else {
+          updateSession({ pendingVerify: null });
+          setError(`${PAID_NEEDS_HELP_MESSAGE} Order ${order.orderId}.`);
+        }
         return;
       }
       finish({
