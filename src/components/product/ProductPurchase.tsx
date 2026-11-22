@@ -14,7 +14,8 @@ export default function ProductPurchase({ product }: { product: Product }) {
   const { addProduct } = useCart();
   const [grams, setGrams] = useState<WeightGrams>(500);
   const [quantity, setQuantity] = useState(1);
-  const weight = product.weights.find((w) => w.grams === grams)!;
+  const weight =
+    product.weights.find((w) => w.grams === grams) ?? product.weights[0];
   const lineTotal = weight.price * quantity;
 
   return (

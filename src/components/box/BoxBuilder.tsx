@@ -28,12 +28,14 @@ export default function BoxBuilder() {
   const picks = useMemo(() => {
     return Object.entries(counts)
       .filter(([, n]) => n > 0)
-      .map(([key, n]) => {
+      .flatMap(([key, n]) => {
         const [slug, g] = key.split(":");
-        const product = getProduct(slug)!;
+        const product = getProduct(slug);
+        if (!product) return [];
         const grams = Number(g) as PickGrams;
-        const weight = product.weights.find((w) => w.grams === grams)!;
-        return { product, grams, count: n, price: weight.price };
+        const weight =
+          product.weights.find((w) => w.grams === grams) ?? product.weights[0];
+        return [{ product, grams, count: n, price: weight.price }];
       });
   }, [counts]);
 
@@ -92,7 +94,8 @@ export default function BoxBuilder() {
               </div>
               <div className="mt-3 grid sm:grid-cols-2 gap-2">
                 {PICK_SIZES.map((grams) => {
-                  const weight = p.weights.find((w) => w.grams === grams)!;
+                  const weight =
+                    p.weights.find((w) => w.grams === grams) ?? p.weights[0];
                   const count = counts[keyOf(p.slug, grams)] ?? 0;
                   return (
                     <div

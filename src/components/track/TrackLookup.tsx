@@ -50,6 +50,8 @@ export default function TrackLookup() {
   // Deep link from the confirmation email: /track?order=MP-1234
   useEffect(() => {
     const fromLink = new URLSearchParams(window.location.search).get("order");
+    // Static export: the query string exists only in the browser, after mount.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (fromLink) setOrderId(fromLink);
     warmApi();
   }, []);
@@ -209,7 +211,9 @@ export default function TrackLookup() {
                 <dt className="text-cream/70">Current stage</dt>
                 <dd className="font-bold text-gold">
                   {order.confirmed
-                    ? (STAGE_COPY[order.currentStage]?.name ?? order.currentStage)
+                    ? Object.hasOwn(STAGE_COPY, order.currentStage)
+                      ? STAGE_COPY[order.currentStage].name
+                      : order.currentStage
                     : "Waiting for kitchen confirmation"}
                 </dd>
               </div>
@@ -239,7 +243,11 @@ export default function TrackLookup() {
             const reached = stage?.reached ?? false;
             const isCurrent = order?.currentStage === key;
             return (
-              <li key={key} className="relative flex gap-5 pb-8 last:pb-0">
+              <li
+                key={key}
+                className="relative flex gap-5 pb-8 last:pb-0"
+                aria-current={isCurrent ? "step" : undefined}
+              >
                 {i < STAGE_ORDER.length - 1 && (
                   <span
                     aria-hidden
@@ -267,6 +275,9 @@ export default function TrackLookup() {
                     }`}
                   >
                     {copy.name}
+                    {order && (
+                      <span className="sr-only">{reached ? " (completed)" : " (upcoming)"}</span>
+                    )}
                     {isCurrent && (
                       <span className="ml-2 rounded-full bg-gold text-charcoal text-[10px] font-extrabold uppercase tracking-wide px-2 py-0.5 align-middle">
                         Now

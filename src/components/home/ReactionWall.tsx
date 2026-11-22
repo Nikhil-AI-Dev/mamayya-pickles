@@ -125,7 +125,8 @@ export default function ReactionWall() {
 
         <div className="mt-8 columns-1 sm:columns-2 lg:columns-3 gap-5 [&>*]:break-inside-avoid">
           {visible.map((r, i) => {
-            const product = products.find((p) => p.slug === r.productSlug)!;
+            const product = products.find((p) => p.slug === r.productSlug);
+            if (!product) return null;
             const tilt = ["rotate-[-1.5deg]", "rotate-[1.2deg]", "rotate-[-0.8deg]", "rotate-[1.8deg]"][i % 4];
             return (
               <figure

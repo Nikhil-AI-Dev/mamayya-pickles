@@ -19,7 +19,8 @@ export default function WeightVisualizer() {
   const { addProduct } = useCart();
 
   const product = products[productIdx];
-  const weight = product.weights.find((w) => w.grams === grams)!;
+  const weight =
+    product.weights.find((w) => w.grams === grams) ?? product.weights[0];
 
   return (
     <section className="bg-cream-deep grain py-20 md:py-28" id="sizes">

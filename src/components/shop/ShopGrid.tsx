@@ -22,7 +22,8 @@ gsap.registerPlugin(ScrollTrigger, useGSAP);
 function ProductCard({ product }: { product: Product }) {
   const { addProduct } = useCart();
   const [grams, setGrams] = useState<WeightGrams>(500);
-  const weight = product.weights.find((w) => w.grams === grams)!;
+  const weight =
+    product.weights.find((w) => w.grams === grams) ?? product.weights[0];
 
   return (
     <article className="shop-card flex flex-col rounded-3xl bg-white/70 border border-charcoal/10 shadow-card overflow-hidden">
@@ -132,7 +133,8 @@ function BoxTicket({ box }: { box: Box }) {
 
       <ul className="mt-3 space-y-1 text-sm text-charcoal/80">
         {box.contents.map((c) => {
-          const p = getProduct(c.productSlug)!;
+          const p = getProduct(c.productSlug);
+          if (!p) return null;
           return (
             <li key={`${c.productSlug}-${c.grams}`} className="flex items-center gap-2">
               <span

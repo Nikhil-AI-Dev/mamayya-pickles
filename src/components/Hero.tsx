@@ -60,10 +60,10 @@ export default function Hero() {
       // Mobile and reduced motion: everything visible, no pin, no scrub.
       mm.add("(max-width: 767px), (prefers-reduced-motion: reduce)", () => {
         gsap.set(
-          [".hero-headline-2", ".hero-flavour-0", ".hero-flavour-1", ".hero-flavour-2", ".hero-flavour-3"],
+          [".hero-headline-1", ".hero-flavour-0", ".hero-flavour-1", ".hero-flavour-2", ".hero-flavour-3"],
           { opacity: 1, x: 0, y: 0 }
         );
-        gsap.set(".hero-headline-1", { opacity: 0 });
+        gsap.set(".hero-headline-2", { opacity: 0 });
       });
     },
     { scope: sectionRef }

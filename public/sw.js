@@ -1,8 +1,10 @@
 /* Mamayya Pickles service worker.
    Deliberately minimal: caches ONLY the offline fallback page. All real
    traffic stays network-first with zero caching here, so a deploy is
-   always picked up immediately and nothing can go stale. */
-const CACHE = "mamayya-offline-v1";
+   always picked up immediately. The one cached file, offline.html, is
+   refreshed only when this worker changes: bump CACHE whenever you edit
+   offline.html. */
+const CACHE = "mamayya-offline-v2";
 const OFFLINE_URL = "/offline.html";
 
 self.addEventListener("install", (event) => {

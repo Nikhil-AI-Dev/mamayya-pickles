@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useCart } from "@/lib/cart";
 import { WeightGrams, formatINR, getProduct } from "@/lib/products";
 import JarIllustration from "../JarIllustration";
@@ -35,14 +35,16 @@ const MEAT_TO_SLUG: Record<string, string> = {
 
 function recommend(answers: Record<AnswerKey, string>) {
   const slug = MEAT_TO_SLUG[answers.meat] ?? "chicken-pickle";
-  const product = getProduct(slug)!;
+  const product = getProduct(slug);
+  if (!product) return null;
   // Daily-rice eaters and jar-grazers empty jars faster - size up.
   const heavyUse =
     answers.food === "Rice" ||
     answers.food === "Curd rice" ||
     answers.food === "Straight from the jar";
   const grams: WeightGrams = heavyUse ? 500 : 250;
-  const weight = product.weights.find((w) => w.grams === grams)!;
+  const weight =
+    product.weights.find((w) => w.grams === grams) ?? product.weights[0];
   const spiceNote =
     answers.spice === "Mamayya level"
       ? product.spiceLevel === 3
@@ -58,6 +60,18 @@ export default function FlavourFinder() {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Partial<Record<AnswerKey, string>>>({});
   const { addProduct } = useCart();
+  const promptRef = useRef<HTMLParagraphElement>(null);
+  const prevStep = useRef(step);
+
+  // The clicked option unmounts when the step changes, dropping keyboard focus
+  // to <body>. Move it to the new question's prompt - but not on mount, and not
+  // when the result card takes over.
+  useEffect(() => {
+    if (prevStep.current !== step && step < QUESTIONS.length) {
+      promptRef.current?.focus();
+    }
+    prevStep.current = step;
+  }, [step]);
 
   const done = step >= QUESTIONS.length;
   const result = done ? recommend(answers as Record<AnswerKey, string>) : null;
@@ -97,7 +111,11 @@ export default function FlavourFinder() {
                 ))}
               </div>
 
-              <p className="font-display font-bold text-2xl md:text-3xl">
+              <p
+                ref={promptRef}
+                tabIndex={-1}
+                className="font-display font-bold text-2xl md:text-3xl"
+              >
                 {QUESTIONS[step].prompt}
               </p>
               <div className="mt-6 flex flex-wrap justify-center gap-3">
@@ -124,7 +142,10 @@ export default function FlavourFinder() {
             </div>
           ) : (
             result && (
-              <div className="rounded-3xl bg-cream text-charcoal p-8 md:p-10 shadow-jar">
+              <div
+                aria-live="polite"
+                className="rounded-3xl bg-cream text-charcoal p-8 md:p-10 shadow-jar"
+              >
                 <p className="text-sm font-bold uppercase tracking-widest text-clay">
                   Your Mamayya match
                 </p>

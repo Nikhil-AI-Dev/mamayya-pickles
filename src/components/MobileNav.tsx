@@ -29,6 +29,7 @@ export default function MobileNav() {
             <Link
               key={tab.href}
               href={tab.href}
+              aria-current={active ? "page" : undefined}
               className={`flex flex-col items-center justify-center gap-0.5 text-[11px] font-semibold ${
                 active ? "text-gold" : "text-cream/70"
               }`}

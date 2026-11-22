@@ -73,10 +73,11 @@ const WEIGHT_META: Record<WeightGrams, Omit<WeightOption, "price" | "grams">> = 
 };
 
 function weights(prices: Record<WeightGrams, number>): WeightOption[] {
-  return (Object.keys(prices) as unknown as WeightGrams[]).map((g) => {
-    const grams = Number(g) as WeightGrams;
-    return { grams, price: prices[grams], ...WEIGHT_META[grams] };
-  });
+  return (Object.keys(prices).map(Number) as WeightGrams[]).map((grams) => ({
+    grams,
+    price: prices[grams],
+    ...WEIGHT_META[grams],
+  }));
 }
 
 const SPICE_LABELS: Record<1 | 2 | 3, string> = {

@@ -1,5 +1,3 @@
-"use client";
-
 import {
   CookingPot,
   ShieldCheck,
@@ -7,7 +5,7 @@ import {
   SealCheck,
   CreditCard,
   Truck,
-} from "@phosphor-icons/react";
+} from "@phosphor-icons/react/dist/ssr";
 
 const TRUST_CARDS = [
   {

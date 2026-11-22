@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useCart, lineTitle, lineUnitPrice } from "@/lib/cart";
 import {
   DELIVERY_NOTE,
@@ -28,16 +28,43 @@ export default function CartDrawer() {
     addProduct,
   } = useCart();
 
+  const panelRef = useRef<HTMLElement>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
+
+  // Modal dialog behaviour: focus moves into the panel on open, Tab cycles
+  // inside it, Escape closes, and focus returns to the opener on close.
   useEffect(() => {
     if (!isOpen) return;
+    const opener = document.activeElement as HTMLElement | null;
+    closeRef.current?.focus();
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") closeCart();
+      if (e.key === "Escape") {
+        closeCart();
+        return;
+      }
+      if (e.key !== "Tab" || !panelRef.current) return;
+      const focusable = Array.from(
+        panelRef.current.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), input, [tabindex]:not([tabindex="-1"])'
+        )
+      );
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
     };
     document.addEventListener("keydown", onKey);
     document.body.style.overflow = "hidden";
     return () => {
       document.removeEventListener("keydown", onKey);
       document.body.style.overflow = "";
+      opener?.focus();
     };
   }, [isOpen, closeCart]);
 
@@ -49,7 +76,9 @@ export default function CartDrawer() {
   return (
     <div
       className={`fixed inset-0 z-50 ${isOpen ? "" : "pointer-events-none"}`}
-      aria-hidden={!isOpen}
+      // inert removes the closed drawer from the tab order and from assistive
+      // tech together, so no focusable control hides inside an aria-hidden tree.
+      inert={!isOpen}
     >
       {/* Backdrop */}
       <button
@@ -64,6 +93,7 @@ export default function CartDrawer() {
 
       {/* Panel */}
       <aside
+        ref={panelRef}
         className={`absolute right-0 top-0 h-full w-full max-w-md bg-cream shadow-2xl flex flex-col transition-transform duration-300 ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}
@@ -74,6 +104,7 @@ export default function CartDrawer() {
         <div className="flex items-center justify-between px-5 py-4 border-b border-charcoal/10">
           <h2 className="font-display font-bold text-xl">Your jar collection</h2>
           <button
+            ref={closeRef}
             type="button"
             onClick={closeCart}
             className="rounded-full w-9 h-9 grid place-items-center bg-charcoal/5 hover:bg-charcoal/10 text-lg"

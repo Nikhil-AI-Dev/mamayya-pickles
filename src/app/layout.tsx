@@ -7,6 +7,7 @@ import Footer from "@/components/Footer";
 import MobileNav from "@/components/MobileNav";
 import CartDrawer from "@/components/CartDrawer";
 import { FSSAI } from "@/lib/business";
+import { API_BASE } from "@/lib/api";
 
 const bricolage = Bricolage_Grotesque({
   variable: "--font-bricolage",
@@ -33,6 +34,7 @@ export const viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL("https://mamayyapickles.com"),
   manifest: "/site.webmanifest",
+  referrer: "strict-origin-when-cross-origin",
   title: {
     default: "Mamayya Pickles - Taste of Rayalaseema",
     template: "%s | Mamayya Pickles",
@@ -68,9 +70,15 @@ export default function RootLayout({
     >
       <head>
         {/* Warm the connection to the order API before checkout/track need it. */}
-        <link rel="preconnect" href="https://mamayya-api.onrender.com" />
+        <link rel="preconnect" href={API_BASE} />
       </head>
       <body className="min-h-full flex flex-col">
+        <a
+          href="#main"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[100] focus:rounded-full focus:bg-gold focus:px-5 focus:py-2.5 focus:font-bold focus:text-charcoal"
+        >
+          Skip to content
+        </a>
         <script
           dangerouslySetInnerHTML={{
             __html:
@@ -110,7 +118,9 @@ export default function RootLayout({
         />
         <CartProvider>
           <Header />
-          <main className="flex-1 pb-16 md:pb-0">{children}</main>
+          <main id="main" tabIndex={-1} className="flex-1 pb-16 md:pb-0 outline-none">
+            {children}
+          </main>
           <Footer />
           <MobileNav />
           <CartDrawer />
