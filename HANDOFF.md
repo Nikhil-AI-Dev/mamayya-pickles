@@ -7,7 +7,7 @@ Everything about how this store runs, what's live, and what's left before taking
 | What | URL |
 |------|-----|
 | Storefront | https://mamayyapickles.com (HTTPS enforced) |
-| Order API | https://mamayya-api.onrender.com (health: `/health`, status: `/api/config`) |
+| Order API | https://mamayya-api.onrender.com (liveness: `/health`, database probe: `/health/db`, status: `/api/config`) |
 | Code | https://github.com/Nikhil-AI-Dev/mamayya-pickles |
 | Support email | contact@mamayyapickles.com (Microsoft 365 via GoDaddy, webmail at outlook.office.com) |
 | Sending email | orders@mamayyapickles.com via Resend (free tier, 100/day) |
@@ -22,10 +22,14 @@ The storefront is a static Next.js site, built and deployed automatically by Git
 1. Customer checks out → order stored as **received**; customer sees an on-screen receipt with the MP number but gets **no email yet**
 2. **Admin email** arrives at contact@ — packing slip tagged `[PAID]` (or `[UNPAID TEST ORDER]` in local test mode) + a **Confirm order** button (secure per-order link)
 3. Admin clicks the button → a page shows the order and a second **Confirm order** button; pressing it (a POST) sends the customer the **branded confirmation email** (from orders@, replies go to contact@) and starts the **one-week delivery clock**. Merely opening the emailed link changes nothing, so mail scanners and link previews cannot confirm an order. Unpaid orders cannot be confirmed in production.
-4. Track page (`/track`): needs order number **+ the phone used on the order** (privacy gate). Shows "waiting for kitchen confirmation" until confirmed, then a six-stage timeline anchored to confirmation (delivered day 7)
-5. Payments are live: the customer pays via Razorpay before step 2 — the admin email is sent only after successful payment
+4. Track page (`/track`): needs order number **+ the phone used on the order** (privacy gate). Shows "waiting for kitchen confirmation" until confirmed, then a six-stage timeline anchored to confirmation (delivered day 7). All dates are shown in IST.
+5. Payments are live: the customer pays via Razorpay before step 2 — the admin email is sent only after successful payment, which reaches the API by two independent paths: the browser relay (`/verify-payment`) and, as a backstop, the Razorpay **webhook** (`/api/razorpay/webhook`, `payment.captured` / `order.paid`). Either marks the order paid and emails the kitchen; both are idempotent, so a payment is never recorded or notified twice.
 
 Stage timings are calendar estimates (confirm+1 preparing, +3 packed, +4 shipped, +6 out for delivery, +7 delivered), not courier data.
+
+### Razorpay webhook (set this up once)
+
+Razorpay dashboard → Settings → Webhooks → Add: URL `https://mamayya-api.onrender.com/api/razorpay/webhook`, active events `payment.captured` and `order.paid`, set a secret, then paste the same secret into Render → mamayya-api → Environment as `RAZORPAY_WEBHOOK_SECRET`. Without the secret the webhook route is off (returns 404) and only the browser relay records payments.
 
 ## Accounts that own things
 
@@ -39,7 +43,9 @@ Stage timings are calendar estimates (confirm+1 preparing, +3 packed, +4 shipped
 
 ## Changing everyday things
 
-Product data: `src/lib/products.ts` (prices, weights, descriptions, ingredients). FAQs: `src/lib/faqs.ts`. Policies: `src/lib/policies.ts`. Contacts (WhatsApp +91 90358 43899 - owner's number, also Razorpay login; email): `src/app/contact/page.tsx`, `src/components/track/TrackLookup.tsx`. Logo assets: `public/logo.png` (600px) + `public/logo-192.png`. Statutory IDs (FSSAI number, type, holder, validity): `src/lib/business.ts`; the order API mirrors the number via `FSSAI_REG_NO` in Render env (defaults to the same number in `backend/main.py`). Edit, commit, push — site redeploys in ~2 minutes.
+Product data: `src/lib/products.ts` (prices, weights, descriptions, ingredients). FAQs: `src/lib/faqs.ts`. Policies: `src/lib/policies.ts`. Public contact details (WhatsApp number, email): `src/app/contact/page.tsx`, `src/components/track/TrackLookup.tsx`. Logo assets: `public/logo.png` (600px) + `public/logo-192.png`. Statutory IDs (FSSAI number, type, holder, validity): `src/lib/business.ts`; the order API mirrors the number via `FSSAI_REG_NO` in Render env (defaults to the same number in `backend/main.py`). Edit, commit, push — site redeploys in ~2 minutes.
+
+Account logins and which identities own which service are kept in a private document, not in this repo (the repo is the public GitHub Pages source).
 
 **Prices exist in TWO places** and must match: `src/lib/products.ts` (what shoppers see) and `backend/main.py` `PRODUCT_PRICES`/`BOX_PRICES` (what orders actually charge). The backend is the authority.
 
@@ -52,7 +58,7 @@ Product data: `src/lib/products.ts` (prices, weights, descriptions, ingredients)
 
 ## Payments (Razorpay — LIVE since 20 Jul 2026)
 
-Account: created with the owner's details, login contact@mamayyapickles.com. Live keys are set in Render → mamayya-api → Environment (`RAZORPAY_KEY_ID` + `RAZORPAY_KEY_SECRET`). Customers pay real money; settlements land in the owner's bank T+2 working days, minus ~2% Razorpay fee.
+Live keys are set in Render → mamayya-api → Environment (`RAZORPAY_KEY_ID` + `RAZORPAY_KEY_SECRET`), plus `RAZORPAY_WEBHOOK_SECRET` for the webhook. Customers pay real money; settlements land in the owner's bank T+2 working days, minus ~2% Razorpay fee. (Account login details are in the private account document, not this repo.)
 
 Verified end-to-end on 20 Jul 2026 (test-mode dress run, order MP-1050): checkout → card payment → signature verification → order marked paid → admin email → confirm click → customer email.
 
@@ -68,8 +74,11 @@ Operational notes:
 - Order lookup requires order number + matching phone (no enumeration)
 - Confirm links use 192-bit tokens, constant-time compared; user-supplied text HTML-escaped in admin email and confirm page
 - CORS locked to the production domains; secrets in env only, masked in diagnostics
+- Security headers on all API HTML (`nosniff`, `Referrer-Policy: no-referrer`, a strict CSP, and `Cache-Control: no-store` on the token-bearing confirm pages); storefront sends `Referrer-Policy` via meta
+- Postgres TLS is required in code (`sslmode=require`), not left to the connection string; a non-`postgres://` `DATABASE_URL` makes the service refuse to start rather than fall back to SQLite
 - Full audit run July 2026 (Anthropic security-review rubric): 3 findings, all fixed
-- Second audit November 2026 (Cloudflare security-audit skill, 37 agents, source-only): 3 low findings and 7 leads, all addressed in code: `REQUIRE_PAYMENTS` fail-closed start-up (defaults on when `DATABASE_URL` is set; `REQUIRE_PAYMENTS=false` for local dev without keys), two-step confirm (GET page, POST writes), idempotent `verify-payment` with a uniform 404, ten-digit phone required on order and on lookup (constant-time compare), 64 KB body cap and 20 requests/minute per client IP on POSTs and order lookups (last `X-Forwarded-For` hop, the one Render's proxy appends), slugs capped at 64 chars and weights restricted to the catalogue, verified TLS on the SMTP fallback, `/api/config` `lastEmailResult` reduced to `sent` or `failed: <ExceptionClass>`, bounded email worker pool, API docs endpoints disabled, unused `/api/contact` route removed, legacy root `index.html` deleted
+- Second audit November 2026 (Cloudflare security-audit skill, source-only): 3 low findings and 7 leads, all addressed in code: `REQUIRE_PAYMENTS` fail-closed start-up (defaults on when `DATABASE_URL` is set; `REQUIRE_PAYMENTS=false` for local dev without keys), two-step confirm (GET page, POST writes), idempotent `verify-payment` with a uniform 404, ten-digit phone required on order and on lookup (constant-time compare), 64 KB body cap and 20 requests/minute per client IP on POSTs and order lookups (last `X-Forwarded-For` hop, the one Render's proxy appends), slugs capped at 64 chars and weights restricted to the catalogue, verified TLS on the SMTP fallback, bounded email worker pool, API docs endpoints disabled, unused `/api/contact` route removed, legacy root `index.html` deleted
+- Third review November 2026 (ECC toolkit: FastAPI/React/TypeScript/security reviewers + production audit, each finding independently verified): Razorpay webhook backstop and `razorpay_payment_id` persisted, async confirm route moved off the event loop, Postgres connection pool, pinned Python dependencies with `PYTHON_VERSION`, API test suite wired into CI, cart storage hardened against malformed data with a route error boundary, checkout payment-relay retry made safe (no double charge, survives a reload), IST dates, security headers, and the accessibility fixes above; the storefront's `npm audit` is clean
 
 ## Before taking real money — launch blockers
 
@@ -94,10 +103,28 @@ Operational notes:
 ## Operating runbook
 
 - **Site down?** githubstatus.com (Pages) / Render dashboard
-- **Deploy failed?** GitHub repo → Actions tab → open the red run
-- **Emails not arriving?** `GET https://mamayya-api.onrender.com/api/config` → `lastEmailResult` is `sent` or `failed: <ExceptionClass>` (the full error is in Render logs only); check Resend dashboard → Emails for delivery log
-- **API refuses to start after an env change?** `REQUIRE_PAYMENTS` is on and a Razorpay key is missing or misnamed: fix the variable names in Render → Environment. Render keeps the previous deploy running while the new one fails its health check
+- **Deploy failed?** GitHub repo → Actions tab → open the red run (a failed API test blocks the site deploy)
+- **Emails not arriving?** Render → mamayya-api → Logs: look for `event=email_sent` / `event=email_failed` lines (full error included); check Resend dashboard → Emails for the delivery log. `GET /api/config` confirms email is configured
+- **API healthy but orders failing?** `GET /health/db` runs a real `SELECT 1` and returns 503 if the database is unreachable (plain `/health`, which Render polls, does not touch the database on purpose)
+- **API refuses to start after an env change?** Either `REQUIRE_PAYMENTS` is on and a Razorpay key is missing or misnamed, or `DATABASE_URL` is not a `postgres://` URL. Fix the variable in Render → Environment. Render keeps the previous deploy running while the new one fails its health check
 - **See orders:** Neon dashboard → project → SQL Editor → `SELECT order_id, created_at, name, phone, total, payment_status, confirmed_at FROM orders ORDER BY rowid_pk DESC;`
+- **Daily payment reconciliation** (until you trust the webhook): find captured payments that never reached the kitchen —
+  ```sql
+  SELECT order_id, created_at, payment_status, confirmed_at, razorpay_order_id, razorpay_payment_id
+  FROM orders
+  WHERE payment_status IN ('pending','paid') AND confirmed_at IS NULL
+    AND razorpay_order_id IS NOT NULL
+    AND created_at::timestamptz < now() - interval '2 hours'
+  ORDER BY created_at DESC;
+  ```
+  Cross-check each row against Razorpay dashboard → Payments (the receipt is the MP number). A row that is `pending` but captured in Razorpay means the browser relay was lost; the webhook fixes this automatically once configured.
 - **Confirm an order without the email:** the Confirm link format is `https://mamayya-api.onrender.com/api/orders/MP-XXXX/confirm?token=...` — token is in the orders table
-- **Local development:** `npm run dev -- -p 3001` for the site; `python -m uvicorn main:app --port 8001` inside `backend/` for the API (SQLite locally, no setup)
+- **Local development:** `npm run dev -- -p 3001` for the site; `REQUIRE_PAYMENTS=false python -m uvicorn main:app --port 8001` inside `backend/` for the API (SQLite locally, no setup). Run the API tests with `pip install -r requirements.txt -r requirements-dev.txt && python -m pytest tests`
 - **Test orders:** purged via the Neon migration (21 Jul 2026) — the database started fresh. If a stray probe order exists (e.g. MP-1001 'Neon Write Test'), delete it in Neon dashboard → SQL Editor: `DELETE FROM orders WHERE name = 'Neon Write Test';`
+
+## Backup, restore, rollback
+
+- **Site rollback:** `git revert <bad-commit> && git push`, or GitHub → Actions → re-run an earlier green "Deploy" run. The live site is whatever `master` last built.
+- **API rollback:** Render dashboard → mamayya-api → Deploys → pick a previous successful deploy → "Rollback". The API also auto-keeps the previous deploy running when a new one fails its health check.
+- **Database backup/restore:** Neon keeps point-in-time history on the free tier. Neon dashboard → project → Branches: create a branch from a past timestamp to inspect or restore data, or Restore to roll the main branch back. Before any manual bulk edit in the SQL Editor, create a branch first so it is reversible.
+- **Monitoring:** add a free uptime monitor (e.g. UptimeRobot) hitting `https://mamayya-api.onrender.com/health/db` every few minutes with an email alert, so a database outage or bad `DATABASE_URL` is noticed before a customer reports it.

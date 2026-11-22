@@ -42,8 +42,16 @@ next-env.d.ts
 
 # backend
 backend/mamayya.db
+backend/mamayya.db-journal
+backend/mamayya.db-wal
+backend/mamayya.db-shm
 backend/__pycache__/
+backend/tests/__pycache__/
+.pytest_cache/
 *.key
+
+# local tooling
+.kombai/
 
 # local tooling and planning (not part of the site)
 .claude/

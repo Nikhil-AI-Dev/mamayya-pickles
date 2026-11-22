@@ -1,36 +1,53 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Mamayya Pickles
 
-## Getting Started
+Online store for handmade non-veg pickles (chicken, mutton, fish, prawn),
+prepared fresh per order and delivered across India. Prepaid only, guest
+checkout, no accounts.
 
-First, run the development server:
+- **Storefront**: static Next.js site, deployed to GitHub Pages at
+  [mamayyapickles.com](https://mamayyapickles.com) on every push to `master`.
+- **Order API**: single-file FastAPI service (`backend/main.py`) on Render, with
+  a Postgres database. It owns all pricing, creates order numbers, verifies
+  Razorpay payments, sends emails through Resend, and serves order tracking.
+
+Operations, accounts, and launch notes live in [HANDOFF.md](./HANDOFF.md).
+
+## Local development
+
+Storefront (port 3001):
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev -- -p 3001
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Order API (port 8001, SQLite, no setup):
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+cd backend
+pip install -r requirements.txt
+REQUIRE_PAYMENTS=false python -m uvicorn main:app --port 8001
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Point the site at the local API by setting `NEXT_PUBLIC_API_URL=http://localhost:8001`.
 
-## Learn More
+## Checks
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm run lint          # ESLint
+npx tsc --noEmit      # type check
+npm run build         # production static export
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+cd backend
+pip install -r requirements.txt -r requirements-dev.txt
+python -m pytest tests          # API tests (SQLite, no network)
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+CI runs the API tests and the lint/build on every push; a red test blocks the
+site deploy.
 
-## Deploy on Vercel
+## Prices live in two places and must match
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+`src/lib/products.ts` (what shoppers see) and `backend/main.py`
+`PRODUCT_PRICES` / `BOX_PRICES` (what orders actually charge). The backend is
+the authority; the storefront values are display only.
