@@ -412,7 +412,7 @@ export default function CheckoutClient() {
           {submitting
             ? "Placing order..."
             : pendingOrder
-              ? `Retry payment · ${formatINR(total)}`
+              ? `Retry payment for ${pendingOrder.order.orderId} · ${formatINR(pendingOrder.order.total)}`
               : `Place order · ${formatINR(total)}`}
         </button>
         {submitting && slowHint && (

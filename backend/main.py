@@ -23,6 +23,7 @@ import threading
 import time
 import urllib.error
 import urllib.request
+from urllib.parse import parse_qs, quote
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
@@ -64,10 +65,9 @@ PAYMENTS_ENABLED = bool(RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET)
 # Production must never silently fall back to free "test" orders. On by default
 # whenever a production database is configured; set REQUIRE_PAYMENTS=false for
 # local development without Razorpay keys.
-REQUIRE_PAYMENTS = (
-    os.environ.get("REQUIRE_PAYMENTS", "true" if DATABASE_URL else "false").lower()
-    == "true"
-)
+REQUIRE_PAYMENTS = os.environ.get(
+    "REQUIRE_PAYMENTS", "true" if DATABASE_URL else "false"
+).strip().lower() not in ("false", "0", "no", "off")
 if REQUIRE_PAYMENTS and not PAYMENTS_ENABLED:
     raise RuntimeError(
         "REQUIRE_PAYMENTS is set but RAZORPAY_KEY_ID/RAZORPAY_KEY_SECRET are "
@@ -151,7 +151,7 @@ app = FastAPI(
 
 # Every POST body in this API is a few hundred bytes of JSON. Reject anything
 # larger before it is buffered, and bound how fast one client can create
-# orders, verify payments or confirm.
+# orders, verify payments, confirm, or look orders up by sequential number.
 MAX_BODY_BYTES = 64 * 1024
 RATE_LIMIT_PER_MINUTE = 20
 _rate_buckets: dict[str, list[float]] = defaultdict(list)
@@ -170,13 +170,14 @@ def _client_ip(request: Request) -> str:
 
 
 @app.middleware("http")
-async def post_limits(request: Request, call_next):
+async def request_limits(request: Request, call_next):
     if request.method == "POST":
         length = request.headers.get("content-length")
         if length is None or not length.isdigit():
             return JSONResponse({"detail": "Content-Length required."}, status_code=411)
         if int(length) > MAX_BODY_BYTES:
             return JSONResponse({"detail": "Request body too large."}, status_code=413)
+    if request.method == "POST" or request.url.path.startswith("/api/orders/"):
         ip = _client_ip(request)
         now = time.monotonic()
         with _rate_lock:
@@ -632,7 +633,7 @@ def _one_line(value: str) -> str:
 def recent_orders_same_phone(order_id: str, phone: str) -> list[tuple[str, str]]:
     """(order_id, created_at) of other paid orders from this phone in the last
     24h - so the kitchen can pack one parcel and refund the extra shipping."""
-    digits = phone and "".join(c for c in phone if c.isdigit())[-10:]
+    digits = _phone_digits(phone)
     if not digits:
         return []
     cutoff = (datetime.now(timezone.utc) - timedelta(hours=24)).isoformat()
@@ -649,7 +650,7 @@ def recent_orders_same_phone(order_id: str, phone: str) -> list[tuple[str, str]]
         return [
             (r["order_id"], r["created_at"])
             for r in rows
-            if "".join(c for c in (r["phone"] or "") if c.isdigit())[-10:] == digits
+            if _phone_digits(r["phone"] or "") == digits
         ]
     except Exception:
         logger.exception("same-phone lookup failed")
@@ -945,11 +946,11 @@ def confirm_order_page(order_id: str, token: str = "") -> str:
     if refusal:
         return refusal
     import html as html_mod
-    from urllib.parse import quote
 
-    action = f"/api/orders/{quote(row['order_id'])}/confirm?token={quote(token)}"
+    action = f"/api/orders/{quote(row['order_id'])}/confirm"
     form = f"""
   <form method="post" action="{action}" style="margin-top:22px;">
+    <input type="hidden" name="token" value="{html_mod.escape(token)}">
     <button type="submit" style="background:#a92a1d;color:#fff4e4;border:0;border-radius:999px;
             padding:14px 38px;font-size:16px;font-weight:800;cursor:pointer;">Confirm order &#10003;</button>
   </form>
@@ -963,8 +964,13 @@ def confirm_order_page(order_id: str, token: str = "") -> str:
 
 
 @app.post("/api/orders/{order_id}/confirm", response_class=HTMLResponse)
-def confirm_order(order_id: str, token: str = "") -> str:
-    """Kitchen confirmation, step two: the only writer of confirmed_at."""
+async def confirm_order(order_id: str, request: Request) -> str:
+    """Kitchen confirmation, step two: the only writer of confirmed_at.
+
+    The token arrives in the form body posted by the page above, so it does
+    not appear in the POST request line or access logs."""
+    body = (await request.body()).decode("utf-8", errors="replace")
+    token = parse_qs(body).get("token", [""])[0]
     row = _confirmable_row(order_id, token)
     if row is None:
         return _page(*_INVALID_LINK)
@@ -1052,7 +1058,12 @@ def verify_payment(order_id: str, payload: PaymentVerify) -> dict:
         )
         transitioned = cur.rowcount == 1
     if not transitioned:
-        if row["payment_status"] == "paid":
+        with db() as conn:
+            current = conn.execute(
+                _sql("SELECT payment_status FROM orders WHERE order_id = %s"),
+                (row["order_id"],),
+            ).fetchone()
+        if current is not None and current["payment_status"] == "paid":
             return {"orderId": row["order_id"], "paymentStatus": "paid"}
         raise HTTPException(409, "Order is not awaiting payment.")
 
