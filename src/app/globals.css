@@ -129,6 +129,38 @@ body {
   }
 }
 
+/* Hero photo breathes: a slow Ken Burns so the first screen is never still. */
+@keyframes ken-burns {
+  0% { transform: scale(1.06) translate3d(0, 0, 0); }
+  100% { transform: scale(1.16) translate3d(-2%, -1.5%, 0); }
+}
+.ken-burns {
+  animation: ken-burns 26s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+/* Spice flecks drift up over the dark side of the hero: warmth, a little life. */
+@keyframes spice-rise {
+  0% { transform: translate3d(0, 24px, 0); opacity: 0; }
+  12% { opacity: var(--o, 0.45); }
+  85% { opacity: var(--o, 0.45); }
+  100% { transform: translate3d(var(--x, 10px), -140px, 0); opacity: 0; }
+}
+.spice-fleck {
+  animation: spice-rise var(--d, 9s) linear infinite;
+  animation-delay: var(--delay, 0s);
+  will-change: transform, opacity;
+}
+
+/* Soft downward bob for the scroll cue. */
+@keyframes bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(6px); }
+}
+.animate-bob {
+  animation: bob 1.8s var(--ease-quint) infinite;
+}
+
 /* Nav link: an underline that wipes in from the left on hover/focus. Reads as
    hand-tuned, not a default color swap, and animates transform (cheap). */
 .navlink {
