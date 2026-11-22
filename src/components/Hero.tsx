@@ -73,10 +73,12 @@ export default function Hero() {
             const curr = lines[i];
             const next = lines[(i + 1) % lines.length];
             tl.to(curr, { opacity: 0, yPercent: -18, duration: 0.6, ease: "power2.in" })
+              // immediateRender off: otherwise the last iteration pre-hides
+              // line 0 at build time and the headline loads blank.
               .fromTo(
                 next,
                 { opacity: 0, yPercent: 18 },
-                { opacity: 1, yPercent: 0, duration: 0.7, ease: "power3.out" },
+                { opacity: 1, yPercent: 0, duration: 0.7, ease: "power3.out", immediateRender: false },
                 "<"
               )
               .to({}, { duration: 3.4 });
