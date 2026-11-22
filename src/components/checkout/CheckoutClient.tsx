@@ -17,6 +17,7 @@ import {
 import { cartKey, detailsKey, useCheckoutSession } from "./checkoutSession";
 import { useRazorpayPayment } from "./useRazorpayPayment";
 import { usePincodeLookup } from "./usePincodeLookup";
+import JarIllustration from "@/components/JarIllustration";
 
 const FIELDS = [
   { id: "name", label: "Full name", type: "text", autoComplete: "name", span: false },
@@ -72,9 +73,9 @@ export default function CheckoutClient() {
     return (
       <div className="mx-auto max-w-2xl px-4 md:px-6 pb-24">
         <div className="rounded-3xl bg-charcoal text-cream p-8 shadow-jar text-center">
-          <p className="text-5xl" aria-hidden>
-            🫙
-          </p>
+          <div className="w-20 mx-auto">
+            <JarIllustration color="#e6a62f" fill={0.85} lidLifted label="A full jar of Mamayya pickle" />
+          </div>
           <h2 className="mt-4 font-display font-extrabold text-3xl">
             Order received.
           </h2>
@@ -118,7 +119,9 @@ export default function CheckoutClient() {
   if (lines.length === 0 && !pendingVerify) {
     return (
       <div className="mx-auto max-w-2xl px-4 md:px-6 pb-24 text-center">
-        <p className="text-6xl" aria-hidden>🫙</p>
+        <div className="w-24 mx-auto opacity-80">
+          <JarIllustration color="#a92a1d" fill={0.16} label="Empty pickle jar" />
+        </div>
         <h2 className="mt-4 font-display font-extrabold text-2xl text-charcoal">
           Your cart is empty.
         </h2>
@@ -363,7 +366,7 @@ export default function CheckoutClient() {
                     <button
                       type="button"
                       onClick={() => updateQuantity(line.id, line.quantity - 1)}
-                      className="w-9 h-9 grid place-items-center rounded-full border border-cream/30 hover:border-gold hover:text-gold active:scale-90 transition-all"
+                      className="w-9 h-9 grid place-items-center rounded-full border border-cream/30 hover:border-gold hover:text-gold active:scale-90 transition"
                       aria-label={`Decrease quantity of ${lineTitle(line)}`}
                     >
                       −
@@ -372,7 +375,7 @@ export default function CheckoutClient() {
                     <button
                       type="button"
                       onClick={() => updateQuantity(line.id, line.quantity + 1)}
-                      className="w-9 h-9 grid place-items-center rounded-full border border-cream/30 hover:border-gold hover:text-gold active:scale-90 transition-all"
+                      className="w-9 h-9 grid place-items-center rounded-full border border-cream/30 hover:border-gold hover:text-gold active:scale-90 transition"
                       aria-label={`Increase quantity of ${lineTitle(line)}`}
                     >
                       +
@@ -431,7 +434,7 @@ export default function CheckoutClient() {
         <button
           type="submit"
           disabled={submitting}
-          className="mt-5 w-full rounded-full bg-gold text-charcoal px-6 py-3.5 font-extrabold hover:bg-cream active:scale-[0.99] transition-all disabled:opacity-60"
+          className="mt-5 w-full rounded-full bg-gold text-charcoal px-6 py-3.5 font-extrabold hover:bg-cream active:scale-[0.99] transition disabled:opacity-60"
         >
           {buttonLabel}
         </button>

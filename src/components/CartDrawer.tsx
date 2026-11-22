@@ -148,7 +148,7 @@ export default function CartDrawer() {
                 )}
                 <div className="mt-2 h-1.5 rounded-full bg-charcoal/10 overflow-hidden">
                   <div
-                    className="h-full rounded-full bg-gold transition-all duration-500"
+                    className="h-full rounded-full bg-gold transition duration-500"
                     style={{
                       width: `${Math.min(100, (subtotal / FREE_SHIPPING_THRESHOLD) * 100)}%`,
                     }}
@@ -198,7 +198,7 @@ export default function CartDrawer() {
                         <div className="flex items-center rounded-full border border-charcoal/15">
                           <button
                             type="button"
-                            className="w-9 h-9 grid place-items-center font-bold hover:text-red active:scale-90 transition-all"
+                            className="w-9 h-9 grid place-items-center font-bold hover:text-red active:scale-90 transition"
                             onClick={() => updateQuantity(line.id, line.quantity - 1)}
                             aria-label="Decrease quantity"
                           >
@@ -209,7 +209,7 @@ export default function CartDrawer() {
                           </span>
                           <button
                             type="button"
-                            className="w-9 h-9 grid place-items-center font-bold hover:text-red active:scale-90 transition-all"
+                            className="w-9 h-9 grid place-items-center font-bold hover:text-red active:scale-90 transition"
                             onClick={() => updateQuantity(line.id, line.quantity + 1)}
                             aria-label="Increase quantity"
                           >

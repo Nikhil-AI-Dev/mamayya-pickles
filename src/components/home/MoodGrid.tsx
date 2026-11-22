@@ -42,7 +42,7 @@ export default function MoodGrid() {
                 </div>
 
                 {/* Reveal panel */}
-                <div className="mt-4 space-y-2 text-sm max-h-0 overflow-hidden opacity-0 transition-all duration-500 group-hover:max-h-56 group-hover:opacity-100 group-focus-within:max-h-56 group-focus-within:opacity-100">
+                <div className="mt-4 space-y-2 text-sm max-h-0 overflow-hidden opacity-0 transition duration-500 group-hover:max-h-56 group-hover:opacity-100 group-focus-within:max-h-56 group-focus-within:opacity-100">
                   <div className="flex items-center justify-between">
                     <span className="text-charcoal/60">Spice</span>
                     <SpiceMeter level={p.spiceLevel} label={p.spiceLabel} />
@@ -67,7 +67,7 @@ export default function MoodGrid() {
                   <button
                     type="button"
                     onClick={() => addProduct(p, 250)}
-                    className="rounded-full bg-charcoal text-cream text-xs font-bold px-4 py-2 hover:bg-red active:scale-[0.97] transition-all"
+                    className="rounded-full bg-charcoal text-cream text-xs font-bold px-4 py-2 hover:bg-red active:scale-[0.97] transition"
                   >
                     Quick add
                   </button>

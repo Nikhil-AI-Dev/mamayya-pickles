@@ -103,7 +103,7 @@ function ProductCard({ product }: { product: Product }) {
           <button
             type="button"
             onClick={() => addProduct(product, grams)}
-            className="rounded-full bg-red text-cream px-5 py-2.5 text-sm font-bold hover:bg-red-deep active:scale-[0.97] transition-all"
+            className="rounded-full bg-red text-cream px-5 py-2.5 text-sm font-bold hover:bg-red-deep active:scale-[0.97] transition"
           >
             Add to cart
           </button>
@@ -158,7 +158,7 @@ function BoxTicket({ box }: { box: Box }) {
         <button
           type="button"
           onClick={() => addBox(box)}
-          className="rounded-full bg-charcoal text-cream px-4 py-2 text-sm font-bold hover:bg-red active:scale-[0.97] transition-all"
+          className="rounded-full bg-charcoal text-cream px-4 py-2 text-sm font-bold hover:bg-red active:scale-[0.97] transition"
         >
           Add box
         </button>

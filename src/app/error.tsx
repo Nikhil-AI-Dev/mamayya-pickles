@@ -1,5 +1,7 @@
 "use client";
 
+import JarIllustration from "@/components/JarIllustration";
+
 // Route-level error boundary: a render error on one page (for example a cart
 // saved by an older version of the site) shows this instead of a blank screen.
 export default function ErrorPage({ reset }: { error: Error; reset: () => void }) {
@@ -15,9 +17,9 @@ export default function ErrorPage({ reset }: { error: Error; reset: () => void }
 
   return (
     <div className="mx-auto max-w-2xl px-4 md:px-6 py-24 text-center">
-      <p className="text-6xl" aria-hidden>
-        🫙
-      </p>
+      <div className="w-24 mx-auto opacity-80">
+        <JarIllustration color="#c65b32" fill={0.18} lidLifted label="Spilled pickle jar" />
+      </div>
       <h1 className="mt-4 font-display font-extrabold text-2xl text-charcoal">
         Something went wrong on this page.
       </h1>

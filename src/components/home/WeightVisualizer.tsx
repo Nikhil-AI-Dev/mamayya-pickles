@@ -36,7 +36,7 @@ export default function WeightVisualizer() {
               key={p.slug}
               type="button"
               onClick={() => setProductIdx(i)}
-              className={`flex items-center gap-2 rounded-full pl-2 pr-5 py-1.5 text-sm font-bold border-2 transition-all active:scale-95 ${
+              className={`flex items-center gap-2 rounded-full pl-2 pr-5 py-1.5 text-sm font-bold border-2 transition active:scale-95 ${
                 i === productIdx
                   ? "text-cream border-transparent shadow-card scale-105"
                   : "border-charcoal/20 text-charcoal/70 hover:border-charcoal/50"
@@ -83,7 +83,7 @@ export default function WeightVisualizer() {
                 key={w.grams}
                 type="button"
                 onClick={() => setGrams(w.grams)}
-                className={`w-full text-left rounded-xl border-2 px-5 py-4 transition-all active:scale-[0.99] flex items-center justify-between gap-4 ${
+                className={`w-full text-left rounded-xl border-2 px-5 py-4 transition active:scale-[0.99] flex items-center justify-between gap-4 ${
                   w.grams === grams
                     ? "border-red shadow-card scale-[1.02]"
                     : "border-charcoal/10 bg-cream/60 hover:border-charcoal/30 hover:bg-cream"
@@ -117,7 +117,7 @@ export default function WeightVisualizer() {
             <button
               type="button"
               onClick={() => addProduct(product, grams)}
-              className="w-full rounded-full bg-red text-cream py-4 font-bold hover:bg-red-deep active:scale-[0.98] transition-all"
+              className="w-full rounded-full bg-red text-cream py-4 font-bold hover:bg-red-deep active:scale-[0.98] transition"
             >
               Add {product.shortName} {weight.label} · {formatINR(weight.price)}
             </button>
