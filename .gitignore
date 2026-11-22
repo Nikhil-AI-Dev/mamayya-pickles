@@ -43,5 +43,10 @@ next-env.d.ts
 # backend
 backend/mamayya.db
 backend/__pycache__/
+*.key
+
+# local tooling and planning (not part of the site)
+.claude/
+founder/
 .gstack/
 brag-output/

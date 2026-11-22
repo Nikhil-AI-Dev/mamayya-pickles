@@ -1,8 +1,10 @@
 """Mamayya Pickles order API.
 
-Single-file FastAPI backend: orders (server-side pricing), order tracking,
-contact messages. SQLite storage next to this file. Payment gateway is not
-integrated; orders are stored as test orders.
+Single-file FastAPI backend: orders (server-side pricing), Razorpay payment
+verification, kitchen confirmation and order tracking. Postgres when
+DATABASE_URL is set, SQLite next to this file otherwise. With REQUIRE_PAYMENTS
+(default on whenever DATABASE_URL is set) the service refuses to start without
+Razorpay credentials instead of falling back to unpaid test orders.
 
 Run:  uvicorn main:app --port 8001 --reload  (from the backend/ directory)
 """
@@ -16,23 +18,27 @@ import logging
 import os
 import smtplib
 import sqlite3
+import ssl
 import threading
+import time
 import urllib.error
 import urllib.request
+from collections import defaultdict
+from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
 from email.message import EmailMessage
 from pathlib import Path
 from typing import Literal
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel, Field
 
 logger = logging.getLogger("mamayya")
 
-EMAIL_PATTERN = r"^[^@\s]+@[^@\s]+\.[^@\s]+$"
+EMAIL_PATTERN = r"^[^@\s,;<>\"]+@[^@\s,;<>\"]+\.[^@\s,;<>\"]+$"
 
 DB_PATH = Path(__file__).parent / "mamayya.db"
 
@@ -54,6 +60,19 @@ def _sql(query: str) -> str:
 RAZORPAY_KEY_ID = os.environ.get("RAZORPAY_KEY_ID", "")
 RAZORPAY_KEY_SECRET = os.environ.get("RAZORPAY_KEY_SECRET", "")
 PAYMENTS_ENABLED = bool(RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET)
+
+# Production must never silently fall back to free "test" orders. On by default
+# whenever a production database is configured; set REQUIRE_PAYMENTS=false for
+# local development without Razorpay keys.
+REQUIRE_PAYMENTS = (
+    os.environ.get("REQUIRE_PAYMENTS", "true" if DATABASE_URL else "false").lower()
+    == "true"
+)
+if REQUIRE_PAYMENTS and not PAYMENTS_ENABLED:
+    raise RuntimeError(
+        "REQUIRE_PAYMENTS is set but RAZORPAY_KEY_ID/RAZORPAY_KEY_SECRET are "
+        "missing; refusing to start in test mode"
+    )
 
 
 def razorpay_create_order(amount_inr: int, receipt: str) -> str:
@@ -122,7 +141,57 @@ STAGES = [
     ("delivered", 7),
 ]
 
-app = FastAPI(title="Mamayya Pickles API", version="0.1.0")
+app = FastAPI(
+    title="Mamayya Pickles API",
+    version="0.2.0",
+    docs_url=None,
+    redoc_url=None,
+    openapi_url=None,
+)
+
+# Every POST body in this API is a few hundred bytes of JSON. Reject anything
+# larger before it is buffered, and bound how fast one client can create
+# orders, verify payments or confirm.
+MAX_BODY_BYTES = 64 * 1024
+RATE_LIMIT_PER_MINUTE = 20
+_rate_buckets: dict[str, list[float]] = defaultdict(list)
+_rate_lock = threading.Lock()
+
+
+def _client_ip(request: Request) -> str:
+    # Behind Render's single proxy the trustworthy address is the LAST hop of
+    # X-Forwarded-For: a client can prepend values of its own, but it cannot
+    # control what the proxy appends. Locally there is no proxy and the socket
+    # address is the client.
+    forwarded = request.headers.get("x-forwarded-for", "")
+    if forwarded:
+        return forwarded.split(",")[-1].strip()
+    return request.client.host if request.client else "unknown"
+
+
+@app.middleware("http")
+async def post_limits(request: Request, call_next):
+    if request.method == "POST":
+        length = request.headers.get("content-length")
+        if length is None or not length.isdigit():
+            return JSONResponse({"detail": "Content-Length required."}, status_code=411)
+        if int(length) > MAX_BODY_BYTES:
+            return JSONResponse({"detail": "Request body too large."}, status_code=413)
+        ip = _client_ip(request)
+        now = time.monotonic()
+        with _rate_lock:
+            if len(_rate_buckets) > 5000:
+                for key in [k for k, v in _rate_buckets.items() if not v or now - v[-1] >= 60]:
+                    del _rate_buckets[key]
+            recent = [t for t in _rate_buckets[ip] if now - t < 60]
+            if len(recent) >= RATE_LIMIT_PER_MINUTE:
+                _rate_buckets[ip] = recent
+                return JSONResponse(
+                    {"detail": "Too many requests. Try again in a minute."}, status_code=429
+                )
+            recent.append(now)
+            _rate_buckets[ip] = recent
+    return await call_next(request)
 
 ALLOWED_ORIGINS = [
     o.strip()
@@ -181,15 +250,6 @@ def init_db() -> None:
             confirm_token TEXT
         )
         """,
-        f"""
-        CREATE TABLE IF NOT EXISTS contact_messages (
-            id {pk},
-            created_at TEXT NOT NULL,
-            name TEXT NOT NULL,
-            email TEXT NOT NULL,
-            message TEXT NOT NULL
-        )
-        """,
     ]
     with db() as conn:
         for statement in ddl:
@@ -211,16 +271,22 @@ def init_db() -> None:
 init_db()
 
 
+def _phone_digits(value: str) -> str:
+    """Last ten ASCII digits of a phone number, or '' when fewer than ten exist."""
+    digits = "".join(c for c in (value or "") if c.isascii() and c.isdigit())
+    return digits[-10:] if len(digits) >= 10 else ""
+
+
 class ProductLine(BaseModel):
     kind: Literal["product"]
-    productSlug: str
-    grams: int
+    productSlug: str = Field(max_length=64)
+    grams: Literal[250, 500, 1000, 2000, 5000]
     quantity: int = Field(ge=1, le=50)
 
 
 class BoxLine(BaseModel):
     kind: Literal["box"]
-    boxSlug: str
+    boxSlug: str = Field(max_length=64)
     quantity: int = Field(ge=1, le=50)
 
 
@@ -333,7 +399,7 @@ def _send_email(to: str, subject: str, body: str, html: str | None = None) -> No
     if html:
         msg.add_alternative(html, subtype="html")
     with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=20) as server:
-        server.starttls()
+        server.starttls(context=ssl.create_default_context())
         server.login(SMTP_USER, SMTP_PASS)
         server.send_message(msg)
 
@@ -536,8 +602,14 @@ def format_item_pairs(payload: "OrderCreate") -> list[tuple[str, str]]:
     return pairs
 
 
+_email_pool = ThreadPoolExecutor(max_workers=4, thread_name_prefix="email")
+
+
 def _send_async(job) -> None:
-    """Run an email job on a background thread; record outcome, never raise."""
+    """Run an email job on the bounded email pool; record outcome, never raise.
+
+    Only the exception class is kept for /api/config. The full error goes to the
+    server log, never to a public response."""
 
     def worker() -> None:
         try:
@@ -545,14 +617,16 @@ def _send_async(job) -> None:
             _email_state["lastResult"] = "sent"
         except Exception as exc:
             logger.exception("email job failed")
-            detail = str(exc)[:300]
-            for secret_val in (SMTP_PASS, RESEND_API_KEY):
-                if secret_val:
-                    detail = detail.replace(secret_val, "***")
-            _email_state["lastResult"] = f"{type(exc).__name__}: {detail}"
+            _email_state["lastResult"] = f"failed: {type(exc).__name__}"
             _email_state["lastErrorAt"] = datetime.now(timezone.utc).isoformat()
 
-    threading.Thread(target=worker, daemon=True).start()
+    _email_pool.submit(worker)
+
+
+def _one_line(value: str) -> str:
+    """Collapse whitespace, including CR/LF, so customer text cannot add lines
+    to the plain-text kitchen email."""
+    return " ".join(str(value).split())
 
 
 def recent_orders_same_phone(order_id: str, phone: str) -> list[tuple[str, str]]:
@@ -583,11 +657,17 @@ def recent_orders_same_phone(order_id: str, phone: str) -> list[tuple[str, str]]
 
 
 def send_admin_new_order_email(
-    order_id: str, payload: "OrderCreate", total: int, confirm_token: str
+    order_id: str,
+    payload: "OrderCreate",
+    total: int,
+    confirm_token: str,
+    payment_status: str,
 ) -> None:
-    """Packing slip + one-click Confirm button. Sent when an order arrives."""
+    """Packing slip + Confirm button. Sent after payment, or on creation in
+    test mode; the subject and body say which."""
     if not EMAIL_ENABLED:
         return
+    tag = "PAID" if payment_status == "paid" else "UNPAID TEST ORDER"
     siblings = recent_orders_same_phone(order_id, payload.phone)
     sibling_note = ""
     if siblings:
@@ -600,11 +680,11 @@ def send_admin_new_order_email(
     item_lines = format_item_lines(payload)
     confirm_url = f"{API_PUBLIC_URL}/api/orders/{order_id}/confirm?token={confirm_token}"
     body = (
-        f"New order {order_id} - awaiting your confirmation\n\n"
-        f"Name: {payload.name}\n"
-        f"Phone: {payload.phone}\n"
-        f"Email: {payload.email}\n"
-        f"Address: {payload.address}, {payload.city} - {payload.pincode}\n\n"
+        f"[{tag}] New order {order_id} - awaiting your confirmation\n\n"
+        f"Name: {_one_line(payload.name)}\n"
+        f"Phone: {_one_line(payload.phone)}\n"
+        f"Email: {_one_line(payload.email)}\n"
+        f"Address: {_one_line(payload.address)}, {_one_line(payload.city)} - {payload.pincode}\n\n"
         "Items:\n" + "\n".join(item_lines) + "\n\n"
         f"Total: Rs. {total:,}\n"
         + sibling_note + "\n"
@@ -626,6 +706,7 @@ def send_admin_new_order_email(
     </td></tr>
     <tr><td style="background:#fff4e4;padding:24px;">
       <h1 style="margin:0 0 4px;color:#241713;font-size:20px;font-weight:900;">New order {order_id}</h1>
+      <p style="margin:0 0 6px;font-size:13px;font-weight:900;color:{'#1f7a3a' if payment_status == 'paid' else '#a92a1d'};">{tag}</p>
       <p style="margin:0 0 16px;color:#a92a1d;font-size:13px;font-weight:700;">
         Awaiting your confirmation - customer not emailed yet.</p>
       {f'<div style="background:#fbe9c6;border-left:4px solid #e6a62f;border-radius:0 8px 8px 0;padding:12px 16px;margin:0 0 16px;font-size:13px;line-height:1.6;color:#5c4a3a;"><strong>Same customer alert:</strong> this phone also placed <strong>{esc(", ".join(o for o, _ in siblings))}</strong> in the last 24 hours. Consider packing together and refunding the extra shipping fee in Razorpay.</div>' if siblings else ""}
@@ -655,7 +736,7 @@ def send_admin_new_order_email(
     _send_async(
         lambda: _send_email(
             ORDER_NOTIFY_TO,
-            f"New order {order_id} - Rs. {total:,} - confirm to accept",
+            f"[{tag}] New order {order_id} - Rs. {total:,} - confirm to accept",
             body,
             html=html,
         )
@@ -712,6 +793,8 @@ def health() -> dict:
 
 @app.post("/api/orders", status_code=201)
 def create_order(payload: OrderCreate) -> dict:
+    if not _phone_digits(payload.phone):
+        raise HTTPException(422, "Phone must contain a 10-digit mobile number.")
     subtotal = sum(price_line(line) for line in payload.lines)
     shipping = 0 if subtotal >= FREE_SHIPPING_THRESHOLD else SHIPPING_FEE
     total = subtotal + shipping
@@ -780,76 +863,155 @@ def create_order(payload: OrderCreate) -> dict:
             "Order received. The kitchen will confirm it shortly - "
             "your confirmation email arrives then."
         )
-        send_admin_new_order_email(order_id, payload, total, confirm_token)
+        send_admin_new_order_email(order_id, payload, total, confirm_token, payment_status)
 
     return response
 
 
-@app.get("/api/orders/{order_id}/confirm", response_class=HTMLResponse)
-def confirm_order(order_id: str, token: str = "") -> str:
-    """One-click kitchen confirmation from the admin email."""
-    with db() as conn:
-        row = conn.execute(
-            _sql("SELECT * FROM orders WHERE order_id = %s"),
-            (order_id.strip().upper(),),
-        ).fetchone()
-    def page(title: str, detail: str) -> str:
-        return f"""<!doctype html><html><head><meta charset="utf-8">
+def _page(title: str, detail: str, extra_html: str = "") -> str:
+    """Small branded HTML page. Title and detail are escaped here, so callers
+    can pass raw strings; extra_html is trusted markup built by this module."""
+    import html as html_mod
+
+    return f"""<!doctype html><html><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>{title}</title></head>
+<meta name="robots" content="noindex">
+<title>{html_mod.escape(title)}</title></head>
 <body style="margin:0;background:#fff4e4;font-family:Arial,Helvetica,sans-serif;">
 <div style="max-width:460px;margin:80px auto;padding:36px;background:#ffffff;
             border:1px solid #eadfc8;border-radius:18px;text-align:center;">
   <div style="font-size:26px;font-weight:900;color:#a92a1d;">Mamayya
     <span style="font-size:12px;font-weight:800;color:#241713;letter-spacing:4px;">PICKLES</span></div>
-  <h1 style="margin:22px 0 8px;font-size:22px;color:#241713;">{title}</h1>
-  <p style="margin:0;color:#6f5d4e;font-size:15px;line-height:1.6;">{detail}</p>
+  <h1 style="margin:22px 0 8px;font-size:22px;color:#241713;">{html_mod.escape(title)}</h1>
+  <p style="margin:0;color:#6f5d4e;font-size:15px;line-height:1.6;">{html_mod.escape(detail)}</p>
+  {extra_html}
 </div></body></html>"""
 
+
+_INVALID_LINK = (
+    "This link isn't valid",
+    "This confirmation link doesn't match any order - it may be old, "
+    "already replaced, or copied incompletely. Open the latest order "
+    "email and use its Confirm button, or check the orders list in "
+    "the database.",
+)
+
+
+def _confirmable_row(order_id: str, token: str):
+    """The order row when the token matches it, else None. Uniform for a
+    missing order, a missing token and a wrong token."""
+    with db() as conn:
+        row = conn.execute(
+            _sql("SELECT * FROM orders WHERE order_id = %s"),
+            (order_id.strip().upper(),),
+        ).fetchone()
     if (
         row is None
         or not token
         or not row["confirm_token"]
         or not hmac.compare_digest(str(row["confirm_token"]), token)
     ):
-        return page(
-            "This link isn't valid",
-            "This confirmation link doesn't match any order - it may be old, "
-            "already replaced, or copied incompletely. Open the latest order "
-            "email and use its Confirm button, or check the orders list in "
-            "the database.",
-        )
+        return None
+    return row
 
+
+def _confirm_refusal(row) -> str | None:
+    """A page explaining why this order cannot be confirmed now, or None."""
     if row["confirmed_at"]:
-        return page(
+        return _page(
             f"{row['order_id']} was already confirmed",
             "The customer has their confirmation email. Nothing more to do.",
+        )
+    if REQUIRE_PAYMENTS and row["payment_status"] != "paid":
+        return _page(
+            f"{row['order_id']} is not paid",
+            f"Payment status is '{row['payment_status']}'. Unpaid orders cannot be "
+            "confirmed. Check the payment in Razorpay first.",
+        )
+    return None
+
+
+@app.get("/api/orders/{order_id}/confirm", response_class=HTMLResponse)
+def confirm_order_page(order_id: str, token: str = "") -> str:
+    """Kitchen confirmation, step one: show the order and a Confirm button.
+
+    Opening the emailed link changes nothing, so a mail scanner or link
+    preview that fetches it cannot confirm an order. The button submits a
+    POST (below), which is the only path that writes confirmed_at."""
+    row = _confirmable_row(order_id, token)
+    if row is None:
+        return _page(*_INVALID_LINK)
+    refusal = _confirm_refusal(row)
+    if refusal:
+        return refusal
+    import html as html_mod
+    from urllib.parse import quote
+
+    action = f"/api/orders/{quote(row['order_id'])}/confirm?token={quote(token)}"
+    form = f"""
+  <form method="post" action="{action}" style="margin-top:22px;">
+    <button type="submit" style="background:#a92a1d;color:#fff4e4;border:0;border-radius:999px;
+            padding:14px 38px;font-size:16px;font-weight:800;cursor:pointer;">Confirm order &#10003;</button>
+  </form>
+  <p style="margin:12px 0 0;color:#9c8a76;font-size:12px;">Confirming emails {html_mod.escape(row['name'])}
+    and starts the one-week delivery clock.</p>"""
+    return _page(
+        f"Confirm {row['order_id']}?",
+        f"{row['name']} - Rs. {row['total']:,} - {row['payment_status']}.",
+        form,
+    )
+
+
+@app.post("/api/orders/{order_id}/confirm", response_class=HTMLResponse)
+def confirm_order(order_id: str, token: str = "") -> str:
+    """Kitchen confirmation, step two: the only writer of confirmed_at."""
+    row = _confirmable_row(order_id, token)
+    if row is None:
+        return _page(*_INVALID_LINK)
+    refusal = _confirm_refusal(row)
+    if refusal:
+        return refusal
+
+    try:
+        order_payload = OrderCreate(
+            name=row["name"],
+            phone=row["phone"],
+            email=row["email"],
+            address=row["address"],
+            city=row["city"],
+            pincode=row["pincode"],
+            lines=json.loads(row["lines_json"]),
+        )
+    except Exception:
+        logger.exception("stored order %s failed validation", row["order_id"])
+        return _page(
+            f"{row['order_id']} could not be loaded",
+            "The stored order data is invalid. Nothing was changed; check the "
+            "orders table.",
         )
 
     confirmed = datetime.now(timezone.utc)
     with db() as conn:
-        conn.execute(
-            _sql("UPDATE orders SET confirmed_at = %s WHERE order_id = %s"),
+        cur = conn.execute(
+            _sql(
+                "UPDATE orders SET confirmed_at = %s "
+                "WHERE order_id = %s AND confirmed_at IS NULL"
+            ),
             (confirmed.isoformat(), row["order_id"]),
         )
+        transitioned = cur.rowcount == 1
+    if not transitioned:
+        return _page(
+            f"{row['order_id']} was already confirmed",
+            "The customer has their confirmation email. Nothing more to do.",
+        )
 
-    order_payload = OrderCreate(
-        name=row["name"],
-        phone=row["phone"],
-        email=row["email"],
-        address=row["address"],
-        city=row["city"],
-        pincode=row["pincode"],
-        lines=json.loads(row["lines_json"]),
-    )
     send_customer_confirmation_email(
         row["order_id"], order_payload, row["total"], delivery_window(confirmed)
     )
-    import html as html_mod
-
-    return page(
+    return _page(
         f"{row['order_id']} confirmed",
-        f"{html_mod.escape(row['name'])} has been emailed. The one-week delivery "
+        f"{row['name']} has been emailed. The one-week delivery "
         f"clock started now - door delivery by {delivery_window(confirmed)}.",
     )
 
@@ -869,20 +1031,30 @@ def verify_payment(order_id: str, payload: PaymentVerify) -> dict:
             _sql("SELECT * FROM orders WHERE order_id = %s"),
             (order_id.strip().upper(),),
         ).fetchone()
-    if row is None:
+    # Same response for an unknown order and a non-matching one, so this route
+    # does not reveal which sequential order numbers exist.
+    if row is None or row["razorpay_order_id"] != payload.razorpayOrderId:
         raise HTTPException(404, "No order found with that number.")
-    if row["razorpay_order_id"] != payload.razorpayOrderId:
-        raise HTTPException(400, "Payment does not match this order.")
     if not razorpay_signature_valid(
         payload.razorpayOrderId, payload.razorpayPaymentId, payload.razorpaySignature
     ):
         raise HTTPException(400, "Payment verification failed.")
 
+    # pending -> paid happens at most once; a replayed or duplicate request
+    # gets the same answer with no side effects.
     with db() as conn:
-        conn.execute(
-            _sql("UPDATE orders SET payment_status = 'paid' WHERE order_id = %s"),
+        cur = conn.execute(
+            _sql(
+                "UPDATE orders SET payment_status = 'paid' "
+                "WHERE order_id = %s AND payment_status = 'pending'"
+            ),
             (row["order_id"],),
         )
+        transitioned = cur.rowcount == 1
+    if not transitioned:
+        if row["payment_status"] == "paid":
+            return {"orderId": row["order_id"], "paymentStatus": "paid"}
+        raise HTTPException(409, "Order is not awaiting payment.")
 
     order_payload = OrderCreate(
         name=row["name"],
@@ -895,7 +1067,7 @@ def verify_payment(order_id: str, payload: PaymentVerify) -> dict:
     )
     # Payment captured: now the kitchen decides. Customer email waits for confirm.
     send_admin_new_order_email(
-        row["order_id"], order_payload, row["total"], row["confirm_token"]
+        row["order_id"], order_payload, row["total"], row["confirm_token"], "paid"
     )
     return {"orderId": row["order_id"], "paymentStatus": "paid"}
 
@@ -911,10 +1083,6 @@ def get_config() -> dict:
     }
 
 
-def _phone_digits(value: str) -> str:
-    return "".join(c for c in value if c.isdigit())[-10:]
-
-
 @app.get("/api/orders/{order_id}")
 def get_order(order_id: str, phone: str = "") -> dict:
     with db() as conn:
@@ -923,8 +1091,16 @@ def get_order(order_id: str, phone: str = "") -> dict:
             (order_id.strip().upper(),),
         ).fetchone()
     # Order numbers are sequential, so the phone used on the order acts as a
-    # shared secret: without a match, reveal nothing (including existence).
-    if row is None or not phone or _phone_digits(phone) != _phone_digits(row["phone"]):
+    # shared secret: without a full ten-digit match on both sides, reveal
+    # nothing (including existence).
+    supplied = _phone_digits(phone)
+    stored = _phone_digits(row["phone"]) if row is not None else ""
+    if (
+        row is None
+        or not supplied
+        or not stored
+        or not hmac.compare_digest(supplied, stored)
+    ):
         raise HTTPException(
             404, "No order found with that number and phone combination."
         )
@@ -958,21 +1134,3 @@ def get_order(order_id: str, phone: str = "") -> dict:
         **stage_info(confirmed),
     }
 
-
-class ContactCreate(BaseModel):
-    name: str = Field(min_length=2, max_length=120)
-    email: str = Field(max_length=254, pattern=EMAIL_PATTERN)
-    message: str = Field(min_length=5, max_length=4000)
-
-
-@app.post("/api/contact", status_code=201)
-def create_contact(payload: ContactCreate) -> dict:
-    with db() as conn:
-        conn.execute(
-            _sql(
-                "INSERT INTO contact_messages (created_at, name, email, message)"
-                " VALUES (%s, %s, %s, %s)"
-            ),
-            (datetime.now(timezone.utc).isoformat(), payload.name, payload.email, payload.message),
-        )
-    return {"status": "received"}

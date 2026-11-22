@@ -78,6 +78,12 @@ export default function CheckoutClient() {
   const [pinHint, setPinHint] = useState<string | null>(null);
   const [slowHint, setSlowHint] = useState(false);
   const [recap, setRecap] = useState<Record<string, string>>({});
+  // An order whose payment did not complete. Resubmitting re-opens payment for
+  // this order instead of creating (and possibly charging) a second one.
+  const [pendingOrder, setPendingOrder] = useState<{
+    order: OrderConfirmation;
+    details: OrderDetails;
+  } | null>(null);
   const cityAutofilled = useRef(false);
 
   const onPincodeChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -219,18 +225,31 @@ export default function CheckoutClient() {
       city: v("city"),
       pincode: v("pincode"),
     };
+    let result: OrderConfirmation | null = pendingOrder?.order ?? null;
     try {
-      const result = await createOrder(details, lines);
-      if (result.razorpayOrderId) {
-        await openPayment(result, details);
-        result.paymentStatus = "paid";
-        result.paymentNote = "Payment received. Fresh preparation starts now.";
+      if (!result) {
+        result = await createOrder(details, lines);
+        if (result.razorpayOrderId) setPendingOrder({ order: result, details });
       }
+      let confirmed: OrderConfirmation = result;
+      if (result.razorpayOrderId) {
+        await openPayment(result, pendingOrder?.details ?? details);
+        confirmed = {
+          ...result,
+          paymentStatus: "paid",
+          paymentNote: "Payment received. Fresh preparation starts now.",
+        };
+      }
+      setPendingOrder(null);
       clearCart();
-      setConfirmation(result);
+      setConfirmation(confirmed);
     } catch (err) {
+      const message =
+        err instanceof ApiError ? err.message : "Something went wrong. Try again.";
       setError(
-        err instanceof ApiError ? err.message : "Something went wrong. Try again."
+        result?.razorpayOrderId
+          ? `${message} Your order ${result.orderId} is saved - press the button again to retry its payment.`
+          : message
       );
     } finally {
       slow.clear();
@@ -272,10 +291,16 @@ export default function CheckoutClient() {
                 type={f.type}
                 autoComplete={f.autoComplete}
                 required={!("optional" in f && f.optional)}
-                minLength={f.id === "pincode" ? 6 : undefined}
-                maxLength={f.id === "pincode" ? 6 : undefined}
-                pattern={f.id === "pincode" ? "\\d{6}" : undefined}
-                inputMode={f.id === "pincode" ? "numeric" : undefined}
+                minLength={f.id === "pincode" ? 6 : f.id === "phone" ? 10 : undefined}
+                maxLength={f.id === "pincode" ? 6 : f.id === "phone" ? 20 : undefined}
+                pattern={
+                  f.id === "pincode"
+                    ? "\\d{6}"
+                    : f.id === "phone"
+                      ? "([^0-9]*[0-9]){10}[^0-9]*"
+                      : undefined
+                }
+                inputMode={f.id === "pincode" ? "numeric" : f.id === "phone" ? "tel" : undefined}
                 onChange={f.id === "pincode" ? onPincodeChange : undefined}
                 className="mt-1.5 w-full rounded-xl border-2 border-charcoal/15 bg-cream/50 px-4 py-2.5 font-semibold focus:border-red focus:outline-none"
               />
@@ -384,7 +409,11 @@ export default function CheckoutClient() {
           disabled={submitting}
           className="mt-5 w-full rounded-full bg-gold text-charcoal px-6 py-3.5 font-extrabold hover:bg-cream active:scale-[0.99] transition-all disabled:opacity-60"
         >
-          {submitting ? "Placing order..." : `Place order · ${formatINR(total)}`}
+          {submitting
+            ? "Placing order..."
+            : pendingOrder
+              ? `Retry payment · ${formatINR(total)}`
+              : `Place order · ${formatINR(total)}`}
         </button>
         {submitting && slowHint && (
           <p className="mt-3 text-xs text-cream/70" role="status">

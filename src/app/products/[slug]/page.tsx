@@ -60,7 +60,9 @@ export default async function ProductPage({
     <div className="bg-cream">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(productSchema).replace(/</g, "\\u003c"),
+        }}
       />
       {/* Flavour scene */}
       <section

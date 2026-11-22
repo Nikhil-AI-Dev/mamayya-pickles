@@ -18,7 +18,10 @@ services:
       # blocks outbound SMTP). Leave unset to skip emails entirely.
       - key: RESEND_API_KEY
         sync: false
-      # Razorpay keys; leave unset to keep orders in test mode (no payment).
+      # Razorpay keys. With REQUIRE_PAYMENTS the service refuses to start
+      # when either is missing, instead of taking unpaid test orders.
+      - key: REQUIRE_PAYMENTS
+        value: "true"
       - key: RAZORPAY_KEY_ID
         sync: false
       - key: RAZORPAY_KEY_SECRET

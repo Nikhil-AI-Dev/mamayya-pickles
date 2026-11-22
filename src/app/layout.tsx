@@ -93,7 +93,7 @@ export default function RootLayout({
                 propertyID: "FSSAI",
                 value: FSSAI.number,
               },
-            }),
+            }).replace(/</g, "\\u003c"),
           }}
         />
         <script
@@ -105,7 +105,7 @@ export default function RootLayout({
               name: "Mamayya Pickles",
               alternateName: "Mamayya Pickles - Taste of Rayalaseema",
               url: "https://mamayyapickles.com",
-            }),
+            }).replace(/</g, "\\u003c"),
           }}
         />
         <CartProvider>

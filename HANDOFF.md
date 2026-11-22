@@ -20,8 +20,8 @@ The storefront is a static Next.js site, built and deployed automatically by Git
 ## How an order flows
 
 1. Customer checks out → order stored as **received**; customer sees an on-screen receipt with the MP number but gets **no email yet**
-2. **Admin email** arrives at contact@ — packing slip + a one-click **Confirm order** button (secure per-order link)
-3. Admin clicks Confirm → customer gets the **branded confirmation email** (from orders@, replies go to contact@) and the **one-week delivery clock starts** from that moment
+2. **Admin email** arrives at contact@ — packing slip tagged `[PAID]` (or `[UNPAID TEST ORDER]` in local test mode) + a **Confirm order** button (secure per-order link)
+3. Admin clicks the button → a page shows the order and a second **Confirm order** button; pressing it (a POST) sends the customer the **branded confirmation email** (from orders@, replies go to contact@) and starts the **one-week delivery clock**. Merely opening the emailed link changes nothing, so mail scanners and link previews cannot confirm an order. Unpaid orders cannot be confirmed in production.
 4. Track page (`/track`): needs order number **+ the phone used on the order** (privacy gate). Shows "waiting for kitchen confirmation" until confirmed, then a six-stage timeline anchored to confirmation (delivered day 7)
 5. Payments are live: the customer pays via Razorpay before step 2 — the admin email is sent only after successful payment
 
@@ -69,6 +69,7 @@ Operational notes:
 - Confirm links use 192-bit tokens, constant-time compared; user-supplied text HTML-escaped in admin email and confirm page
 - CORS locked to the production domains; secrets in env only, masked in diagnostics
 - Full audit run July 2026 (Anthropic security-review rubric): 3 findings, all fixed
+- Second audit November 2026 (Cloudflare security-audit skill, 37 agents, source-only): 3 low findings and 7 leads, all addressed in code: `REQUIRE_PAYMENTS` fail-closed start-up (defaults on when `DATABASE_URL` is set; `REQUIRE_PAYMENTS=false` for local dev without keys), two-step confirm (GET page, POST writes), idempotent `verify-payment` with a uniform 404, ten-digit phone required on order and on lookup (constant-time compare), 64 KB body cap and 20 POST/minute per client IP (first `X-Forwarded-For` hop), slugs capped at 64 chars and weights restricted to the catalogue, verified TLS on the SMTP fallback, `/api/config` `lastEmailResult` reduced to `sent` or `failed: <ExceptionClass>`, bounded email worker pool, API docs endpoints disabled, unused `/api/contact` route removed, legacy root `index.html` deleted
 
 ## Before taking real money — launch blockers
 
@@ -94,7 +95,8 @@ Operational notes:
 
 - **Site down?** githubstatus.com (Pages) / Render dashboard
 - **Deploy failed?** GitHub repo → Actions tab → open the red run
-- **Emails not arriving?** `GET https://mamayya-api.onrender.com/api/config` → `lastEmailResult` has the error; check Resend dashboard → Emails for delivery log
+- **Emails not arriving?** `GET https://mamayya-api.onrender.com/api/config` → `lastEmailResult` is `sent` or `failed: <ExceptionClass>` (the full error is in Render logs only); check Resend dashboard → Emails for delivery log
+- **API refuses to start after an env change?** `REQUIRE_PAYMENTS` is on and a Razorpay key is missing or misnamed: fix the variable names in Render → Environment. Render keeps the previous deploy running while the new one fails its health check
 - **See orders:** Neon dashboard → project → SQL Editor → `SELECT order_id, created_at, name, phone, total, payment_status, confirmed_at FROM orders ORDER BY rowid_pk DESC;`
 - **Confirm an order without the email:** the Confirm link format is `https://mamayya-api.onrender.com/api/orders/MP-XXXX/confirm?token=...` — token is in the orders table
 - **Local development:** `npm run dev -- -p 3001` for the site; `python -m uvicorn main:app --port 8001` inside `backend/` for the API (SQLite locally, no setup)
